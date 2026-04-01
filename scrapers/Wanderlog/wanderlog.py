@@ -1,25 +1,21 @@
-from selenium import webdriver
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import csv
 import time
 
 from config import FIELDNAMES
-from scraper import scrape_restaurant
+from driver import create_driver, scrape_with_own_driver
 
-options = Options()
-options.add_argument("--headless")
-options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
+MAX_WORKERS = 3
 
-driver = webdriver.Chrome(options=options)
+# First: 
+# Collect links
+driver = create_driver()
 wait = WebDriverWait(driver, 10)
 
 try:
-    # First: 
-    # Collect links
     driver.get("https://wanderlog.com/list/geoCategory/30885/best-restaurants-to-have-dinner-in-beirut")
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "h2 a.color-gray-900")))
 
@@ -36,18 +32,28 @@ try:
     hrefs = list(dict.fromkeys([l.get_attribute("href") for l in links]))
     print(f"Found {len(hrefs)} restaurants")
 
-    # Second: 
-    # Scrape & write to CSV
-    with open("beirut_restaurants.csv", "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
-        writer.writeheader()
-
-        for i, href in enumerate(hrefs):
-            print(f"Scraping [{i+1}/{len(hrefs)}]: {href}")
-            row = scrape_restaurant(driver, href, wait)
-            writer.writerow(row)
-            print(f"  Done: {row['name']}")
-
 finally:
     driver.quit()
-    print("Done! Saved to beirut_restaurants.csv")
+
+
+# Second: 
+# Scrape in parallel by multithreading
+# then write to CSV
+
+with open("beirut_restaurants.csv", "w", newline="", encoding="utf-8") as f:
+    writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
+    writer.writeheader()
+
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = {executor.submit(scrape_with_own_driver, href): href for href in hrefs}
+
+        for i, future in enumerate(as_completed(futures)):
+            href = futures[future]
+            try:
+                row = future.result()
+                writer.writerow(row)
+                print(f"  [{i+1}/{len(hrefs)}] Done: {row['name']}")
+            except Exception as e:
+                print(f"  Failed: {href} → {e}")
+
+print("Done! Saved to beirut_restaurants.csv")
