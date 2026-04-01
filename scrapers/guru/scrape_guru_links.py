@@ -24,31 +24,7 @@ cities_to_scrape={
     "Khalde": "https://t.restaurantguru.com/restaurant-Khalde-t1",
     "Tripoli": "https://t.restaurantguru.com/restaurant-Tripoli-North-t1"
 }
-#bypass captcha (it wont work if headless mode is on)
-def alert_user_for_captcha():
-    """Plays a sound and shows a popup if a CAPTCHA is detected."""
-    for _ in range(3):
-        winsound.Beep(1000, 500) 
-        time.sleep(0.1)
-    ctypes.windll.user32.MessageBoxW(0, "🚨 CAPTCHA DETECTED! Solve it in the browser, then click OK here.", "Scraper Alert", 0x1000)
 
-def check_for_captcha(driver):
-    #Checks for 'unusual traffic' or recaptcha and pauses for manual solution.
-    captcha_keywords = ["verify that you are human", "unusual traffic", "g-recaptcha"]
-    try:
-        page_text = driver.page_source.lower()
-        if any(word in page_text for word in captcha_keywords):
-            print("🚨 Captcha detected! Alerting user...")
-            alert_user_for_captcha()
-            # Wait loop until keywords are gone
-            while any(word in driver.page_source.lower() for word in captcha_keywords):
-                print("Waiting for you to solve the captcha...")
-                time.sleep(10)
-            print("✅ Captcha cleared. Resuming...")
-            return True
-    except:
-        pass 
-    return False
 
 def handle_vignette(driver):
     #close google ad if present
@@ -81,7 +57,6 @@ def scrape_city_links(city_name, city_url):
     try:
         print(f"[Thread-{city_name}]: {city_url}")
         driver.get(city_url)
-        check_for_captcha(driver)
         handle_vignette(driver)
 
         last_height = driver.execute_script("return document.body.scrollHeight")
@@ -89,7 +64,7 @@ def scrape_city_links(city_name, city_url):
         #give the page 3 chances to load(ktir am yekhod wa2t to load w its missing data)
         while retries < 3: 
             #scroll by chunks
-            check_for_captcha(driver)
+            
             try:
                 
                 for _ in range(3):
@@ -141,5 +116,5 @@ def run_multi_city_part_1():
         executor.map(lambda p: scrape_city_links(*p), cities_to_scrape.items())
     print("\n--- ALL CITIES FINISHED ---")
 
-if __name__ == "__main__":
-    run_multi_city_part_1()
+
+run_multi_city_part_1()
