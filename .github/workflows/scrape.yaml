@@ -24,6 +24,9 @@ jobs:
       - name: Run Scraper
         run: python scrapers/guru/guru.py
 
+      - name: Debug File List
+        run: ls -R  # This shows you every file created by the script
+
       - name: Commit and Push changes
         run: |
           git config --global user.name "GitHub Action"
