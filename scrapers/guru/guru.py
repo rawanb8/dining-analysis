@@ -19,9 +19,9 @@ def create_driver():
     options = Options()
     
     options.page_load_strategy = 'eager'
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
+    # options.add_argument("--headless=new")
+    # options.add_argument("--no-sandbox")
+    # options.add_argument("--disable-dev-shm-usage")
     
     # tryingn to avoid verify human
     options.add_argument("--disable-blink-features=AutomationControlled")
@@ -31,6 +31,8 @@ def create_driver():
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
         ]
     options.add_argument(f"user-agent={random.choice(uas)}")
+    # prefs = {"profile.managed_default_content_settings.images": 2}
+    # options.add_experimental_option("prefs", prefs)
     return webdriver.Chrome(options=options)
 
 
@@ -89,13 +91,19 @@ def extract_restaurant_data(url):
 
     try:
         driver.get(url)
-        time.sleep(random.uniform(3, 6))
+        time.sleep(random.uniform(8, 15))
 
         soup = BeautifulSoup(driver.page_source, "lxml")
         
         if "captcha" in driver.page_source.lower() or "verify you are human" in driver.page_source.lower():
-            print(f"🚩IP Blocked on: {url}")
-            return None
+            print(f"verification on {url}! You have 15 seconds to click the box...")
+            time.sleep(15) 
+            
+            if "captcha" in driver.page_source.lower() or "verify you are human" in driver.page_source.lower():
+                print(f"🚩 Still blocked. Skipping {url}")
+                return None
+            else:
+                print("CAPTCHA bypassed! Continuing extraction...")
 
         # Name
         title_container = soup.find("div", class_="title_container")
