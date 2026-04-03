@@ -1,36 +1,36 @@
-name: Restaurant Guru Scraper
+# name: Restaurant Guru Scraper
 
-on:
-  schedule:
-    - cron: '0 */2 * * *'  
-  workflow_dispatch:
+# on:
+#   schedule:
+#     - cron: '0 */2 * * *'  
+#   workflow_dispatch:
 
-jobs:
-  scrape:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+# jobs:
+#   scrape:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+#       - name: Setup Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.11'
 
-      - name: Install Dependencies
-        run: |
-          pip install selenium pandas beautifulsoup4 lxml
+#       - name: Install Dependencies
+#         run: |
+#           pip install selenium pandas beautifulsoup4 lxml
 
-      - name: Run Scraper
-        run: python scrapers/guru/guru.py
+#       - name: Run Scraper
+#         run: python scrapers/guru/guru.py
 
-      - name: Debug File List
-        run: ls -R  # This shows you every file created by the script
+#       - name: Debug File List
+#         run: ls -R  # This shows you every file created by the script
 
-      - name: Commit and Push changes
-        run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "actions@github.com"
-          git add data/guru.csv scrapers/guru/processed_links.txt
-          git commit -m "Automated Scrape: Updated guru restaurant data" || exit 0
-          git push
+#       - name: Commit and Push changes
+#         run: |
+#           git config --global user.name "GitHub Action"
+#           git config --global user.email "actions@github.com"
+#           git add data/guru.csv scrapers/guru/processed_links.txt
+#           git commit -m "Automated Scrape: Updated guru restaurant data" || exit 0
+#           git push
