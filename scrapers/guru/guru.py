@@ -13,7 +13,7 @@ import os
 TXT_FILE = "scrapers/guru/links/all_links.txt"
 PROGRESS_FILE = "scrapers/guru/processed_links.txt"
 OUTPUT_FILE = "data/guru.csv"
-BATCH = 5
+BATCH = 10
 
 def load_all_reviews(driver):
     try:
@@ -171,7 +171,7 @@ if __name__ == "__main__":
                 f.write(link + "\n")
             
             print(f"✅ Saved: {data['name']}")
-            delay = random.uniform(8, 13)
+            delay = random.uniform(5, 10)
             print(f" Sleeping for {delay:.1f}s to avoid detection...")
             time.sleep(delay)
         else:
