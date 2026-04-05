@@ -63,7 +63,7 @@ def extract_restaurant_data(url):
     try:
         driver.get(url)
 
-        WebDriverWait(driver, 20).until(
+        WebDriverWait(driver, 25).until(
             EC.presence_of_element_located((By.TAG_NAME, "h1"))
         )
         try:
