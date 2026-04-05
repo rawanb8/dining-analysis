@@ -13,7 +13,7 @@ import os
 TXT_FILE = "scrapers/guru/links/all_links.txt"
 PROGRESS_FILE = "scrapers/guru/processed_links.txt"
 OUTPUT_FILE = "data/guru.csv"
-BATCH = 20
+BATCH = 30
 
 def load_all_reviews(driver):
     try:
