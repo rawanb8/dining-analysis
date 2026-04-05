@@ -13,7 +13,7 @@ import os
 TXT_FILE = "scrapers/guru/links/all_links.txt"
 PROGRESS_FILE = "scrapers/guru/processed_links.txt"
 OUTPUT_FILE = "data/guru.csv"
-BATCH = 10
+BATCH = 20
 
 def load_all_reviews(driver):
     try:
@@ -55,8 +55,8 @@ def extract_restaurant_data(url):
     options = Options()
     options.page_load_strategy = 'normal'
     options.add_argument("--disable-blink-features=AutomationControlled")
-    prefs = {"profile.managed_default_content_settings.images": 2}
-    options.add_experimental_option("prefs", prefs)
+    # prefs = {"profile.managed_default_content_settings.images": 2}
+    # options.add_experimental_option("prefs", prefs)
     
     driver = webdriver.Chrome(options=options)
     
