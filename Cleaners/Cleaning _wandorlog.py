@@ -2,22 +2,29 @@ import pandas as pd
 import numpy as np
 import re
 from datetime import datetime
+import os
+
+import nltk
+nltk.download('brown')
+nltk.download('punkt')
+nltk.download('wordnet')
+nltk.download('averaged_perceptron_tagger')
 
 try:
     from textblob import TextBlob
     SENTIMENT_AVAILABLE = True
 except ImportError:
     SENTIMENT_AVAILABLE = False
-    print("TextBlob not installed. Run: pip install textblob")
+    print("⚠️  TextBlob not installed. Run: pip install textblob")
 
-# CONFIGURATION
+INPUT_FILE = '../data/wandor_restaurants.csv'  
+OUTPUT_RESTAURANTS = '../cleaned/Wandorlog_restaurants_clean.csv'  
+OUTPUT_REVIEWS = '../cleaned/Wandorlog_reviews_clean.csv'   
 
-INPUT_FILE = 'data/wandor_restaurants.csv'
-OUTPUT_RESTAURANTS = 'wandorlog_restaurants_clean.csv'
-OUTPUT_REVIEWS = 'wandorlog_reviews_clean.csv'
+os.makedirs('../cleaned', exist_ok=True)
 
 print("="*80)
-print("🧹 Wandor DATA CLEANING - BEIRUT RESTAURANTS")
+print("🧹 SOURCE 1 DATA CLEANING - BEIRUT RESTAURANTS")
 print("="*80)
 print(f"\nInput:  {INPUT_FILE}")
 print(f"Output: {OUTPUT_RESTAURANTS}")
@@ -25,7 +32,6 @@ print(f"        {OUTPUT_REVIEWS}")
 print()
 
 # STEP 1: LOAD DATA
-
 
 print("📂 STEP 1: Loading data...")
 
@@ -37,7 +43,6 @@ print()
 
 # STEP 2: CREATE UNIQUE RESTAURANT IDs
 
-
 print("🔑 STEP 2: Creating unique restaurant IDs...")
 
 df['restaurant_id'] = ['src1_' + str(i+1).zfill(3) for i in range(len(df))]
@@ -47,12 +52,16 @@ print()
 
 # STEP 3: CLEAN BASIC FIELDS
 
+
 print("🏷️  STEP 3: Cleaning basic fields...")
 
 # Name - trim whitespace
 df['name'] = df['name'].str.strip()
 
+
+
 # STEP 4: PARSE CUISINE
+
 
 print("🍽️  STEP 4: Parsing cuisine information...")
 
@@ -98,10 +107,6 @@ def parse_address(address):
     
     parts = [p.strip() for p in str(address).split(',')]
     
-    # Most common formats:
-    # 1. "Area, City, Country" (3 parts)
-    # 2. "Street, Area, City, Country" (4 parts)
-    # 3. "City, Country" (2 parts)
     
     if len(parts) >= 3:
         return {
@@ -133,12 +138,17 @@ unique_areas = df['area'].nunique()
 print(f"   ✓ Extracted {unique_areas} unique areas/neighborhoods")
 print()
 
+
+
 # STEP 6: CLEAN PHONE NUMBERS
+
 
 print("📞 STEP 6: Standardizing phone numbers...")
 
 def clean_phone(phone):
-
+    """
+    Standardize to +961XXXXXXXX format (Lebanon country code)
+    """
     if pd.isna(phone):
         return np.nan
     
@@ -164,8 +174,8 @@ df['phone'] = df['phone'].apply(clean_phone)
 valid_phones = df['phone'].notna().sum()
 print(f"   ✓ Standardized {valid_phones}/{len(df)} phone numbers")
 print()
-
 # STEP 7: PROCESS RATINGS
+
 
 print("⭐ STEP 7: Processing ratings...")
 
@@ -357,7 +367,10 @@ for col in text_columns:
 print(f"   ✓ Cleaned {len(text_columns)} text columns")
 print()
 
+
+
 # STEP 12: PARSE MENU ITEMS
+
 
 print("🍽️  STEP 12: Parsing menu items...")
 
@@ -374,7 +387,10 @@ restaurants_with_menu = (df['menu_items'] != '').sum()
 print(f"   ✓ {restaurants_with_menu}/{len(df)} restaurants have menu items")
 print()
 
+
+
 # STEP 13: EXTRACT FEATURES
+
 
 print("💡 STEP 13: Extracting features...")
 
@@ -401,7 +417,7 @@ print()
 
 print("📋 STEP 14: Adding metadata...")
 
-df['data_source'] = 'wandorlog'
+df['data_source'] = 'source1'
 df['scraped_date'] = datetime.now().strftime('%Y-%m-%d')
 df['last_updated'] = datetime.now().strftime('%Y-%m-%d')
 df['source_url'] = df['address_link']
@@ -565,10 +581,5 @@ print(f"""
    • Total review count: {restaurants_final['review_count_total'].sum():,}
    • Data completeness: {((restaurants_final['rating_overall'].notna().sum() + restaurants_final['phone'].notna().sum()) / (2 * len(restaurants_final)) * 100):.0f}%
 
-✨ NEXT STEPS:
-   1. Review the output files
-   2. Share with your team
-   3. Merge with other sources
-   4. Start analysis & visualization!
 """)
 print("="*80)
