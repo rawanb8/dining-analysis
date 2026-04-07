@@ -40,7 +40,7 @@ finally:
 # Scrape in parallel by multithreading
 # then write to CSV
 
-with open("beirut_restaurants.csv", "w", newline="", encoding="utf-8") as f:
+with open("data/Wandorlog/wandor_restaurants.csv", "w", newline="", encoding="utf-8") as f:
     writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
     writer.writeheader()
 
@@ -56,4 +56,4 @@ with open("beirut_restaurants.csv", "w", newline="", encoding="utf-8") as f:
             except Exception as e:
                 print(f"  Failed: {href} → {e}")
 
-print("Done! Saved to beirut_restaurants.csv")
+print("Done! Saved to wandor_restaurants.csv")
