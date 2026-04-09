@@ -557,6 +557,13 @@ restaurants_final.to_csv(OUTPUT_RESTAURANTS, index=False)
 print(f"   ✓ Saved: {OUTPUT_RESTAURANTS}")
 print(f"      ({len(restaurants_final)} restaurants × {len(restaurants_columns)} columns)")
 
+# Attach restaurant metadata to reviews for NLP use
+restaurant_meta = restaurants_final[['restaurant_id', 'area', 'cuisine_primary', 'price_category']].copy()
+reviews_df = reviews_df.merge(restaurant_meta, on='restaurant_id', how='left')
+reviews_df['area'] = reviews_df['area'].fillna('Unknown')
+reviews_df['cuisine_primary'] = reviews_df['cuisine_primary'].fillna('Unknown')
+reviews_df['price_category'] = reviews_df['price_category'].fillna('Unknown')
+
 # Save reviews
 reviews_df.to_csv(OUTPUT_REVIEWS, index=False)
 print(f"   ✓ Saved: {OUTPUT_REVIEWS}")

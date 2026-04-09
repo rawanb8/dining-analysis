@@ -273,6 +273,13 @@ else:
     reviews_df['sentiment_score'] = np.nan
     reviews_df['sentiment_subjectivity'] = np.nan
     reviews_df['sentiment_category'] = 'Unknown'
+    
+#edit: add location, price category, and cuisine mainly
+restaurant_meta = restaurants_final[['restaurant_id', 'area', 'cuisine_primary', 'price_category']].copy()
+reviews_df = reviews_df.merge(restaurant_meta, on='restaurant_id', how='left')
+reviews_df['area'] = reviews_df['area'].fillna('Unknown')
+reviews_df['cuisine_primary'] = reviews_df['cuisine_primary'].fillna('Unknown')
+reviews_df['price_category'] = reviews_df['price_category'].fillna('Unknown')
 
 restaurants_final.to_csv(OUTPUT_RESTAURANTS, index=False)
 print(f"✓ Saved: {OUTPUT_RESTAURANTS}")
