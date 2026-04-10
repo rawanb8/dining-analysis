@@ -79,7 +79,7 @@ def generate_grid(lat, lon, steps=1, offset=0.005):
 
 
 cities = [
-    "Beirut Lebanon","Saida Lebanon"
+    "Tyre Lebanon"," Byblos Lebanon"
 ]
 
 restaurants = {}
@@ -142,52 +142,56 @@ for i, (location_id, basic) in enumerate(restaurants.items(), start=1):
 
 print(f"Collected details for {len(all_data)} restaurants")
 
-with open("restaurants_with_reviews.csv", "w", newline="", encoding="utf-8") as f:
+import os
+
+file_exists = os.path.isfile("restaurants_with_reviews.csv")
+
+with open("restaurants_with_reviews.csv", "a", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
 
-    writer.writerow([
-        "city",
-        "location_id",
-        "address",
-        "restaurant_name",
-        "website",
-        "tripadvisor_url",
-        "rating",
-        "num_reviews",
-         "review_title",
-         "review_text",
-         "review_rating"
-    ])
+    # Write header ONLY if file is new
+    if not file_exists:
+        writer.writerow([
+            "city",
+            "location_id",
+            "address",
+            "restaurant_name",
+            "website",
+            "tripadvisor_url",
+            "rating",
+            "num_reviews",
+            "review_title",
+            "review_text",
+            "review_rating"
+        ])
 
     for r in all_data:
-         if r["reviews"]:
-             for review in r["reviews"]:
-                 writer.writerow([
-                     r["city"],
-                     r["location_id"],
-                     r["address"],
-                     r["name"],
-                     r["website"],
-                     r["tripadvisor_url"],
-                     r["rating"],
-                     r["num_reviews"],
-                     review.get("title"),
-                     review.get("text"),
-                     review.get("rating")
-                 ])
-         else:
-             writer.writerow([
-                 r["city"],
-                 r["location_id"],
-                 r["address"],
-                 r["name"],
-                 r["website"],
-                 r["tripadvisor_url"],
-                 r["rating"],
-                 r["num_reviews"],
-                 None,
-                 None,
-                 None
-             ])
-
-print("Saved to restaurants_with_reviews.csv")
+        if r["reviews"]:
+            for review in r["reviews"]:
+                writer.writerow([
+                    r["city"],
+                    r["location_id"],
+                    r["address"],
+                    r["name"],
+                    r["website"],
+                    r["tripadvisor_url"],
+                    r["rating"],
+                    r["num_reviews"],
+                    review.get("title"),
+                    review.get("text"),
+                    review.get("rating")
+                ])
+        else:
+            writer.writerow([
+                r["city"],
+                r["location_id"],
+                r["address"],
+                r["name"],
+                r["website"],
+                r["tripadvisor_url"],
+                r["rating"],
+                r["num_reviews"],
+                None,
+                None,
+                None
+            ])
