@@ -70,7 +70,7 @@ def get_reviews(location_id, language="en"):
     return api_get(f"/location/{location_id}/reviews", params)
 
 
-def generate_grid(lat, lon, steps=1, offset=0.005):
+def generate_grid(lat, lon, steps=2, offset=0.005):
     points = []
     for i in range(-steps, steps + 1):
         for j in range(-steps, steps + 1):
@@ -79,7 +79,7 @@ def generate_grid(lat, lon, steps=1, offset=0.005):
 
 
 cities = [
-    "Tyre Lebanon"," Byblos Lebanon"
+    "Beirut Lebanon"
 ]
 
 restaurants = {}
@@ -89,7 +89,7 @@ for city in cities:
         print(f"\nProcessing {city}...")
         lat, lon = city_to_coords(city)
 
-        grid_points = generate_grid(lat, lon, steps=1, offset=0.005)
+        grid_points = generate_grid(lat, lon, steps=2, offset=0.005)
 
         for idx, (g_lat, g_lon) in enumerate(grid_points, start=1):
             try:
@@ -106,7 +106,7 @@ for city in cities:
                             "address": item.get("address_obj", {}).get("address_string")
                         }
 
-                time.sleep(2)
+                time.sleep(60)
 
             except Exception as e:
                 print(f"Failed at {g_lat}, {g_lon} in {city}: {e}")
@@ -135,7 +135,7 @@ for i, (location_id, basic) in enumerate(restaurants.items(), start=1):
             "reviews": reviews.get("data", [])
         })
 
-        time.sleep(5)
+        time.sleep(60)
 
     except Exception as e:
         print(f"Failed for {location_id}: {e}")
@@ -144,9 +144,11 @@ print(f"Collected details for {len(all_data)} restaurants")
 
 import os
 
-file_exists = os.path.isfile("restaurants_with_reviews.csv")
+file_path = r"C:\Users\Msi\Desktop\RHU\Spring 2026\DatasSience and WebScraping\Datascience Project\dining-analysis\restaurants_with_reviews.csv"
 
-with open("restaurants_with_reviews.csv", "a", newline="", encoding="utf-8") as f:
+file_exists = os.path.isfile(file_path)
+
+with open(file_path, "a", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
 
     # Write header ONLY if file is new
