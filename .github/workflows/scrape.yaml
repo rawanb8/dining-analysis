@@ -1,36 +1,40 @@
-# name: Restaurant Guru Scraper
+name: Daily Data Cleaning
 
-# on:
-#   schedule:
-#     - cron: '0 */2 * * *'  
-#   workflow_dispatch:
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:  # manual trigger for testing
 
-# jobs:
-#   scrape:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
+jobs:
+  clean-data:
+    runs-on: ubuntu-latest
 
-#       - name: Setup Python
-#         uses: actions/setup-python@v5
-#         with:
-#           python-version: '3.11'
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-#       - name: Install Dependencies
-#         run: |
-#           pip install selenium pandas beautifulsoup4 lxml
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-#       - name: Run Scraper
-#         run: python scrapers/guru/guru.py
+      - name: Install dependencies
+        run: |
+          pip install pandas numpy textblob nltk
+          python -m textblob.download_corpora
 
-#       - name: Debug File List
-#         run: ls -R  # This shows you every file created by the script
+      - name: Run Guru cleaning
+        working-directory: Cleaners
+        run: python Cleaning_guru.py
 
-#       - name: Commit and Push changes
-#         run: |
-#           git config --global user.name "GitHub Action"
-#           git config --global user.email "actions@github.com"
-#           git add data/guru.csv scrapers/guru/processed_links.txt
-#           git commit -m "Automated Scrape: Updated guru restaurant data" || exit 0
-#           git push
+      - name: Run TripAdvisor cleaning
+        working-directory: Cleaners
+        run: python Cleaning_tripadvisor.py
+
+      - name: Commit cleaned files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add cleaned/
+          git diff --staged --quiet || git commit -m "Auto-clean data $(date +'%Y-%m-%d')"
+          git push
