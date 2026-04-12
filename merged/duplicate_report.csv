@@ -1,0 +1,38 @@
+id1,id2,name1,name2,similarity
+src1_013,src2_178,Jai asian Restaurant,Abou Hassan Restaurant,0.905
+src1_013,src2_309,Jai asian Restaurant,Al Ajami - Restaurant,0.859
+src1_013,src2_362,Jai asian Restaurant,Al Fayat restaurant,0.885
+src1_013,src2_379,Jai asian Restaurant,Al Hani restaurant,0.895
+src1_013,src2_437,Jai asian Restaurant,Al Mayass Restaurant,0.875
+src1_013,src2_468,Jai asian Restaurant,Al Qaysar Restaurant,0.9
+src1_013,src2_600,Jai asian Restaurant,Alsah restaurant,0.861
+src1_013,src2_655,Jai asian Restaurant,Angham Restaurant,0.851
+src1_013,src2_700,Jai asian Restaurant,Arnabita Restaurant,0.859
+src1_013,src2_711,Jai asian Restaurant,Asbaya Restaurant,0.878
+src1_013,src2_1435,Jai asian Restaurant,Cargo - Bar & Restaurant,0.85
+src1_016,src2_600,Cocteau Restaurant,Alsah restaurant,0.853
+src1_016,src2_642,Cocteau Restaurant,Amore - Restaurant,0.882
+src1_016,src2_700,Cocteau Restaurant,Arnabita Restaurant,0.851
+src1_016,src2_838,Cocteau Restaurant,Babylone - Restaurant,0.851
+src1_016,src2_980,Cocteau Restaurant,Be Local Restaurant,0.878
+src1_016,src2_1044,Cocteau Restaurant,Bhar Restaurant,0.864
+src1_016,src2_1251,Cocteau Restaurant,CREPIER RESTAURANT,0.861
+src1_016,src2_1435,Cocteau Restaurant,Cargo - Bar & Restaurant,0.868
+src1_016,src2_1535,Cocteau Restaurant,Che - Restaurant,0.906
+src1_016,src2_1729,Cocteau Restaurant,Cnena - Restaurant,0.912
+src1_016,src2_1749,Cocteau Restaurant,Cocteau Restaurant,1.0
+src1_016,src2_2087,Cocteau Restaurant,Duo Restaurant,0.875
+src1_019,src2_355,Al Falamanki Sodeco,Al Falamanki Raouche,0.885
+src1_042,src2_090,Amelia,Amelia,1.0
+src1_042,src2_654,Amelia,Angelina,0.857
+src1_050,src2_263,ASH Beirut,Agora Beirut,0.864
+src1_050,src2_337,ASH Beirut,Al Beiruti,0.9
+src1_050,src2_626,ASH Beirut,Amavi Beirut,0.864
+src1_050,src2_704,ASH Beirut,Arthaus Beirut,0.875
+src1_050,src2_776,ASH Beirut,Azmi Beirut,0.881
+src1_050,src2_793,ASH Beirut,BAL Beirut,0.9
+src1_050,src2_796,ASH Beirut,Quora Beirut,0.864
+src1_050,src2_911,ASH Beirut,Bar Plus Beirut,0.86
+src1_050,src2_1243,ASH Beirut,Clap Beirut,0.881
+src1_050,src2_1463,ASH Beirut,Catrinas Beirut,0.86
+src1_050,src2_1950,ASH Beirut,Dar Beirut,0.9
