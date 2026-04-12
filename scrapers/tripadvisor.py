@@ -79,7 +79,7 @@ def generate_grid(lat, lon, steps=2, offset=0.005):
     return points
 
 
-city = os.environ.get("CITY_NAME", "Beirut Lebanon")
+city = os.environ.get("CITY_NAME")
 cities = [city]
 
 restaurants = {}
