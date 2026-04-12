@@ -49,6 +49,9 @@ def extract_reviews_joined(soup):
 
 def extract_restaurant_data(url):
     # Initializing all variables to N/A
+
+
+    
     name, rating, cuisines, price_range = "N/A", "N/A", "N/A", "N/A"
     location, features, contact_info, joined_reviews = "N/A", "N/A", "N/A", "N/A"
 
