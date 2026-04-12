@@ -2,7 +2,7 @@ name: TripAdvisor Scraper
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 */12 * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         city:
+          - "Byblos Lebanon"
           - "Beirut Lebanon"
           - "Tripoli Lebanon"
           - "Sidon Lebanon"
