@@ -1,0 +1,41 @@
+name: TripAdvisor Scraper
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        city:
+          - "Beirut Lebanon"
+          - "Tripoli Lebanon"
+          - "Sidon Lebanon"
+          - "Tyre Lebanon"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run scraper
+        env:
+          CITY_NAME: ${{ matrix.city }}
+        run: python tripadvisor.py
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-${{ matrix.city }}
+          path: restaurants_with_reviews.csv

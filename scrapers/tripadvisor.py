@@ -1,6 +1,7 @@
 import requests
 import time
 import csv
+import os
 
 API_KEY = "4B459D77904343F08A4CF45AD616EA38"
 BASE_URL = "https://api.content.tripadvisor.com/api/v1"
@@ -78,9 +79,8 @@ def generate_grid(lat, lon, steps=2, offset=0.005):
     return points
 
 
-cities = [
-    "Beirut Lebanon"
-]
+city = os.environ.get("CITY_NAME", "Beirut Lebanon")
+cities = [city]
 
 restaurants = {}
 
@@ -142,9 +142,9 @@ for i, (location_id, basic) in enumerate(restaurants.items(), start=1):
 
 print(f"Collected details for {len(all_data)} restaurants")
 
-import os
 
-file_path = r"C:\Users\Msi\Desktop\RHU\Spring 2026\DatasSience and WebScraping\Datascience Project\dining-analysis\restaurants_with_reviews.csv"
+
+file_path = "restaurants_with_reviews.csv"
 
 file_exists = os.path.isfile(file_path)
 
