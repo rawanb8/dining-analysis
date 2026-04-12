@@ -1,0 +1,41 @@
+name: TripAdvisor Scraper (Rotating Cities)
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Select city
+        id: select_city
+        run: |
+          cities=("Byblos Lebanon" "Beirut Lebanon" "Tripoli Lebanon" "Sidon Lebanon" "Tyre Lebanon")
+          
+          index=$(( ($(date +%s) / 43200) % ${#cities[@]} ))
+          
+          echo "CITY_NAME=${cities[$index]}" >> $GITHUB_ENV
+          echo "Selected city: ${cities[$index]}"
+
+      - name: Run scraper
+        run: python scrapers/tripadvisor.py
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-${{ env.CITY_NAME }}
+          path: restaurants_with_reviews.csv
