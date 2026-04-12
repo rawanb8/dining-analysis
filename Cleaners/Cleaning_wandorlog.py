@@ -4,18 +4,27 @@ import re
 from datetime import datetime
 import os
 
-import nltk
-nltk.download('brown')
-nltk.download('punkt')
-nltk.download('wordnet')
-nltk.download('averaged_perceptron_tagger')
-
+SENTIMENT_AVAILABLE = False
 try:
     from textblob import TextBlob
+    # Test if corpora is downloaded
+    test_blob = TextBlob("test")
+    _ = test_blob.sentiment
     SENTIMENT_AVAILABLE = True
 except ImportError:
-    SENTIMENT_AVAILABLE = False
     print("⚠️  TextBlob not installed. Run: pip install textblob")
+except LookupError:
+    print("⚠️  TextBlob corpora not downloaded. Downloading now...")
+    try:
+        import nltk
+        nltk.download('brown', quiet=True)
+        nltk.download('punkt', quiet=True)
+        from textblob import TextBlob
+        SENTIMENT_AVAILABLE = True
+        print("✅  TextBlob corpora downloaded successfully!")
+    except:
+        print("⚠️  Could not download corpora. Run: python -m textblob.download_corpora")
+
 
 INPUT_FILE = '../data/wandor_restaurants.csv'  
 OUTPUT_RESTAURANTS = '../cleaned/Wandorlog_restaurants_clean.csv'  
@@ -45,13 +54,14 @@ print()
 
 print("🔑 STEP 2: Creating unique restaurant IDs...")
 
+# Format: src1_001, src1_002, etc.
 df['restaurant_id'] = ['src1_' + str(i+1).zfill(3) for i in range(len(df))]
 
 print(f"   ✓ Created IDs from src1_001 to src1_{len(df):03d}")
 print()
 
-# STEP 3: CLEAN BASIC FIELDS
 
+# STEP 3: CLEAN BASIC FIELDS
 
 print("🏷️  STEP 3: Cleaning basic fields...")
 
@@ -59,9 +69,7 @@ print("🏷️  STEP 3: Cleaning basic fields...")
 df['name'] = df['name'].str.strip()
 
 
-
 # STEP 4: PARSE CUISINE
-
 
 print("🍽️  STEP 4: Parsing cuisine information...")
 
@@ -89,7 +97,9 @@ print(f"   ✓ Found {unique_cuisines} unique cuisine types")
 print(f"   ✓ Most common: {df['cuisine_primary'].mode()[0]}")
 print()
 
+
 # STEP 5: PARSE ADDRESS
+
 print("📍 STEP 5: Parsing addresses...")
 
 def parse_address(address):
@@ -106,7 +116,6 @@ def parse_address(address):
         }
     
     parts = [p.strip() for p in str(address).split(',')]
-    
     
     if len(parts) >= 3:
         return {
@@ -139,9 +148,7 @@ print(f"   ✓ Extracted {unique_areas} unique areas/neighborhoods")
 print()
 
 
-
 # STEP 6: CLEAN PHONE NUMBERS
-
 
 print("📞 STEP 6: Standardizing phone numbers...")
 
@@ -174,8 +181,9 @@ df['phone'] = df['phone'].apply(clean_phone)
 valid_phones = df['phone'].notna().sum()
 print(f"   ✓ Standardized {valid_phones}/{len(df)} phone numbers")
 print()
-# STEP 7: PROCESS RATINGS
 
+
+# STEP 7: PROCESS RATINGS
 
 print("⭐ STEP 7: Processing ratings...")
 
@@ -216,6 +224,7 @@ print(f"   ✓ Average overall rating: {df['rating_overall'].mean():.2f}/5.0")
 print(f"   ✓ Total reviews: {df['review_count_total'].sum():,}")
 print()
 
+
 # STEP 8: STAR DISTRIBUTION
 
 print("🌟 STEP 8: Calculating star distribution...")
@@ -241,12 +250,16 @@ print(f"   ✓ Average 5-star: {df['star_5_percent'].mean():.1f}%")
 print(f"   ✓ Average 1-star: {df['star_1_percent'].mean():.1f}%")
 print()
 
+
 # STEP 9: PARSE WORKING HOURS
 
 print("🕐 STEP 9: Parsing working hours...")
 
 def parse_hours(hours_text):
-
+    """
+    Parse working hours into individual day columns
+    Example: "Monday: 9AM-11PM | Tuesday: 9AM-11PM" → dict of hours per day
+    """
     days = {
         'hours_monday': 'Unknown',
         'hours_tuesday': 'Unknown',
@@ -277,6 +290,7 @@ df = pd.concat([df, hours_df], axis=1)
 valid_hours = (hours_df != 'Unknown').any(axis=1).sum()
 print(f"   ✓ Parsed hours for {valid_hours}/{len(df)} restaurants")
 print()
+
 
 # STEP 10: INFER PRICE CATEGORY
 
@@ -322,12 +336,15 @@ for price, count in df['price_category'].value_counts().items():
     print(f"      {price}: {count}")
 print()
 
+
 # STEP 11: CLEAN TEXT FIELDS
 
 print("📝 STEP 11: Cleaning text content...")
 
 def clean_text(text):
-
+    """
+    Remove encoding issues and clean text
+    """
     if pd.isna(text):
         return ''
     
@@ -368,9 +385,7 @@ print(f"   ✓ Cleaned {len(text_columns)} text columns")
 print()
 
 
-
 # STEP 12: PARSE MENU ITEMS
-
 
 print("🍽️  STEP 12: Parsing menu items...")
 
@@ -388,30 +403,49 @@ print(f"   ✓ {restaurants_with_menu}/{len(df)} restaurants have menu items")
 print()
 
 
-
 # STEP 13: EXTRACT FEATURES
 
+print("💡 STEP 13: Extracting features from text and reviews...")
 
-print("💡 STEP 13: Extracting features...")
-
-def extract_features(tips_text):
-    """Extract boolean features from tips"""
-    if pd.isna(tips_text):
-        return {'delivery_available': 'Unknown', 'outdoor_seating': 'Unknown', 'reservation_required': 'Unknown'}
+def extract_features(row):
+    """Extract features from description, why_to_go, tips, reviews_summary, and reviews"""
     
-    text = str(tips_text).lower()
+    text_fields = [
+        str(row.get('description', '')),
+        str(row.get('why_to_go', '')),
+        str(row.get('tips', '')),
+        str(row.get('reviews_summary', '')),
+        str(row.get('reviews', ''))
+    ]
+    full_text = ' '.join(text_fields).lower()
     
-    return {
-        'delivery_available': 'TRUE' if 'delivery' in text else 'Unknown',
-        'outdoor_seating': 'TRUE' if any(word in text for word in ['outdoor', 'terrace', 'patio']) else 'Unknown',
-        'reservation_required': 'TRUE' if any(word in text for word in ['reservation', 'book']) else 'Unknown'
-    }
+    features = {}
+    
+    features['delivery_available'] = 'TRUE' if 'delivery' in full_text else 'Unknown'
+    features['outdoor_seating'] = 'TRUE' if any(word in full_text for word in ['outdoor', 'terrace', 'patio', 'rooftop', 'garden']) else 'Unknown'
+    features['reservation_required'] = 'TRUE' if any(word in full_text for word in ['reservation', 'book', 'reserv']) else 'Unknown'
+    features['cash_only'] = 'TRUE' if 'cash only' in full_text else 'Unknown'
+    features['credit_cards_accepted'] = 'TRUE' if any(word in full_text for word in ['credit card', 'cards accepted', 'accept cards']) else 'Unknown'
+    features['wifi_available'] = 'TRUE' if any(word in full_text for word in ['wifi', 'wi-fi', 'internet', 'free wifi']) else 'Unknown'
+    features['parking_available'] = 'TRUE' if any(word in full_text for word in ['parking', 'valet', 'park available', 'free parking']) else 'Unknown'
+    features['wheelchair_accessible'] = 'TRUE' if any(word in full_text for word in ['wheelchair', 'accessible', 'handicap']) else 'Unknown'
+    features['takeaway_available'] = 'TRUE' if any(word in full_text for word in ['takeaway', 'take away', 'take-away', 'to go', 'to-go']) else 'Unknown'
+    features['live_music'] = 'TRUE' if any(word in full_text for word in ['live music', 'live band', 'music performance', 'dj', 'piano', 'singer']) else 'Unknown'
+    features['pet_friendly'] = 'TRUE' if any(word in full_text for word in ['pet friendly', 'pet-friendly', 'dog friendly', 'dogs allowed', 'pets welcome']) else 'Unknown'
+    features['kids_friendly'] = 'TRUE' if any(word in full_text for word in ['kids', 'children', 'family-friendly', 'playground', 'kids menu', 'child-friendly']) else 'Unknown'
+    
+    return features
 
-features_df = df['tips'].apply(extract_features).apply(pd.Series)
+features_df = df.apply(extract_features, axis=1, result_type='expand')
 df = pd.concat([df, features_df], axis=1)
 
-print(f"   ✓ Extracted operational features")
+for feature in features_df.columns:
+    count = (features_df[feature] == 'TRUE').sum()
+    if count > 0:
+        print(f"   ✓ {feature.replace('_', ' ')}: {count}")
+
 print()
+
 
 # STEP 14: ADD METADATA
 
@@ -424,6 +458,7 @@ df['source_url'] = df['address_link']
 
 print(f"   ✓ Added metadata fields")
 print()
+
 
 # STEP 15: CREATE FINAL RESTAURANTS TABLE
 
@@ -442,7 +477,9 @@ restaurants_columns = [
     'hours_monday', 'hours_tuesday', 'hours_wednesday', 'hours_thursday',
     'hours_friday', 'hours_saturday', 'hours_sunday',
     'delivery_available', 'outdoor_seating', 'reservation_required',
-    'description', 'menu_items', 'menu_link', 'why_to_go', 'reviews_summary', 'tips', 'website',
+    'cash_only', 'credit_cards_accepted', 'wifi_available', 'wheelchair_accessible', 'takeaway_available',
+    'parking_available', 'live_music', 'pet_friendly', 'kids_friendly',
+    'menu_items', 'menu_link', 'website',
     'data_source', 'source_url', 'scraped_date', 'last_updated'
 ]
 
@@ -451,7 +488,9 @@ restaurants_final = df[restaurants_columns].copy()
 print(f"   ✓ Created table: {len(restaurants_final)} rows × {len(restaurants_columns)} columns")
 print()
 
+
 # STEP 16: EXTRACT INDIVIDUAL REVIEWS
+
 print("💬 STEP 16: Extracting individual reviews...")
 
 reviews_list = []
@@ -512,6 +551,7 @@ print(f"   ✓ Extracted {len(reviews_df)} individual reviews")
 print(f"   ✓ Avg review length: {reviews_df['word_count'].mean():.0f} words")
 print()
 
+
 # STEP 17: SENTIMENT ANALYSIS
 
 print("😊 STEP 17: Analyzing sentiment...")
@@ -548,6 +588,7 @@ else:
 
 print()
 
+
 # STEP 18: SAVE CLEANED DATA
 
 print("💾 STEP 18: Saving cleaned data...")
@@ -557,19 +598,13 @@ restaurants_final.to_csv(OUTPUT_RESTAURANTS, index=False)
 print(f"   ✓ Saved: {OUTPUT_RESTAURANTS}")
 print(f"      ({len(restaurants_final)} restaurants × {len(restaurants_columns)} columns)")
 
-# Attach restaurant metadata to reviews for NLP use
-restaurant_meta = restaurants_final[['restaurant_id', 'area', 'cuisine_primary', 'price_category']].copy()
-reviews_df = reviews_df.merge(restaurant_meta, on='restaurant_id', how='left')
-reviews_df['area'] = reviews_df['area'].fillna('Unknown')
-reviews_df['cuisine_primary'] = reviews_df['cuisine_primary'].fillna('Unknown')
-reviews_df['price_category'] = reviews_df['price_category'].fillna('Unknown')
-
 # Save reviews
 reviews_df.to_csv(OUTPUT_REVIEWS, index=False)
 print(f"   ✓ Saved: {OUTPUT_REVIEWS}")
 print(f"      ({len(reviews_df)} reviews × {len(reviews_df.columns)} columns)")
 
 print()
+
 
 # FINAL SUMMARY
 
@@ -588,5 +623,10 @@ print(f"""
    • Total review count: {restaurants_final['review_count_total'].sum():,}
    • Data completeness: {((restaurants_final['rating_overall'].notna().sum() + restaurants_final['phone'].notna().sum()) / (2 * len(restaurants_final)) * 100):.0f}%
 
+✨ NEXT STEPS:
+   1. Review the output files
+   2. Share with your team
+   3. Merge with other sources
+   4. Start analysis & visualization!
 """)
 print("="*80)

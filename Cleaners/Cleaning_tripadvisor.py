@@ -4,12 +4,6 @@ import re
 from datetime import datetime
 import os
 
-import nltk
-nltk.download('brown', quiet=True)
-nltk.download('punkt', quiet=True)
-nltk.download('wordnet', quiet=True)
-nltk.download('averaged_perceptron_tagger', quiet=True)
-
 try:
     from textblob import TextBlob
     SENTIMENT_AVAILABLE = True
@@ -23,12 +17,20 @@ OUTPUT_REVIEWS = '../cleaned/Tripadvisor_reviews_clean.csv'
 
 os.makedirs('../cleaned', exist_ok=True)
 
-print("cleaning tripadvisor")
+print("="*70)
+print("🧹 SOURCE 3: TRIPADVISOR DATA CLEANING")
+print("="*70)
+print(f"\nInput:  {INPUT_FILE}")
+print(f"Output: {OUTPUT_RESTAURANTS}")
+print(f"        {OUTPUT_REVIEWS}\n")
+
 df = pd.read_csv(INPUT_FILE)
 
-print(f"Loaded {len(df)} rows ({df['restaurant_name'].nunique()} unique restaurants)")
+print(f"✓ Loaded {len(df)} rows ({df['restaurant_name'].nunique()} unique restaurants)\n")
 
-#split restaurant info from reviews
+# STEP 1: SPLIT RESTAURANT INFO FROM REVIEWS
+
+print("🏪 STEP 1: Aggregating restaurant info...")
 
 restaurant_df = (
     df.groupby('location_id')
@@ -43,18 +45,22 @@ restaurant_df = (
     })
     .reset_index()
 )
-#uniqye restaurant ids
+
 restaurant_df = restaurant_df.sort_values('restaurant_name').reset_index(drop=True)
 restaurant_df['restaurant_id'] = ['src3_' + str(i + 1).zfill(3) for i in range(len(restaurant_df))]
 
 # Build mapping for reviews
 loc_to_id = dict(zip(restaurant_df['location_id'], restaurant_df['restaurant_id']))
 
-#restaurant names
+print(f"✓ Found {len(restaurant_df)} unique restaurants\n")
+
+# STEP 2: CLEAN BASIC FIELDS
+
+print("🏷️  STEP 2: Cleaning basic fields...")
+
 restaurant_df['name'] = restaurant_df['restaurant_name'].str.strip()
 
 def parse_city_field(city_raw):
-    """Parse 'Beirut Lebanon' → city='Beirut', country='Lebanon'"""
     if pd.isna(city_raw):
         return 'Unknown', 'Lebanon'
     parts = str(city_raw).strip().rsplit(' ', 1)
@@ -75,7 +81,6 @@ def parse_address(row):
     addr = str(addr).strip()
     parts = [p.strip() for p in addr.split(',')]
 
-    # Try to find an area name (not the country or city already known)
     city_lower = str(row['city_clean']).lower()
     area = 'Unknown'
     for part in parts:
@@ -95,13 +100,22 @@ restaurant_df['city'] = restaurant_df['city_clean']
 
 unique_areas = restaurant_df['area'].nunique()
 unique_cities = restaurant_df['city'].nunique()
-print(f"   ✓ Found {unique_cities} cities, {unique_areas} areas")
-print()
+print(f"✓ Found {unique_cities} cities, {unique_areas} areas\n")
 
-#cuisine and phone nb not available
+# STEP 3: SET UNAVAILABLE FIELDS
+
+print("📋 STEP 3: Setting unavailable fields...")
+
+# Cuisine and phone not available in TripAdvisor data
 restaurant_df['cuisine_primary'] = 'Unknown'
 restaurant_df['cuisine_tags'] = 'Unknown'
 restaurant_df['phone'] = np.nan
+
+print(f"✓ Cuisine and phone: Not available\n")
+
+# STEP 4: PROCESS RATINGS
+
+print("⭐ STEP 4: Processing ratings...")
 
 restaurant_df['rating_tripadvisor'] = pd.to_numeric(restaurant_df['rating'], errors='coerce')
 restaurant_df['rating_google'] = np.nan
@@ -111,6 +125,12 @@ restaurant_df['review_count_tripadvisor'] = pd.to_numeric(restaurant_df['num_rev
 restaurant_df['review_count_google'] = 0
 restaurant_df['review_count_total'] = restaurant_df['review_count_tripadvisor']
 
+print(f"✓ Average rating: {restaurant_df['rating_overall'].mean():.2f}/5.0")
+print(f"✓ Total reviews: {restaurant_df['review_count_total'].sum():,}\n")
+
+# STEP 5: CALCULATE STAR DISTRIBUTION
+
+print("🌟 STEP 5: Calculating star distribution...")
 
 star_dist = (
     df.groupby('location_id')['review_rating']
@@ -138,30 +158,73 @@ for i in range(5, 0, -1):
         (restaurant_df[f'star_{i}_count'] / total_stars.replace(0, np.nan)) * 100
     ).round(1).fillna(0)
 
-print(f"   ✓ Average 5-star: {restaurant_df['star_5_percent'].mean():.1f}%")
-print(f"   ✓ Average 1-star: {restaurant_df['star_1_percent'].mean():.1f}%")
-print()
+print(f"✓ Average 5-star: {restaurant_df['star_5_percent'].mean():.1f}%")
+print(f"✓ Average 1-star: {restaurant_df['star_1_percent'].mean():.1f}%\n")
 
-#price category, working hours, and features not available
+# STEP 6: SET PRICE & HOURS
+
+print("💰 STEP 6: Setting price and hours...")
+
 restaurant_df['price_category'] = 'Unknown'
 
 for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']:
     restaurant_df[f'hours_{day}'] = 'Unknown'
-print(f"   ✓ Not available in source data")
+
+print(f"✓ Not available in source data\n")
+
+# STEP 7: EXTRACT FEATURES FROM REVIEWS
+
+print("💡 STEP 7: Extracting features from reviews...")
+
+# Collect all review text for each restaurant
+restaurant_reviews = df.groupby('location_id')['review_text'].apply(
+    lambda texts: ' '.join([str(t).lower() for t in texts if pd.notna(t)])
+).to_dict()
+
+def extract_features_from_reviews(location_id):
+    """Extract features from aggregated review text"""
+    reviews_text = restaurant_reviews.get(location_id, '')
+    
+    features = {}
+    
+    # Basic operational features
+    features['delivery_available'] = 'TRUE' if 'delivery' in reviews_text else 'Unknown'
+    features['outdoor_seating'] = 'TRUE' if any(word in reviews_text for word in ['outdoor', 'terrace', 'patio', 'rooftop', 'garden']) else 'Unknown'
+    features['reservation_required'] = 'TRUE' if any(word in reviews_text for word in ['reservation', 'book', 'reserv']) else 'Unknown'
+    
+    # Payment options
+    features['cash_only'] = 'TRUE' if 'cash only' in reviews_text else 'Unknown'
+    features['credit_cards_accepted'] = 'TRUE' if any(word in reviews_text for word in ['credit card', 'cards accepted', 'accept cards']) else 'Unknown'
+    
+    # Amenities
+    features['wifi_available'] = 'TRUE' if any(word in reviews_text for word in ['wifi', 'wi-fi', 'internet', 'free wifi']) else 'Unknown'
+    features['parking_available'] = 'TRUE' if any(word in reviews_text for word in ['parking', 'valet', 'park available', 'free parking']) else 'Unknown'
+    features['wheelchair_accessible'] = 'TRUE' if any(word in reviews_text for word in ['wheelchair', 'accessible', 'handicap']) else 'Unknown'
+    features['takeaway_available'] = 'TRUE' if any(word in reviews_text for word in ['takeaway', 'take away', 'take-away', 'to go', 'to-go']) else 'Unknown'
+    
+    # Experience features
+    features['live_music'] = 'TRUE' if any(word in reviews_text for word in ['live music', 'live band', 'music performance', 'dj', 'piano', 'singer', 'belly dancer', 'dancers']) else 'Unknown'
+    features['pet_friendly'] = 'TRUE' if any(word in reviews_text for word in ['pet friendly', 'pet-friendly', 'dog friendly', 'dogs allowed', 'pets welcome']) else 'Unknown'
+    features['kids_friendly'] = 'TRUE' if any(word in reviews_text for word in ['kids', 'children', 'family-friendly', 'playground', 'kids menu', 'child-friendly']) else 'Unknown'
+    
+    return features
+
+features_df = restaurant_df['location_id'].apply(extract_features_from_reviews).apply(pd.Series)
+restaurant_df = pd.concat([restaurant_df, features_df], axis=1)
+
+for feature in features_df.columns:
+    count = (features_df[feature] == 'TRUE').sum()
+    if count > 0:
+        print(f"   ✓ {feature.replace('_', ' ')}: {count}")
+
 print()
 
+# STEP 8: SET REMAINING FIELDS
 
-restaurant_df['delivery_available'] = 'Unknown'
-restaurant_df['outdoor_seating'] = 'Unknown'
-restaurant_df['reservation_required'] = 'Unknown'
+print("📋 STEP 8: Setting remaining fields...")
 
-
-restaurant_df['description'] = ''
 restaurant_df['menu_items'] = ''
 restaurant_df['menu_link'] = np.nan
-restaurant_df['why_to_go'] = ''
-restaurant_df['reviews_summary'] = ''
-restaurant_df['tips'] = ''
 
 restaurant_df['data_source'] = 'source3'
 restaurant_df['source_url'] = restaurant_df['tripadvisor_url']
@@ -169,6 +232,11 @@ restaurant_df['website'] = restaurant_df['website']
 restaurant_df['scraped_date'] = datetime.now().strftime('%Y-%m-%d')
 restaurant_df['last_updated'] = datetime.now().strftime('%Y-%m-%d')
 
+print(f"✓ Metadata added\n")
+
+# STEP 9: CREATE FINAL RESTAURANTS TABLE
+
+print("📊 STEP 9: Creating final restaurants table...")
 
 restaurants_columns = [
     'restaurant_id', 'name',
@@ -182,16 +250,20 @@ restaurants_columns = [
     'hours_monday', 'hours_tuesday', 'hours_wednesday', 'hours_thursday',
     'hours_friday', 'hours_saturday', 'hours_sunday',
     'delivery_available', 'outdoor_seating', 'reservation_required',
-    'description', 'menu_items', 'menu_link', 'why_to_go', 'reviews_summary', 'tips', 'website',
+    'cash_only', 'credit_cards_accepted', 'wifi_available', 'wheelchair_accessible', 'takeaway_available',
+    'parking_available', 'live_music', 'pet_friendly', 'kids_friendly',
+    'menu_items', 'menu_link', 'website',
     'data_source', 'source_url', 'scraped_date', 'last_updated'
 ]
 
 restaurants_final = restaurant_df[restaurants_columns].copy()
 
-print(f"   ✓ Created table: {len(restaurants_final)} rows × {len(restaurants_columns)} columns")
-print()
+print(f"✓ Created table: {len(restaurants_final)} rows × {len(restaurants_columns)} columns\n")
 
-#EXTRACT & CLEAN INDIVIDUAL REVIEWS
+# STEP 10: EXTRACT INDIVIDUAL REVIEWS
+
+print("💬 STEP 10: Extracting individual reviews...")
+
 def clean_review_text(text):
     """Clean review text: fix encoding, whitespace, etc."""
     if pd.isna(text):
@@ -201,7 +273,7 @@ def clean_review_text(text):
     encoding_fixes = {
         'â€™': "'", 'â€œ': '"', 'â€\x9d': '"',
         'â€"': '—', 'Ã©': 'é', 'Ã¨': 'è',
-        'Ã ': 'à', 'Â ': ' '
+        'Ã ': 'à', 'Â ': ' ', 'ðŸ': ''
     }
     for wrong, right in encoding_fixes.items():
         text = text.replace(wrong, right)
@@ -229,20 +301,25 @@ for idx, row in df.iterrows():
         continue
 
     reviews_list.append({
-        'review_id': f'rev_src3_{len(reviews_list) + 1:05d}',
+        'review_id': f'rev_{len(reviews_list) + 1:05d}',
         'restaurant_id': rid,
         'restaurant_name': rname,
         'review_text': f"[{title_clean}] {raw_text}" if title_clean else raw_text,
         'review_text_cleaned': full_text,
         'rating': float(rating) if pd.notna(rating) else np.nan,
-        'review_date': np.nan, 
+        'review_date': np.nan,
         'review_source': 'TripAdvisor',
         'word_count': len(full_text.split()),
     })
 
 reviews_df = pd.DataFrame(reviews_list)
 
-print("😊 STEP 17: Analyzing sentiment...")
+print(f"✓ Extracted {len(reviews_df)} reviews")
+print(f"✓ Avg review length: {reviews_df['word_count'].mean():.0f} words\n")
+
+# STEP 11: SENTIMENT ANALYSIS
+
+print("😊 STEP 11: Analyzing sentiment...")
 
 if SENTIMENT_AVAILABLE:
     def calculate_sentiment(text):
@@ -264,7 +341,7 @@ if SENTIMENT_AVAILABLE:
         labels=['Negative', 'Neutral', 'Positive']
     )
 
-    print(f"Sentiment distribution:")
+    print(f"✓ Sentiment distribution:")
     for sentiment, count in reviews_df['sentiment_category'].value_counts().items():
         pct = (count / len(reviews_df)) * 100
         print(f"      {sentiment}: {count} ({pct:.1f}%)")
@@ -272,21 +349,42 @@ else:
     reviews_df['sentiment_score'] = np.nan
     reviews_df['sentiment_subjectivity'] = np.nan
     reviews_df['sentiment_category'] = 'Unknown'
-   
+    print(f"   ⚠️  Sentiment analysis skipped (TextBlob not installed)")
 
+print()
+
+# Attach restaurant metadata to reviews
+restaurant_meta = restaurants_final[['restaurant_id', 'area', 'cuisine_primary', 'price_category']].copy()
+reviews_df = reviews_df.merge(restaurant_meta, on='restaurant_id', how='left')
+reviews_df['area'] = reviews_df['area'].fillna('Unknown')
+reviews_df['cuisine_primary'] = reviews_df['cuisine_primary'].fillna('Unknown')
+reviews_df['price_category'] = reviews_df['price_category'].fillna('Unknown')
+
+# STEP 12: SAVE CLEANED DATA
+
+print("💾 STEP 12: Saving cleaned data...")
 
 restaurants_final.to_csv(OUTPUT_RESTAURANTS, index=False)
+print(f"✓ Saved: {OUTPUT_RESTAURANTS}")
+print(f"  ({len(restaurants_final)} restaurants)\n")
 
 reviews_df.to_csv(OUTPUT_REVIEWS, index=False)
+print(f"✓ Saved: {OUTPUT_REVIEWS}")
+print(f"  ({len(reviews_df)} reviews)\n")
 
 # FINAL SUMMARY
-print("✅ CLEANING COMPLETE!")
+
+print("="*70)
+print("✅ SOURCE 3 CLEANING COMPLETE!")
+print("="*70)
 print(f"""
 📊 SUMMARY:
    • Restaurants: {len(restaurants_final)}
    • Reviews: {len(reviews_df)}
    • Cities: {restaurant_df['city'].nunique()}
    • Average rating: {restaurants_final['rating_overall'].mean():.2f}/5.0
-   • Total review count (metadata): {restaurants_final['review_count_total'].sum():,}
+   • Total review count: {restaurants_final['review_count_total'].sum():,}
+   • Data completeness: {((restaurants_final['rating_overall'].notna().sum() + restaurants_final['area'].notna().sum()) / (2 * len(restaurants_final)) * 100):.0f}%
 
 """)
+print("="*70)

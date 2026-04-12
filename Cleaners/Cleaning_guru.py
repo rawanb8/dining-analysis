@@ -151,10 +151,12 @@ df['rating_overall'] = df['rating'].apply(parse_rating)
 df['rating_google'] = df['rating_overall']
 df['rating_tripadvisor'] = np.nan
 
+# Initialize review counts (will calculate from actual reviews)
 df['review_count_total'] = 0
 df['review_count_google'] = 0
 df['review_count_tripadvisor'] = 0
 
+# Initialize star counts (will calculate from reviews)
 df['star_5_count'] = 0
 df['star_4_count'] = 0
 df['star_3_count'] = 0
@@ -166,13 +168,51 @@ df['star_3_percent'] = 0.0
 df['star_2_percent'] = 0.0
 df['star_1_percent'] = 0.0
 
-df['hours_monday'] = 'Unknown'
-df['hours_tuesday'] = 'Unknown'
-df['hours_wednesday'] = 'Unknown'
-df['hours_thursday'] = 'Unknown'
-df['hours_friday'] = 'Unknown'
-df['hours_saturday'] = 'Unknown'
-df['hours_sunday'] = 'Unknown'
+def parse_working_hours(hours_text):
+    """Parse working hours from format: 'Sunday: 8AM-12AM | Monday: 8AM-1AM | ...'"""
+    hours_dict = {
+        'hours_monday': 'Unknown',
+        'hours_tuesday': 'Unknown',
+        'hours_wednesday': 'Unknown',
+        'hours_thursday': 'Unknown',
+        'hours_friday': 'Unknown',
+        'hours_saturday': 'Unknown',
+        'hours_sunday': 'Unknown'
+    }
+    
+    if pd.isna(hours_text) or str(hours_text).strip() in ['', 'N/A', 'None']:
+        return hours_dict
+    
+    try:
+        day_mapping = {
+            'monday': 'hours_monday',
+            'tuesday': 'hours_tuesday',
+            'wednesday': 'hours_wednesday',
+            'thursday': 'hours_thursday',
+            'friday': 'hours_friday',
+            'saturday': 'hours_saturday',
+            'sunday': 'hours_sunday'
+        }
+        
+        parts = str(hours_text).split('|')
+        
+        for part in parts:
+            part = part.strip()
+            if ':' in part:
+                day_part, time_part = part.split(':', 1)
+                day_name = day_part.strip().lower()
+                time_value = time_part.strip()
+                
+                if day_name in day_mapping:
+                    hours_dict[day_mapping[day_name]] = time_value
+        
+        return hours_dict
+    except:
+        return hours_dict
+
+print("⏰ Parsing working hours...")
+hours_df = df['working_hours'].apply(parse_working_hours).apply(pd.Series)
+df = pd.concat([df, hours_df], axis=1)
 
 def infer_price(price_range):
     if pd.isna(price_range):
@@ -190,32 +230,60 @@ def infer_price(price_range):
 
 df['price_category'] = df['price_range'].apply(infer_price)
 
-def parse_features(features):
-    if pd.isna(features):
-        return {'delivery_available': 'Unknown', 'outdoor_seating': 'Unknown', 'reservation_required': 'Unknown'}
-    text = str(features).lower()
+def parse_features(features, all_reviews=''):
+    """Extract features from features column and reviews text"""
+    
+    # Combine features and reviews for comprehensive extraction
+    combined_text = str(features).lower() if pd.notna(features) else ''
+    reviews_text = str(all_reviews).lower() if pd.notna(all_reviews) else ''
+    full_text = combined_text + ' ' + reviews_text
+    
+    # Extract from features column
+    delivery = 'TRUE' if 'delivery' in combined_text else 'Unknown'
+    outdoor = 'TRUE' if 'outdoor' in combined_text else 'Unknown'
+    reservation = 'TRUE' if any(x in combined_text for x in ['booking', 'reservation']) else 'Unknown'
+    
+    # New: Extract from features column
+    cash_only = 'TRUE' if 'cash only' in combined_text else 'Unknown'
+    credit_cards = 'TRUE' if any(x in combined_text for x in ['credit card', 'cards accepted']) else 'Unknown'
+    wifi = 'TRUE' if any(x in combined_text for x in ['wifi', 'wi-fi', 'internet']) else 'Unknown'
+    wheelchair = 'TRUE' if 'wheelchair' in combined_text else 'Unknown'
+    takeaway = 'TRUE' if 'takeaway' in combined_text else 'Unknown'
+    
+    # Extract from reviews text (mentions = likely available)
+    parking = 'TRUE' if any(x in full_text for x in ['parking', 'park available', 'free parking', 'valet']) else 'Unknown'
+    live_music = 'TRUE' if any(x in full_text for x in ['live music', 'live band', 'dj', 'piano music']) else 'Unknown'
+    pet_friendly = 'TRUE' if any(x in full_text for x in ['pet friendly', 'pet-friendly', 'dog friendly', 'dogs allowed']) else 'Unknown'
+    kids_friendly = 'TRUE' if any(x in full_text for x in ['kids', 'children', 'family-friendly', 'playground']) else 'Unknown'
+    
     return {
-        'delivery_available': 'TRUE' if 'delivery' in text else 'Unknown',
-        'outdoor_seating': 'TRUE' if 'outdoor' in text else 'Unknown',
-        'reservation_required': 'TRUE' if 'booking' in text or 'reservation' in text else 'Unknown'
+        'delivery_available': delivery,
+        'outdoor_seating': outdoor,
+        'reservation_required': reservation,
+        'cash_only': cash_only,
+        'credit_cards_accepted': credit_cards,
+        'wifi_available': wifi,
+        'wheelchair_accessible': wheelchair,
+        'takeaway_available': takeaway,
+        'parking_available': parking,
+        'live_music': live_music,
+        'pet_friendly': pet_friendly,
+        'kids_friendly': kids_friendly
     }
 
-features_df = df['features'].apply(parse_features).apply(pd.Series)
+# Apply feature extraction with both features and reviews
+print("🔍 Extracting features from features column and reviews...")
+features_df = df.apply(lambda row: pd.Series(parse_features(row['features'], row.get('all_reviews', ''))), axis=1)
 df = pd.concat([df, features_df], axis=1)
-
-df['description'] = ''
-df['menu_items'] = ''
-df['menu_link'] = ''
-df['why_to_go'] = ''
-df['reviews_summary'] = ''
-df['tips'] = ''
-df['website'] = ''
 
 df['data_source'] = 'source2'
 df['scraped_date'] = datetime.now().strftime('%Y-%m-%d')
 df['last_updated'] = datetime.now().strftime('%Y-%m-%d')
 df['source_url'] = df['url']
 
+df['menu_items'] = ''
+df['menu_link'] = ''
+df['website'] = ''
 restaurants_columns = [
     'restaurant_id', 'name',
     'cuisine_primary', 'cuisine_tags',
@@ -228,7 +296,9 @@ restaurants_columns = [
     'hours_monday', 'hours_tuesday', 'hours_wednesday', 'hours_thursday',
     'hours_friday', 'hours_saturday', 'hours_sunday',
     'delivery_available', 'outdoor_seating', 'reservation_required',
-    'description', 'menu_items', 'menu_link', 'why_to_go', 'reviews_summary', 'tips', 'website',
+    'cash_only', 'credit_cards_accepted', 'wifi_available', 'wheelchair_accessible', 'takeaway_available',
+    'parking_available', 'live_music', 'pet_friendly', 'kids_friendly',
+    'menu_items', 'menu_link', 'website',
     'data_source', 'source_url', 'scraped_date', 'last_updated'
 ]
 
@@ -240,14 +310,59 @@ reviews_df = pd.DataFrame(all_reviews_list)
 print(f"✓ Using previously extracted {len(reviews_df)} reviews\n")
 
 # Count reviews for valid restaurants only
-print("📊 Calculating review counts for valid restaurants...")
+print("📊 Calculating review counts and star distributions...")
 review_counts = reviews_df[reviews_df['from_incomplete_restaurant'] == False].groupby('restaurant_id').size()
+
 for rest_id in df['restaurant_id']:
-    count = review_counts.get(rest_id, 0)
+    # Get reviews for this restaurant
+    rest_reviews = reviews_df[(reviews_df['restaurant_id'] == rest_id) & 
+                              (reviews_df['from_incomplete_restaurant'] == False)]
+    
+    # Total review count
+    count = len(rest_reviews)
     df.loc[df['restaurant_id'] == rest_id, 'review_count_total'] = count
+    
+    if count > 0:
+        # Calculate star counts from reviews
+        valid_ratings = rest_reviews[rest_reviews['rating'].notna()]['rating']
+        
+        if len(valid_ratings) > 0:
+            star_5 = ((valid_ratings >= 4.5) & (valid_ratings <= 5.0)).sum()
+            star_4 = ((valid_ratings >= 3.5) & (valid_ratings < 4.5)).sum()
+            star_3 = ((valid_ratings >= 2.5) & (valid_ratings < 3.5)).sum()
+            star_2 = ((valid_ratings >= 1.5) & (valid_ratings < 2.5)).sum()
+            star_1 = ((valid_ratings >= 0.0) & (valid_ratings < 1.5)).sum()
+            
+            total_rated = len(valid_ratings)
+            
+            df.loc[df['restaurant_id'] == rest_id, 'star_5_count'] = star_5
+            df.loc[df['restaurant_id'] == rest_id, 'star_4_count'] = star_4
+            df.loc[df['restaurant_id'] == rest_id, 'star_3_count'] = star_3
+            df.loc[df['restaurant_id'] == rest_id, 'star_2_count'] = star_2
+            df.loc[df['restaurant_id'] == rest_id, 'star_1_count'] = star_1
+            
+            if total_rated > 0:
+                df.loc[df['restaurant_id'] == rest_id, 'star_5_percent'] = (star_5 / total_rated) * 100
+                df.loc[df['restaurant_id'] == rest_id, 'star_4_percent'] = (star_4 / total_rated) * 100
+                df.loc[df['restaurant_id'] == rest_id, 'star_3_percent'] = (star_3 / total_rated) * 100
+                df.loc[df['restaurant_id'] == rest_id, 'star_2_percent'] = (star_2 / total_rated) * 100
+                df.loc[df['restaurant_id'] == rest_id, 'star_1_percent'] = (star_1 / total_rated) * 100
 
 restaurants_final['review_count_total'] = df['review_count_total'].astype(int)
-restaurants_final['review_count_google'] = df['review_count_total'].astype(int)
+restaurants_final['review_count_google'] = 0  # Not available in Source 2
+restaurants_final['review_count_tripadvisor'] = 0  # Not available in Source 2
+
+# Copy star counts to final dataframe
+restaurants_final['star_5_count'] = df['star_5_count'].astype(int)
+restaurants_final['star_4_count'] = df['star_4_count'].astype(int)
+restaurants_final['star_3_count'] = df['star_3_count'].astype(int)
+restaurants_final['star_2_count'] = df['star_2_count'].astype(int)
+restaurants_final['star_1_count'] = df['star_1_count'].astype(int)
+restaurants_final['star_5_percent'] = df['star_5_percent']
+restaurants_final['star_4_percent'] = df['star_4_percent']
+restaurants_final['star_3_percent'] = df['star_3_percent']
+restaurants_final['star_2_percent'] = df['star_2_percent']
+restaurants_final['star_1_percent'] = df['star_1_percent']
 
 if SENTIMENT_AVAILABLE and len(reviews_df) > 0:
     def calculate_sentiment(text):
@@ -273,13 +388,6 @@ else:
     reviews_df['sentiment_score'] = np.nan
     reviews_df['sentiment_subjectivity'] = np.nan
     reviews_df['sentiment_category'] = 'Unknown'
-    
-#edit: add location, price category, and cuisine mainly
-restaurant_meta = restaurants_final[['restaurant_id', 'area', 'cuisine_primary', 'price_category']].copy()
-reviews_df = reviews_df.merge(restaurant_meta, on='restaurant_id', how='left')
-reviews_df['area'] = reviews_df['area'].fillna('Unknown')
-reviews_df['cuisine_primary'] = reviews_df['cuisine_primary'].fillna('Unknown')
-reviews_df['price_category'] = reviews_df['price_category'].fillna('Unknown')
 
 restaurants_final.to_csv(OUTPUT_RESTAURANTS, index=False)
 print(f"✓ Saved: {OUTPUT_RESTAURANTS}")
