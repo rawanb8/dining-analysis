@@ -16,8 +16,8 @@ st.set_page_config(
 
 @st.cache_data
 def load_data():
-    restaurants = pd.read_csv('../merged/master_restaurants.csv')
-    reviews = pd.read_csv('../merged/master_reviews.csv')
+    restaurants = pd.read_csv(r"C:\Users\Msi\Desktop\RHU\Spring 2026\DatasSience and WebScraping\Datascience Project\dining-analysis\merged\master_restaurants.csv")
+    reviews = pd.read_csv(r"C:\Users\Msi\Desktop\RHU\Spring 2026\DatasSience and WebScraping\Datascience Project\dining-analysis\merged\master_reviews.csv")
     return restaurants, reviews
 
 df_restaurants, df_reviews = load_data()
@@ -167,24 +167,256 @@ if selected_section == "🔍 Search & Filter":
 
 elif selected_section == "📊 General Analysis":
     st.header("📊 General Analysis (EDA)")
-    st.info("⚠️ This section will be populated by Friend 1 (EDA)")
+
     
     st.write("---")
-    st.subheader("Planned Visualizations:")
+
+    # Top 10 cuisines
+    st.subheader("1️⃣ Cuisine Distribution (Top 10 - Excluding Unknown)")
+    cuisine_counts = df_restaurants["cuisine_primary"].value_counts().head(10)
+    total_restaurants = len(df_restaurants)
+    unknown_count = (df_restaurants["cuisine_primary"] == "Unknown").sum()
+    unknown_pct = (unknown_count / total_restaurants) * 100
+
+    st.info(f"⚠️ {unknown_pct:.1f}% of restaurants have unknown cuisine.")
+
+    cuisine_counts = df_restaurants[
+        df_restaurants["cuisine_primary"] != "Unknown"
+    ]["cuisine_primary"].value_counts().head(10)
+
+    fig1 = px.bar(
+        x=cuisine_counts.index,
+        y=cuisine_counts.values,
+        labels={'x': 'Cuisine', 'y': 'Number of Restaurants'},
+        title='Top 10 Cuisines',
+        text=cuisine_counts.values
+    )
+
+    fig1.update_traces(textposition='outside')
+    fig1.update_layout(xaxis_tickangle=-45)
+
+    st.plotly_chart(fig1, use_container_width=True)
+
+    st.write("---")
+
+    st.subheader("2️⃣ Rating Distribution")
+
+    rating_counts = df_restaurants["rating_overall"].value_counts().sort_index()
+
+    fig2 = px.bar(
+        x=rating_counts.index,
+        y=rating_counts.values,
+        labels={"x": "Rating", "y": "Number of Restaurants"},
+        title="Distribution of Restaurant Ratings"
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+    avg_rating = df_restaurants["rating_overall"].mean()
+    st.metric("⭐ Average Rating", f"{avg_rating:.2f}")
+
+
+    st.write("---")
+
+    st.subheader("3️⃣ Price Category Breakdown (Excluding Unknown)")
+
+    # Calculate Unknown percentage
+    total_restaurants = len(df_restaurants)
+    unknown_count = (df_restaurants["price_category"] == "Unknown").sum()
+    unknown_pct = (unknown_count / total_restaurants) * 100
+
+    st.info(f"⚠️ {unknown_pct:.1f}% of restaurants have unknown price category.")
+
+    # Remove Unknown for visualization
+    price_counts = df_restaurants[
+        df_restaurants["price_category"] != "Unknown"
+    ]["price_category"].value_counts()
+
+    # Plot
+    fig3 = px.bar(
+        x=price_counts.index,
+        y=price_counts.values,
+        labels={"x": "Price Category", "y": "Number of Restaurants"},
+        title="Distribution of Restaurants by Price Category",
+        text=price_counts.values
+    )
+
+    fig3.update_traces(textposition='outside')
+
+    st.plotly_chart(fig3, use_container_width=True)
+
+    st.write("---")
+
+    st.subheader("4️⃣ Restaurants by Area (Top 10 - Excluding Unknown)")
+
+    # Calculate Unknown percentage
+    total_restaurants = len(df_restaurants)
+    unknown_count = (df_restaurants["area"] == "Unknown").sum()
+    unknown_pct = (unknown_count / total_restaurants) * 100
+
+    st.info(f"⚠️ {unknown_pct:.1f}% of restaurants have unknown area.")
+
+    # Remove Unknown and get top 10
+    area_counts = df_restaurants[
+        df_restaurants["area"] != "Unknown"
+    ]["area"].value_counts().head(10)
+
+    # Plot
+    fig4 = px.bar(
+        x=area_counts.index,
+        y=area_counts.values,
+        labels={"x": "Area", "y": "Number of Restaurants"},
+        title="Top 10 Areas by Number of Restaurants",
+        text=area_counts.values
+    )
+
+    fig4.update_traces(textposition='outside')
+    fig4.update_layout(xaxis_tickangle=-45)
+
+    st.plotly_chart(fig4, use_container_width=True)
+
+    st.write("---")
+
+    st.subheader("5️⃣ Review Count Distribution")
+
+    # Convert to numeric
+    df_restaurants["review_count_total"] = pd.to_numeric(
+        df_restaurants["review_count_total"], errors="coerce"
+    )
+
+    fig5a = px.histogram(
+        df_restaurants,
+        x="review_count_total",
+        nbins=30,
+        title="Distribution of Review Counts"
+    )
+    fig5a.update_layout(
+        xaxis_title="Number of Reviews",
+        yaxis_title="Number of Restaurants"
+    )
+    st.plotly_chart(fig5a, use_container_width=True)
+
+
+    st.write("---")
+
+    st.subheader("6️⃣ Top 10 Most Reviewed Restaurants")
+
+    top_reviewed = df_restaurants.nlargest(10, "review_count_total")[
+        ["name", "review_count_total", "rating_overall", "area", "cuisine_primary", "price_category"]
+    ].copy()
+
+    top_reviewed.columns = [
+        "Restaurant Name",
+        "Total Reviews",
+        "Rating",
+        "Area",
+        "Cuisine",
+        "Price Category"
+    ]
+
+    st.dataframe(top_reviewed, use_container_width=True)
+
+    st.write("---")
+    st.subheader("📈 Rating vs Review Count")
+
+    fig = px.scatter(
+        df_restaurants,
+        x="review_count_total",
+        y="rating_overall",
+        title="Rating vs Number of Reviews",
+        labels={"review_count_total": "Number of Reviews", "rating_overall": "Rating"},
+        opacity=0.6
+    )
+
+    fig.update_layout(xaxis_type="log")
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.write("---")
+    st.subheader("💎 Hidden Gems (High Rating, Low Reviews)")
+
+    hidden = df_restaurants[
+        (df_restaurants["rating_overall"] >= 4.5) &
+        (df_restaurants["review_count_total"] < 50)
+    ].head(10)[
+        ["name", "rating_overall", "review_count_total", "area"]
+    ]
+
+    st.dataframe(hidden, use_container_width=True)
+
+
+
+
+
+    st.write("---")
+    st.subheader("📊 Density vs Quality by Area")
+    df_geo = df_restaurants[df_restaurants["area"] != "Unknown"].copy()
+
+    area_stats = df_geo.groupby("area").agg({
+        "name": "count",
+        "rating_overall": "mean"
+    }).rename(columns={"name": "restaurant_count"})
+
+    area_stats = area_stats[area_stats["restaurant_count"] >= 5]
+    area_stats["total_reviews"] = df_geo.groupby("area")["review_count_total"].sum()
+
+    fig = px.scatter(
+        area_stats,
+        x="restaurant_count",
+        y="rating_overall",
+        size="total_reviews", 
+        text=area_stats.index,
+        title="Density vs Quality by Area (Bubble = Popularity)"
+    )
+
+
+    fig.update_traces(textposition="top center")
+
+    st.plotly_chart(fig, use_container_width=True)
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.write("**Charts to include:**")
-        st.write("- Cuisine distribution")
-        st.write("- Rating distribution")
-        st.write("- Price category breakdown")
-        
-    with col2:
-        st.write("**Additional Analysis:**")
-        st.write("- Restaurants by area")
-        st.write("- Review count distribution")
-        st.write("- Geographic insights")
+    st.write("---")
+
+    st.subheader("🏆 Best Areas Overall (Combined Score)")
+
+    df_geo = df_restaurants[df_restaurants["area"] != "Unknown"].copy()
+
+  
+    area_stats = df_geo.groupby("area").agg({
+        "rating_overall": "mean",
+        "review_count_total": "sum",
+        "name": "count"
+    }).rename(columns={"name": "restaurant_count"})
+
+   
+    area_stats = area_stats[area_stats["restaurant_count"] >= 5]
+
+
+    area_stats["norm_rating"] = area_stats["rating_overall"] / 5
+    area_stats["norm_reviews"] = area_stats["review_count_total"] / area_stats["review_count_total"].max()
+    area_stats["norm_density"] = area_stats["restaurant_count"] / area_stats["restaurant_count"].max()
+
+
+    area_stats["score"] = (
+        area_stats["norm_rating"] +
+        area_stats["norm_reviews"] +
+        area_stats["norm_density"]
+    ) / 3
+
+    # Top areas
+    top_areas = area_stats.sort_values("score", ascending=False).head(10)
+
+    # Plot
+    fig = px.bar(
+        x=top_areas.index,
+        y=top_areas["score"],
+        title="Top Areas Overall (Quality + Popularity + Density)",
+        labels={"x": "Area", "y": "Score"},
+        text=[f"{v:.2f}" for v in top_areas["score"]]
+    )
+
+    fig.update_traces(textposition='outside')
+    fig.update_layout(xaxis_tickangle=-45)
+
+    st.plotly_chart(fig, use_container_width=True)
 
 # SECTION 3: FEATURE ANALYSIS (YOUR WORK)
 
