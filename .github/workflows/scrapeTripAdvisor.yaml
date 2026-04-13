@@ -24,7 +24,7 @@ jobs:
       - name: Select city
         id: select_city
         run: |
-          cities=("Byblos Lebanon" "Beirut Lebanon" "Tripoli Lebanon" "Sidon Lebanon" "Tyre Lebanon")
+          cities=("Bcharri Lebanon" "Byblos Lebanon" "Beirut Lebanon" "Tripoli Lebanon" "Sidon Lebanon" "Tyre Lebanon")
           
           index=$(( (GITHUB_RUN_NUMBER - 1) % ${#cities[@]} ))
           
