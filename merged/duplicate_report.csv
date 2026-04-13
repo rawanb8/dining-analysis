@@ -1,4 +1,6 @@
 id1,id2,name1,name2,similarity
+src1_001,src2_2175,Em Sherif,Em Sherif,1.0
+src1_001,src2_2177,Em Sherif,Em Sherif Café,0.891
 src1_013,src2_178,Jai asian Restaurant,Abou Hassan Restaurant,0.905
 src1_013,src2_309,Jai asian Restaurant,Al Ajami - Restaurant,0.859
 src1_013,src2_362,Jai asian Restaurant,Al Fayat restaurant,0.885
@@ -22,6 +24,7 @@ src1_016,src2_1535,Cocteau Restaurant,Che - Restaurant,0.906
 src1_016,src2_1729,Cocteau Restaurant,Cnena - Restaurant,0.912
 src1_016,src2_1749,Cocteau Restaurant,Cocteau Restaurant,1.0
 src1_016,src2_2087,Cocteau Restaurant,Duo Restaurant,0.875
+src1_016,src2_2363,Cocteau Restaurant,Fattouh Restaurant,0.861
 src1_019,src2_355,Al Falamanki Sodeco,Al Falamanki Raouche,0.885
 src1_042,src2_090,Amelia,Amelia,1.0
 src1_042,src2_654,Amelia,Angelina,0.857
