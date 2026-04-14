@@ -16,8 +16,15 @@ st.set_page_config(
 
 @st.cache_data
 def load_data():
-    restaurants = pd.read_csv(r"C:\Users\Msi\Desktop\RHU\Spring 2026\DatasSience and WebScraping\Datascience Project\dining-analysis\merged\master_restaurants.csv")
-    reviews = pd.read_csv(r"C:\Users\Msi\Desktop\RHU\Spring 2026\DatasSience and WebScraping\Datascience Project\dining-analysis\merged\master_reviews.csv")
+    # Try to load geocoded file first, fallback to regular file
+    try:
+        restaurants = pd.read_csv(r"../merged/master_restaurants_geocoded.csv")
+        print("✓ Loaded geocoded restaurant data")
+    except FileNotFoundError:
+        restaurants = pd.read_csv(r"../merged/master_restaurants.csv")
+        print("⚠️ Geocoded file not found, using non-geocoded data")
+    
+    reviews = pd.read_csv(r"../merged/master_reviews.csv")
     return restaurants, reviews
 
 df_restaurants, df_reviews = load_data()
@@ -751,7 +758,7 @@ elif selected_section == "✨ Feature Analysis":
     st.subheader("9️⃣ Feature Correlation Heatmap")
     
     # Create binary matrix for features
-    feature_matrix = df_restaurants[feature_cols].applymap(lambda x: 1 if x == 'TRUE' else 0)
+    feature_matrix = df_restaurants[feature_cols].map(lambda x: 1 if x == 'TRUE' else 0)
     
     # Calculate correlation
     correlation = feature_matrix.corr()
@@ -776,7 +783,88 @@ elif selected_section == "✨ Feature Analysis":
     )
     
     st.plotly_chart(fig9, use_container_width=True)
+    st.write("---")
+
+# Geographic Maps
+    if 'latitude' in df_restaurants.columns and 'longitude' in df_restaurants.columns:
+     geocoded_restaurants = df_restaurants[df_restaurants['latitude'].notna() & df_restaurants['longitude'].notna()]
     
+    if len(geocoded_restaurants) > 0:
+        st.subheader("🗺️ Geographic Distribution")
+        
+        # Map 1 & 2: Side by side
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write("**All Restaurants by Price**")
+            
+            map_price = px.scatter_mapbox(
+                geocoded_restaurants,
+                lat='latitude',
+                lon='longitude',
+                hover_name='name',
+                hover_data=['rating_overall', 'area'],
+                color='price_category',
+                color_discrete_map={'Budget': '#2ecc71', 'Mid-Range': '#3498db', 'High-End': '#e74c3c'},
+                zoom=11,
+                height=500
+            )
+            
+            map_price.update_layout(mapbox_style="open-street-map")
+            st.plotly_chart(map_price, use_container_width=True)
+        
+        with col2:
+            st.write("**Top Rated (4.5+)**")
+            
+            top_rated_geo = geocoded_restaurants[geocoded_restaurants['rating_overall'] >= 4.5]
+            
+            if len(top_rated_geo) > 0:
+                map_top = px.scatter_mapbox(
+                    top_rated_geo,
+                    lat='latitude',
+                    lon='longitude',
+                    hover_name='name',
+                    hover_data=['rating_overall', 'area', 'cuisine_primary'],
+                    color='rating_overall',
+                    size='rating_overall',
+                    color_continuous_scale='RdYlGn',
+                    zoom=11,
+                    height=500
+                )
+                
+                map_top.update_layout(mapbox_style="open-street-map")
+                st.plotly_chart(map_top, use_container_width=True)
+        
+        # Map 3: Density
+        st.write("**Restaurant Density by Area**")
+        
+        area_counts = geocoded_restaurants['area'].value_counts().head(15).reset_index()
+        area_counts.columns = ['Area', 'Count']
+        
+        area_coords = geocoded_restaurants.groupby('area').agg({
+            'latitude': 'mean',
+            'longitude': 'mean'
+        }).reset_index()
+        
+        area_map_data = area_counts.merge(area_coords, left_on='Area', right_on='area')
+        
+        map_density = px.scatter_mapbox(
+            area_map_data,
+            lat='latitude',
+            lon='longitude',
+            size='Count',
+            hover_name='Area',
+            hover_data=['Count'],
+            color='Count',
+            color_continuous_scale='YlOrRd',
+            zoom=11,
+            height=500
+        )
+        
+        map_density.update_layout(mapbox_style="open-street-map")
+        st.plotly_chart(map_density, use_container_width=True)
+        
+        st.info(f"📊 {len(geocoded_restaurants)} of {len(df_restaurants)} restaurants geocoded")
     st.write("---")
     
     # Feature Insights
