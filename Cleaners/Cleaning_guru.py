@@ -4,14 +4,6 @@ import re
 from datetime import datetime
 import os
 
-try:
-    from textblob import TextBlob
-    test_blob = TextBlob("test")
-    _ = test_blob.sentiment
-    SENTIMENT_AVAILABLE = True
-except:
-    SENTIMENT_AVAILABLE = False
-
 INPUT_FILE = '../data/guru.csv'
 OUTPUT_RESTAURANTS = '../cleaned/Guru_restaurants_clean.csv'
 OUTPUT_REVIEWS = '../cleaned/Guru_reviews_clean.csv'
@@ -19,8 +11,7 @@ OUTPUT_REVIEWS = '../cleaned/Guru_reviews_clean.csv'
 os.makedirs('../cleaned', exist_ok=True)
 
 print("="*70)
-print("🧹 SOURCE 2: RESTAURANT GURU DATA CLEANING")
-print("="*70)
+print(" SOURCE 2: RESTAURANT GURU DATA CLEANING")
 print(f"\nInput:  {INPUT_FILE}")
 print(f"Output: {OUTPUT_RESTAURANTS}")
 print(f"        {OUTPUT_REVIEWS}\n")
@@ -364,34 +355,19 @@ restaurants_final['star_3_percent'] = df['star_3_percent']
 restaurants_final['star_2_percent'] = df['star_2_percent']
 restaurants_final['star_1_percent'] = df['star_1_percent']
 
-if SENTIMENT_AVAILABLE and len(reviews_df) > 0:
-    def calculate_sentiment(text):
-        if pd.isna(text) or text == '':
-            return np.nan, np.nan
-        try:
-            blob = TextBlob(str(text))
-            return blob.sentiment.polarity, blob.sentiment.subjectivity
-        except:
-            return np.nan, np.nan
-    
-    reviews_df[['sentiment_score', 'sentiment_subjectivity']] = reviews_df['review_text_cleaned'].apply(
-        lambda x: pd.Series(calculate_sentiment(x))
-    )
-    
-    reviews_df['sentiment_category'] = pd.cut(
-        reviews_df['sentiment_score'],
-        bins=[-1, -0.1, 0.1, 1],
-        labels=['Negative', 'Neutral', 'Positive']
-    )
-    print(f"✓ Sentiment analysis complete\n")
-else:
-    reviews_df['sentiment_score'] = np.nan
-    reviews_df['sentiment_subjectivity'] = np.nan
-    reviews_df['sentiment_category'] = 'Unknown'
+reviews_df['sentiment_score'] = np.nan
+reviews_df['sentiment_subjectivity'] = np.nan
+reviews_df['sentiment_category'] = 'Unknown'
+
+restaurant_meta = restaurants_final[['restaurant_id', 'area', 'cuisine_primary', 'price_category']].copy()
+reviews_df = reviews_df.merge(restaurant_meta, on='restaurant_id', how='left')
+reviews_df['area'] = reviews_df['area'].fillna('Unknown')
+reviews_df['cuisine_primary'] = reviews_df['cuisine_primary'].fillna('Unknown')
+reviews_df['price_category'] = reviews_df['price_category'].fillna('Unknown')
 
 restaurants_final.to_csv(OUTPUT_RESTAURANTS, index=False)
-print(f"✓ Saved: {OUTPUT_RESTAURANTS}")
-print(f"  ({len(restaurants_final)} restaurants)\n")
+print(f"Saved: {OUTPUT_RESTAURANTS}")
+print(f"({len(restaurants_final)} restaurants)\n")
 
 reviews_df.to_csv(OUTPUT_REVIEWS, index=False)
 print(f"✓ Saved: {OUTPUT_REVIEWS}")
@@ -409,7 +385,7 @@ print(f"""
   • Restaurants: {len(restaurants_final)}
   • Reviews (total): {len(reviews_df)}
     - From valid restaurants: {reviews_from_complete}
-    - Saved from incomplete restaurants: {reviews_from_incomplete} 💎
+    - Saved from incomplete restaurants: {reviews_from_incomplete} 
   • Avg rating: {restaurants_final['rating_overall'].mean():.2f}/5.0
   • Data completeness: {((restaurants_final['rating_overall'].notna().sum() + restaurants_final['phone'].notna().sum()) / (2 * len(restaurants_final)) * 100):.0f}%
 

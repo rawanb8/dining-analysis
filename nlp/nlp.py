@@ -9,13 +9,8 @@ warnings.filterwarnings('ignore')
 
 # part 1: load review csv files into pandas dataframes to analyze everything at once
 print("Loading reviews...")
-guru = pd.read_csv('../cleaned/Guru_reviews_clean.csv')
-wandor = pd.read_csv('../cleaned/Wandorlog_reviews_clean.csv')
+reviews = pd.read_csv('../merged/master_reviews.csv')
 
-guru['source'] = 'Guru'
-wandor['source'] = 'Wanderlog'
-
-reviews = pd.concat([guru, wandor], ignore_index=True)
 reviews = reviews[reviews['review_text_cleaned'].notna()]
 reviews = reviews[reviews['review_text_cleaned'].str.strip() != '']
 
@@ -25,6 +20,11 @@ reviews_known = reviews[
     (reviews['area'] != 'Unknown') &
     (reviews['cuisine_primary'] != 'Unknown') &
     (reviews['price_category'] != 'Unknown')
+].copy()
+
+# For TF-IDF, only require area to be known (more data = better keywords)
+reviews_for_tfidf = reviews[
+    reviews['area'] != 'Unknown'
 ].copy()
 
 print(f"Total reviews loaded: {len(reviews)}")
@@ -166,7 +166,11 @@ area_texts = reviews_known.groupby('area')['review_text_cleaned'].apply(
 )
 
 # Only keep areas with enough text to be meaningful
-area_texts = area_texts[area_texts.str.split().str.len() >= 50]
+# area_texts = area_texts[area_texts.str.split().str.len() >= 50]
+area_texts = reviews_for_tfidf.groupby('area')['review_text_cleaned'].apply(
+    lambda texts: ' '.join(texts.tolist())
+)
+
 
 tfidf_matrix = vectorizer.fit_transform(area_texts)
 feature_names = vectorizer.get_feature_names_out()
@@ -186,7 +190,10 @@ print()
 # SAME THING FOR CUISINES
 print("------TF-IDF KEYWORDS PER CUISINE------")
 
-cuisine_texts = reviews_known.groupby('cuisine_primary')['review_text_cleaned'].apply(
+# cuisine_texts = reviews_known.groupby('cuisine_primary')['review_text_cleaned'].apply(
+#     lambda texts: ' '.join(texts.tolist())
+# )
+cuisine_texts = reviews_for_tfidf.groupby('cuisine_primary')['review_text_cleaned'].apply(
     lambda texts: ' '.join(texts.tolist())
 )
 cuisine_texts = cuisine_texts[cuisine_texts.str.split().str.len() >= 50]
@@ -224,3 +231,11 @@ print(f"Cuisine types covered:  {reviews_known['cuisine_primary'].nunique()}")
 print(f"Overall avg sentiment:  {reviews_known['sentiment_score'].mean():.3f}")
 print(f"% Positive reviews:     {(reviews_known['sentiment_category'] == 'Positive').mean()*100:.1f}%")
 print(f"% Negative reviews:     {(reviews_known['sentiment_category'] == 'Negative').mean()*100:.1f}%")
+
+print(f"Total reviews loaded: {len(reviews)}")
+print(f"Reviews with full metadata: {len(reviews_known)}")
+print(f"Unique areas in reviews_known: {reviews_known['area'].nunique()}")
+print(f"Unique cuisines in reviews_known: {reviews_known['cuisine_primary'].nunique()}")
+print(f"Source breakdown:")
+print(reviews_known['review_source'].value_counts())
+print()

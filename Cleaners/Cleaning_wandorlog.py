@@ -4,28 +4,6 @@ import re
 from datetime import datetime
 import os
 
-SENTIMENT_AVAILABLE = False
-try:
-    from textblob import TextBlob
-    # Test if corpora is downloaded
-    test_blob = TextBlob("test")
-    _ = test_blob.sentiment
-    SENTIMENT_AVAILABLE = True
-except ImportError:
-    print("⚠️  TextBlob not installed. Run: pip install textblob")
-except LookupError:
-    print("⚠️  TextBlob corpora not downloaded. Downloading now...")
-    try:
-        import nltk
-        nltk.download('brown', quiet=True)
-        nltk.download('punkt', quiet=True)
-        from textblob import TextBlob
-        SENTIMENT_AVAILABLE = True
-        print("✅  TextBlob corpora downloaded successfully!")
-    except:
-        print("⚠️  Could not download corpora. Run: python -m textblob.download_corpora")
-
-
 INPUT_FILE = '../data/wandor_restaurants.csv'  
 OUTPUT_RESTAURANTS = '../cleaned/Wandorlog_restaurants_clean.csv'  
 OUTPUT_REVIEWS = '../cleaned/Wandorlog_reviews_clean.csv'   
@@ -553,44 +531,18 @@ print()
 
 
 # STEP 17: SENTIMENT ANALYSIS
+reviews_df['sentiment_score'] = np.nan
+reviews_df['sentiment_subjectivity'] = np.nan
+reviews_df['sentiment_category'] = 'Unknown'
 
-print("😊 STEP 17: Analyzing sentiment...")
-
-if SENTIMENT_AVAILABLE:
-    def calculate_sentiment(text):
-        if pd.isna(text) or text == '':
-            return np.nan, np.nan
-        try:
-            blob = TextBlob(str(text))
-            return blob.sentiment.polarity, blob.sentiment.subjectivity
-        except:
-            return np.nan, np.nan
-    
-    reviews_df[['sentiment_score', 'sentiment_subjectivity']] = reviews_df['review_text_cleaned'].apply(
-        lambda x: pd.Series(calculate_sentiment(x))
-    )
-    
-    reviews_df['sentiment_category'] = pd.cut(
-        reviews_df['sentiment_score'],
-        bins=[-1, -0.1, 0.1, 1],
-        labels=['Negative', 'Neutral', 'Positive']
-    )
-    
-    print(f"   ✓ Sentiment distribution:")
-    for sentiment, count in reviews_df['sentiment_category'].value_counts().items():
-        pct = (count / len(reviews_df)) * 100
-        print(f"      {sentiment}: {count} ({pct:.1f}%)")
-else:
-    reviews_df['sentiment_score'] = np.nan
-    reviews_df['sentiment_subjectivity'] = np.nan
-    reviews_df['sentiment_category'] = 'Unknown'
-    print(f"   ⚠️  Sentiment analysis skipped (TextBlob not installed)")
-
-print()
-
+# Attach restaurant metadata so NLP can group by area/cuisine/price
+restaurant_meta = restaurants_final[['restaurant_id', 'area', 'cuisine_primary', 'price_category']].copy()
+reviews_df = reviews_df.merge(restaurant_meta, on='restaurant_id', how='left')
+reviews_df['area'] = reviews_df['area'].fillna('Unknown')
+reviews_df['cuisine_primary'] = reviews_df['cuisine_primary'].fillna('Unknown')
+reviews_df['price_category'] = reviews_df['price_category'].fillna('Unknown')
 
 # STEP 18: SAVE CLEANED DATA
-
 print("💾 STEP 18: Saving cleaned data...")
 
 # Save restaurants

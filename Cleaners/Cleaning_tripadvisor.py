@@ -317,41 +317,9 @@ reviews_df = pd.DataFrame(reviews_list)
 print(f"✓ Extracted {len(reviews_df)} reviews")
 print(f"✓ Avg review length: {reviews_df['word_count'].mean():.0f} words\n")
 
-# STEP 11: SENTIMENT ANALYSIS
-
-print("😊 STEP 11: Analyzing sentiment...")
-
-if SENTIMENT_AVAILABLE:
-    def calculate_sentiment(text):
-        if pd.isna(text) or text == '':
-            return np.nan, np.nan
-        try:
-            blob = TextBlob(str(text))
-            return blob.sentiment.polarity, blob.sentiment.subjectivity
-        except:
-            return np.nan, np.nan
-
-    reviews_df[['sentiment_score', 'sentiment_subjectivity']] = reviews_df['review_text_cleaned'].apply(
-        lambda x: pd.Series(calculate_sentiment(x))
-    )
-
-    reviews_df['sentiment_category'] = pd.cut(
-        reviews_df['sentiment_score'],
-        bins=[-1, -0.1, 0.1, 1],
-        labels=['Negative', 'Neutral', 'Positive']
-    )
-
-    print(f"✓ Sentiment distribution:")
-    for sentiment, count in reviews_df['sentiment_category'].value_counts().items():
-        pct = (count / len(reviews_df)) * 100
-        print(f"      {sentiment}: {count} ({pct:.1f}%)")
-else:
-    reviews_df['sentiment_score'] = np.nan
-    reviews_df['sentiment_subjectivity'] = np.nan
-    reviews_df['sentiment_category'] = 'Unknown'
-    print(f"   ⚠️  Sentiment analysis skipped (TextBlob not installed)")
-
-print()
+reviews_df['sentiment_score'] = np.nan
+reviews_df['sentiment_subjectivity'] = np.nan
+reviews_df['sentiment_category'] = 'Unknown'
 
 # Attach restaurant metadata to reviews
 restaurant_meta = restaurants_final[['restaurant_id', 'area', 'cuisine_primary', 'price_category']].copy()

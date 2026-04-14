@@ -3,7 +3,7 @@ name: Daily Data Cleaning
 on:
   schedule:
     - cron: '0 5 * * *'
-  workflow_dispatch:  # manual trigger for testing
+  workflow_dispatch:
 
 jobs:
   clean-data:
@@ -20,8 +20,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pandas numpy textblob nltk
+          pip install pandas numpy textblob nltk scikit-learn matplotlib seaborn
           python -m textblob.download_corpora
+
+      - name: Run Wandorlog cleaning
+        working-directory: Cleaners
+        run: python Cleaning_wandorlog.py
 
       - name: Run Guru cleaning
         working-directory: Cleaners
@@ -31,10 +35,22 @@ jobs:
         working-directory: Cleaners
         run: python Cleaning_tripadvisor.py
 
-      - name: Commit cleaned files
+      - name: Run sentiment analysis
+        working-directory: sentiment
+        run: python sentiment_analysis.py
+
+      - name: Run merge
+        working-directory: merged
+        run: python MERGE_SOURCES.py
+
+      - name: Run NLP
+        working-directory: nlp
+        run: python nlp.py
+
+      - name: Commit outputs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add cleaned/
-          git diff --staged --quiet || git commit -m "Auto-clean data $(date +'%Y-%m-%d')"
+          git add cleaned/ merged/ nlp/
+          git diff --staged --quiet || git commit -m "Auto-pipeline run $(date +'%Y-%m-%d')"
           git push
