@@ -45,8 +45,8 @@ for col in feature_cols:
 
 # HEADER
 
-st.title("🍽️ Beirut Restaurant Analysis Dashboard")
-st.write("COSC 482 - Data Science Project | Interactive exploration of Beirut restaurants")
+st.title("🍽️ Lebasese Restaurant Analysis Dashboard")
+st.write("COSC 482 - Data Science Project | Interactive exploration of Lebanese restaurants")
 st.write("---")
 
 # SIDEBAR - NAVIGATION
@@ -54,7 +54,7 @@ st.write("---")
 st.sidebar.title("📊 Dashboard Sections")
 selected_section = st.sidebar.radio(
     "Select Section:",
-    ["🔍 Search & Filter", "📊 General Analysis", "✨ Feature Analysis", 
+    ["🔍 Search & Filter", "📊 Exploratory Data Analysis", "✨ Feature Analysis", 
      "💬 NLP Analysis", "🤖 ML Insights"]
 )
 
@@ -899,28 +899,197 @@ elif selected_section == "✨ Feature Analysis":
                               (source_df['cuisine_primary'] != 'Unknown').sum()) / (2 * len(source_df)) * 100
                 st.write(f"- {source_labels[i]}: {completeness:.0f}% complete")
 
-# SECTION 4: NLP ANALYSIS (Placeholder for Friend 2)
+# SECTION 4: NLP ANALYSIS
 
 elif selected_section == "💬 NLP Analysis":
     st.header("💬 NLP Analysis")
-    st.info("⚠️ This section will be populated by Friend 2 (NLP)")
-    
+    st.write("Sentiment analysis and keyword extraction from restaurant reviews.")
     st.write("---")
-    st.subheader("Planned Analysis:")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.write("**Sentiment Analysis:**")
-        st.write("- Sentiment distribution (Positive/Neutral/Negative)")
-        st.write("- Sentiment by cuisine type")
-        st.write("- Sentiment by price category")
-        
-    with col2:
-        st.write("**Text Analysis:**")
-        st.write("- Word clouds (positive/negative)")
-        st.write("- Theme extraction (food, service, ambiance)")
-        st.write("- Review text statistics")
+
+    # --- Load NLP output files ---
+    import json
+
+    @st.cache_data
+    def load_nlp_data():
+        sentiment_area     = pd.read_csv("../nlp/sentiment_by_area.csv")
+        sentiment_cuisine  = pd.read_csv("../nlp/sentiment_by_cuisine.csv")
+        sentiment_price    = pd.read_csv("../nlp/sentiment_by_price.csv")
+        with open("../nlp/area_keywords.json") as f:
+            area_keywords = json.load(f)
+        with open("../nlp/cuisine_keywords.json") as f:
+            cuisine_keywords = json.load(f)
+        try:
+            with open("../nlp/nlp_summary.json") as f:
+                summary = json.load(f)
+        except FileNotFoundError:
+            summary = None
+        return sentiment_area, sentiment_cuisine, sentiment_price, area_keywords, cuisine_keywords, summary
+
+    sentiment_area, sentiment_cuisine, sentiment_price, area_keywords, cuisine_keywords, nlp_summary = load_nlp_data()
+
+    # --- SUMMARY STATS ---
+    st.subheader("📋 Review Dataset Summary")
+
+    if nlp_summary:
+        col1, col2, col3, col4, col5 = st.columns(5)
+        col1.metric("Total Reviews Loaded", f"{nlp_summary['total_reviews_loaded']:,}")
+        col2.metric("Reviews Used in Analysis", f"{nlp_summary['reviews_used']:,}")
+        col3.metric("Excluded (Unknown metadata)", f"{nlp_summary['reviews_excluded']:,}")
+        col4.metric("Neighborhoods Covered", nlp_summary['neighborhoods_covered'])
+        col5.metric("Cuisine Types Covered", nlp_summary['cuisines_covered'])
+
+        st.info(
+            f"ℹ️ **{nlp_summary['reviews_excluded']:,}** reviews were excluded because their area, cuisine, "
+            f"or price category was unknown. Analysis is based on **{nlp_summary['reviews_used']:,}** reviews "
+            f"with complete metadata."
+        )
+
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Avg Sentiment Score", f"{nlp_summary['avg_sentiment']:.3f}")
+        col2.metric("% Positive", f"{nlp_summary['pct_positive']}%")
+        col3.metric("% Neutral",  f"{nlp_summary['pct_neutral']}%")
+        col4.metric("% Negative", f"{nlp_summary['pct_negative']}%")
+
+        # Source breakdown as a small table
+        with st.expander("📊 Reviews by Source"):
+            source_df = pd.DataFrame(
+                list(nlp_summary['source_breakdown'].items()),
+                columns=["Source", "Review Count"]
+            )
+            st.dataframe(source_df, use_container_width=True)
+    else:
+        st.warning("Run nlp.py first to generate nlp_summary.json")
+
+    st.write("---")
+
+    # --- SENTIMENT BY AREA ---
+    st.subheader("🗺️ Sentiment by Neighborhood")
+
+    color_area = ['#2ecc71' if x > 0 else '#e74c3c' for x in sentiment_area['avg_sentiment']]
+    fig_area = go.Figure(go.Bar(
+        x=sentiment_area['area'],
+        y=sentiment_area['avg_sentiment'],
+        marker_color=color_area,
+        text=sentiment_area['avg_sentiment'].round(3),
+        textposition='outside',
+        customdata=sentiment_area[['review_count', 'pct_positive', 'pct_negative']].values,
+        hovertemplate=(
+            "<b>%{x}</b><br>"
+            "Avg Sentiment: %{y:.3f}<br>"
+            "Reviews: %{customdata[0]}<br>"
+            "% Positive: %{customdata[1]:.1f}%<br>"
+            "% Negative: %{customdata[2]:.1f}%<extra></extra>"
+        )
+    ))
+    fig_area.add_hline(y=0, line_dash="dash", line_color="black", line_width=1)
+    fig_area.update_layout(
+        title="Average Review Sentiment by Neighborhood",
+        xaxis_title="Neighborhood",
+        yaxis_title="Sentiment Score (-1 = negative, +1 = positive)",
+        xaxis_tickangle=-45,
+        height=450
+    )
+    st.plotly_chart(fig_area, use_container_width=True)
+
+    # Show the raw data table underneath (collapsible)
+    with st.expander("📄 View full sentiment-by-area data"):
+        st.dataframe(sentiment_area, use_container_width=True)
+
+    st.write("---")
+
+    # --- SENTIMENT BY CUISINE ---
+    st.subheader("🍽️ Sentiment by Cuisine Type")
+
+    color_cuisine = ['#2ecc71' if x > 0 else '#e74c3c' for x in sentiment_cuisine['avg_sentiment']]
+    fig_cuisine = go.Figure(go.Bar(
+        x=sentiment_cuisine['cuisine_primary'],
+        y=sentiment_cuisine['avg_sentiment'],
+        marker_color=color_cuisine,
+        text=sentiment_cuisine['avg_sentiment'].round(3),
+        textposition='outside',
+        customdata=sentiment_cuisine[['review_count', 'pct_positive', 'pct_negative']].values,
+        hovertemplate=(
+            "<b>%{x}</b><br>"
+            "Avg Sentiment: %{y:.3f}<br>"
+            "Reviews: %{customdata[0]}<br>"
+            "% Positive: %{customdata[1]:.1f}%<br>"
+            "% Negative: %{customdata[2]:.1f}%<extra></extra>"
+        )
+    ))
+    fig_cuisine.add_hline(y=0, line_dash="dash", line_color="black", line_width=1)
+    fig_cuisine.update_layout(
+        title="Average Review Sentiment by Cuisine Type",
+        xaxis_title="Cuisine",
+        yaxis_title="Sentiment Score (-1 = negative, +1 = positive)",
+        xaxis_tickangle=-45,
+        height=450
+    )
+    st.plotly_chart(fig_cuisine, use_container_width=True)
+
+    with st.expander("📄 View full sentiment-by-cuisine data"):
+        st.dataframe(sentiment_cuisine, use_container_width=True)
+
+    st.write("---")
+
+    # --- SENTIMENT BY PRICE ---
+    st.subheader("💰 Sentiment by Price Tier")
+
+    color_price = ['#2ecc71' if x > 0 else '#e74c3c' for x in sentiment_price['avg_sentiment']]
+    fig_price = go.Figure(go.Bar(
+        x=sentiment_price['price_category'],
+        y=sentiment_price['avg_sentiment'],
+        marker_color=color_price,
+        text=sentiment_price['avg_sentiment'].round(3),
+        textposition='outside',
+        customdata=sentiment_price[['review_count', 'pct_positive', 'pct_negative']].values,
+        hovertemplate=(
+            "<b>%{x}</b><br>"
+            "Avg Sentiment: %{y:.3f}<br>"
+            "Reviews: %{customdata[0]}<br>"
+            "% Positive: %{customdata[1]:.1f}%<br>"
+            "% Negative: %{customdata[2]:.1f}%<extra></extra>"
+        )
+    ))
+    fig_price.add_hline(y=0, line_dash="dash", line_color="black", line_width=1)
+    fig_price.update_layout(
+        title="Average Review Sentiment by Price Tier",
+        xaxis_title="Price Category",
+        yaxis_title="Sentiment Score (-1 = negative, +1 = positive)",
+        height=400
+    )
+    st.plotly_chart(fig_price, use_container_width=True)
+
+    with st.expander("📄 View full sentiment-by-price data"):
+        st.dataframe(sentiment_price, use_container_width=True)
+
+    st.write("---")
+
+    # --- TF-IDF KEYWORDS ---
+    st.subheader("🔑 Top Keywords by Neighborhood (TF-IDF)")
+    st.write("These are the words that uniquely characterize each neighborhood's reviews compared to all others.")
+
+    selected_area_kw = st.selectbox("Select a neighborhood:", sorted(area_keywords.keys()))
+    if selected_area_kw:
+        keywords = area_keywords[selected_area_kw]
+        kw_df = pd.DataFrame({
+            "Rank": range(1, len(keywords) + 1),
+            "Keyword": keywords
+        })
+        st.dataframe(kw_df, use_container_width=True, hide_index=True)
+
+    st.write("---")
+
+    st.subheader("🔑 Top Keywords by Cuisine (TF-IDF)")
+    st.write("These are the words that uniquely characterize each cuisine type's reviews.")
+
+    selected_cuisine_kw = st.selectbox("Select a cuisine:", sorted(cuisine_keywords.keys()))
+    if selected_cuisine_kw:
+        keywords = cuisine_keywords[selected_cuisine_kw]
+        kw_df = pd.DataFrame({
+            "Rank": range(1, len(keywords) + 1),
+            "Keyword": keywords
+        })
+        st.dataframe(kw_df, use_container_width=True, hide_index=True)
 
 # SECTION 5: ML INSIGHTS (Placeholder for Friend 3)
 
@@ -948,5 +1117,4 @@ elif selected_section == "🤖 ML Insights":
 # FOOTER
 
 st.write("---")
-st.write("**COSC 482 - Data Science Project** | Beirut Restaurant Analysis")
-st.write("Team: Your Name, Friend 1 (EDA), Friend 2 (NLP), Friend 3 (ML)")
+st.write("**COSC 482 - Data Science Project** | Lebanese Restaurant Analysis")

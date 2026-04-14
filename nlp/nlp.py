@@ -62,9 +62,7 @@ plt.xticks(rotation=45, ha='right')
 plt.title('Average Review Sentiment by Neighborhood', fontsize=14)
 plt.ylabel('Sentiment Score (-1 = negative, +1 = positive)')
 plt.tight_layout()
-plt.savefig('sentiment_by_area.png', dpi=150)
-plt.show()
-print("Chart saved: sentiment_by_area.png")
+plt.close()
 print()
 
 
@@ -94,9 +92,7 @@ plt.xticks(rotation=45, ha='right')
 plt.title('Average Review Sentiment by Cuisine Type', fontsize=14)
 plt.ylabel('Sentiment Score (-1 = negative, +1 = positive)')
 plt.tight_layout()
-plt.savefig('sentiment_by_cuisine.png', dpi=150)
-plt.show()
-print("Chart saved: sentiment_by_cuisine.png")
+plt.close()
 print()
 
 print("--------- SENTIMENT BY PRICE TIER ---------")
@@ -123,9 +119,7 @@ plt.axhline(0, color='black', linewidth=0.8, linestyle='--')
 plt.title('Average Review Sentiment by Price Tier', fontsize=14)
 plt.ylabel('Sentiment Score (-1 = negative, +1 = positive)')
 plt.tight_layout()
-plt.savefig('sentiment_by_price.png', dpi=150)
-plt.show()
-print("Chart saved: sentiment_by_price.png")
+plt.close()
 print()
 
 # save sentiment outputs as CSVs so the dashboard can load them directly
@@ -221,21 +215,19 @@ with open('cuisine_keywords.json', 'w') as f:
 print("Keyword JSONs saved.")
 print()
 
-# STEP 4: QUICK SUMMARY
-print("=" * 50)
-print("SUMMARY")
-print("=" * 50)
-print(f"Total reviews analyzed: {len(reviews_known)}")
-print(f"Neighborhoods covered:  {reviews_known['area'].nunique()}")
-print(f"Cuisine types covered:  {reviews_known['cuisine_primary'].nunique()}")
-print(f"Overall avg sentiment:  {reviews_known['sentiment_score'].mean():.3f}")
-print(f"% Positive reviews:     {(reviews_known['sentiment_category'] == 'Positive').mean()*100:.1f}%")
-print(f"% Negative reviews:     {(reviews_known['sentiment_category'] == 'Negative').mean()*100:.1f}%")
-
-print(f"Total reviews loaded: {len(reviews)}")
-print(f"Reviews with full metadata: {len(reviews_known)}")
-print(f"Unique areas in reviews_known: {reviews_known['area'].nunique()}")
-print(f"Unique cuisines in reviews_known: {reviews_known['cuisine_primary'].nunique()}")
-print(f"Source breakdown:")
-print(reviews_known['review_source'].value_counts())
-print()
+# STEP 4: QUICK SUMMARY -> saved to json to use in dashboard
+nlp_summary = {
+    "total_reviews_loaded": int(len(reviews)),
+    "reviews_used": int(len(reviews_known)),
+    "reviews_excluded": int(len(reviews) - len(reviews_known)),
+    "neighborhoods_covered": int(reviews_known['area'].nunique()),
+    "cuisines_covered": int(reviews_known['cuisine_primary'].nunique()),
+    "avg_sentiment": round(float(reviews_known['sentiment_score'].mean()), 3),
+    "pct_positive": round(float((reviews_known['sentiment_category'] == 'Positive').mean() * 100), 1),
+    "pct_negative": round(float((reviews_known['sentiment_category'] == 'Negative').mean() * 100), 1),
+    "pct_neutral": round(float((reviews_known['sentiment_category'] == 'Neutral').mean() * 100), 1),
+    "source_breakdown": reviews_known['review_source'].value_counts().to_dict()
+}
+with open('nlp_summary.json', 'w') as f:
+    json.dump(nlp_summary, f)
+print("Summary JSON saved: nlp_summary.json")
