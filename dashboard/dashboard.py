@@ -3,12 +3,13 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+from streamlit_option_menu import option_menu
 
 # PAGE CONFIGURATION
 
 st.set_page_config(
-    page_title="Beirut Restaurant Analysis",
-    page_icon="🍽️",
+    page_title="Lebanon Restaurant Analysis",
+    page_icon=":material/restaurant:",
     layout="wide"
 )
 
@@ -45,24 +46,27 @@ for col in feature_cols:
 
 # HEADER
 
-st.title("🍽️ Lebasese Restaurant Analysis Dashboard")
+st.title("Lebasese Restaurant Analysis Dashboard")
 st.write("COSC 482 - Data Science Project | Interactive exploration of Lebanese restaurants")
 st.write("---")
 
 # SIDEBAR - NAVIGATION
 
-st.sidebar.title("📊 Dashboard Sections")
-selected_section = st.sidebar.radio(
-    "Select Section:",
-    ["🔍 Search & Filter", "📊 Exploratory Data Analysis", "✨ Feature Analysis", 
-     "💬 NLP Analysis", "🤖 ML Insights"]
-)
-
-st.sidebar.write("---")
+with st.sidebar:
+    selected_section = option_menu(
+        menu_title="Dashboard",
+        options=["Search & Filter", "Exploratory Data Analysis", "Feature Analysis", "NLP Analysis", "ML Insights"],
+        icons=["search", "bar-chart-line", "toggles", "chat-left-text", "cpu"],
+        default_index=0,
+        styles={
+            "nav-link-selected": {"background-color": "#c0392b"},
+        }
+    )
+    st.write("---")
 
 # SECTION 1: SEARCH & FILTER
 
-if selected_section == "🔍 Search & Filter":
+if selected_section == "Search & Filter":
     st.header("🔍 Search and Filter Restaurants")
     
     # Filters in sidebar
@@ -172,8 +176,8 @@ if selected_section == "🔍 Search & Filter":
 
 # SECTION 2: GENERAL ANALYSIS (Placeholder for Friend 1)
 
-elif selected_section == "📊 General Analysis":
-    st.header("📊 General Analysis (EDA)")
+elif selected_section == "Exploratory Data Analysis":
+    st.header("Exploratory Data Analysis")
 
     
     st.write("---")
@@ -427,7 +431,7 @@ elif selected_section == "📊 General Analysis":
 
 # SECTION 3: FEATURE ANALYSIS (YOUR WORK)
 
-elif selected_section == "✨ Feature Analysis":
+elif selected_section == "Feature Analysis":
     st.header("✨ Feature Analysis")
     st.write("Analysis of 12 features extracted from restaurant descriptions and reviews")
     
@@ -901,7 +905,7 @@ elif selected_section == "✨ Feature Analysis":
 
 # SECTION 4: NLP ANALYSIS
 
-elif selected_section == "💬 NLP Analysis":
+elif selected_section == "NLP Analysis":
     st.header("💬 NLP Analysis")
     st.write("Sentiment analysis and keyword extraction from restaurant reviews.")
     st.write("---")
@@ -1093,7 +1097,7 @@ elif selected_section == "💬 NLP Analysis":
 
 # SECTION 5: ML INSIGHTS (Placeholder for Friend 3)
 
-elif selected_section == "🤖 ML Insights":
+elif selected_section == "ML Insights":
     st.header("🤖 Machine Learning Insights")
     st.info("⚠️ This section will be populated by Friend 3 (ML)")
     
