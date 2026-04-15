@@ -35,13 +35,13 @@ jobs:
         working-directory: Cleaners
         run: python Cleaning_tripadvisor.py
 
-      - name: Run sentiment analysis
-        working-directory: sentiment
-        run: python sentiment_analysis.py
-
       - name: Run merge
         working-directory: merged
         run: python MERGE_SOURCES.py
+
+      - name: Run sentiment analysis
+        working-directory: sentiment
+        run: python sentiment_analysis.py
 
       - name: Run NLP
         working-directory: nlp
