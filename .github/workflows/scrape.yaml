@@ -1,4 +1,4 @@
-name: Daily Data Cleaning
+name: Full Cleaning and Analysis Pipeline
 
 on:
   schedule:
