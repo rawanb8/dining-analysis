@@ -39,6 +39,11 @@ jobs:
         working-directory: merged
         run: python MERGE_SOURCES.py
 
+      - name: Run incremental geocoding
+        working-directory: dashboard
+        run: python geocode.py
+        continue-on-error: true
+
       - name: Run sentiment analysis
         working-directory: sentiment
         run: python sentiment_analysis.py
