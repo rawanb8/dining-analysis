@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from streamlit_option_menu import option_menu
+import json, os
 
 # PAGE CONFIGURATION
 
@@ -1095,28 +1096,247 @@ elif selected_section == "NLP Analysis":
         })
         st.dataframe(kw_df, use_container_width=True, hide_index=True)
 
-# SECTION 5: ML INSIGHTS (Placeholder for Friend 3)
+# SECTION 5: ML INSIGHTS 
 
 elif selected_section == "ML Insights":
-    st.header("🤖 Machine Learning Insights")
-    st.info("⚠️ This section will be populated by Friend 3 (ML)")
-    
+    st.header("🤖 ML Insights — Cuisine Classifier")
+    st.write("We trained a text classifier on review content to predict the cuisine type for ~17k reviews that had missing metadata, unlocking them for the full NLP pipeline.")
     st.write("---")
-    st.subheader("Planned Models:")
+
+    # ── LOAD ML OUTPUT FILES 
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.write("**Classification Models:**")
-        st.write("- Fake review detection")
-        st.write("- Restaurant clustering")
-        st.write("- Rating prediction")
-        
-    with col2:
-        st.write("**Recommendation System:**")
-        st.write("- Content-based filtering")
-        st.write("- Collaborative filtering")
-        st.write("- Hybrid recommendations")
+
+    ML_DIR = os.path.join(os.path.dirname(__file__), '..', 'machine_learning')
+    @st.cache_data
+    def load_ml_data():
+        summary_path     = os.path.join(ML_DIR, 'ml_cuisine_summary.json')
+        comparison_path  = os.path.join(ML_DIR, 'ml_model_comparison.csv')
+        pred_dist_path   = os.path.join(ML_DIR, 'ml_predicted_distribution.csv')
+
+        with open(summary_path, 'r') as f:
+            summary = json.load(f)
+
+        df_comparison = pd.read_csv(comparison_path)
+        df_pred_dist  = pd.read_csv(pred_dist_path)
+        return summary, df_comparison, df_pred_dist
+
+    try:
+        ml_summary, df_comparison, df_pred_dist = load_ml_data()
+        ml_loaded = True
+    except FileNotFoundError:
+        st.warning("⚠️ ML output files not found. Run `cuisine_classifier.py` first.")
+        ml_loaded = False
+
+    if ml_loaded:
+
+        # ── SECTION 1: PIPELINE OVERVIEW METRICS ─────────────────────
+        st.subheader("📦 Data Overview")
+
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Total Reviews",         f"{ml_summary['total_reviews_loaded']:,}")
+        col2.metric("Known Cuisine (Train)",  f"{ml_summary['known_cuisine_reviews']:,}")
+        col3.metric("Unknown Cuisine",        f"{ml_summary['unknown_cuisine_reviews']:,}")
+        col4.metric("Reviews Recovered",      f"{ml_summary['predictions_made']:,}")
+
+        st.write("---")
+
+        # ── SECTION 2: MODEL COMPARISON ───────────────────────────────
+        st.subheader("🏆 Model Comparison")
+        st.caption("All three models were evaluated on a held-out 20% test set across all cuisine classes. The best model was selected by weighted F1 score.")
+
+        col_left, col_right = st.columns([1, 1])
+
+        with col_left:
+            # Bar chart: accuracy vs F1 for each model
+            fig_compare = go.Figure()
+
+            fig_compare.add_trace(go.Bar(
+                name='Accuracy',
+                x=df_comparison['model'],
+                y=(df_comparison['accuracy'] * 100).round(1),
+                marker_color='#3498db',
+                text=(df_comparison['accuracy'] * 100).round(1).astype(str) + '%',
+                textposition='outside'
+            ))
+            fig_compare.add_trace(go.Bar(
+                name='Weighted F1',
+                x=df_comparison['model'],
+                y=(df_comparison['weighted_f1'] * 100).round(1),
+                marker_color='#2ecc71',
+                text=(df_comparison['weighted_f1'] * 100).round(1).astype(str) + '%',
+                textposition='outside'
+            ))
+
+            fig_compare.update_layout(
+                barmode='group',
+                title='Accuracy vs Weighted F1 by Model',
+                yaxis=dict(title='Score (%)', range=[0, 100]),
+                xaxis_title='Model',
+                legend=dict(orientation='h', yanchor='bottom', y=1.02),
+                height=400
+            )
+            st.plotly_chart(fig_compare, use_container_width=True)
+
+        with col_right:
+            # Detailed metrics table
+            display_df = df_comparison[['model', 'accuracy', 'weighted_f1', 'weighted_precision', 'weighted_recall', 'is_best']].copy()
+            display_df.columns = ['Model', 'Accuracy', 'Weighted F1', 'Precision', 'Recall', 'Best']
+            display_df['Accuracy']    = (display_df['Accuracy'] * 100).round(1).astype(str) + '%'
+            display_df['Weighted F1'] = (display_df['Weighted F1'] * 100).round(1).astype(str) + '%'
+            display_df['Precision']   = (display_df['Precision'] * 100).round(1).astype(str) + '%'
+            display_df['Recall']      = (display_df['Recall'] * 100).round(1).astype(str) + '%'
+            display_df['Best']        = display_df['Best'].apply(lambda x: '✅' if x else '')
+
+            st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+            best = ml_summary['best_model']
+            acc  = ml_summary['best_model_accuracy'] * 100
+            f1   = ml_summary['best_model_f1']
+            st.success(f"**Best model: {best}** — {acc:.1f}% accuracy, F1: {f1:.4f}")
+
+            st.info(
+                "**Why ~45% accuracy is acceptable:** With 28 cuisine classes, "
+                "random guessing yields ~3.5%. The classifier is 13× better than chance. "
+                "Short, noisy multilingual reviews make this a genuinely hard problem."
+            )
+
+        st.write("---")
+
+        # ── SECTION 3: CONFUSION ANALYSIS ────────────────────────────
+        st.subheader("🔀 Where the Model Gets Confused")
+        st.caption(ml_summary['confusion_matrix_note'])
+
+        col_a, col_b = st.columns([1, 1])
+
+        with col_a:
+            st.markdown("**Top Confusion Pairs**")
+            st.caption("Cuisines most commonly mispredicted as another class (> 5% bleed rate)")
+
+            pairs = ml_summary['top_confusion_pairs']
+            df_pairs = pd.DataFrame(pairs)
+            df_pairs.columns = ['Actual', 'Predicted As', 'Rate']
+            df_pairs['Rate'] = (df_pairs['Rate'] * 100).round(1).astype(str) + '%'
+            st.dataframe(df_pairs, use_container_width=True, hide_index=True)
+
+        with col_b:
+            st.markdown("**Why This Happens**")
+            st.write(
+                "The confusion pattern reflects genuine cultural and culinary overlap "
+                "in the Lebanese dining context — Armenian, Mediterranean, and Middle Eastern "
+                "restaurants in Beirut often serve similar dishes and receive nearly identical "
+                "review vocabulary. This is a real-world ambiguity, not purely a model weakness."
+            )
+            st.warning(
+                "**Lebanese over-prediction:** Lebanese cuisine dominates the training data "
+                "(5,112 samples vs ~145 for Japanese). The model defaults to Lebanese when "
+                "uncertain. This is expected in imbalanced multiclass problems."
+            )
+
+        st.write("---")
+
+        # ── SECTION 4: PER-CLASS F1 BREAKDOWN ────────────────────────
+        st.subheader("📊 Per-Class F1 Score Breakdown")
+        st.caption(f"Performance of {ml_summary['best_model']} broken down by cuisine class. Classes with 0.0 F1 were never correctly predicted.")
+
+        per_class = ml_summary['per_class_f1']
+        df_f1 = pd.DataFrame(
+            list(per_class.items()),
+            columns=['Cuisine', 'F1 Score']
+        ).sort_values('F1 Score', ascending=True)
+
+        colors = ['#e74c3c' if v == 0 else '#f39c12' if v < 0.3 else '#2ecc71'
+                  for v in df_f1['F1 Score']]
+
+        fig_f1 = go.Figure(go.Bar(
+            x=df_f1['F1 Score'],
+            y=df_f1['Cuisine'],
+            orientation='h',
+            marker_color=colors,
+            text=df_f1['F1 Score'].round(3),
+            textposition='outside'
+        ))
+        fig_f1.update_layout(
+            title=f'F1 Score per Cuisine — {ml_summary["best_model"]}',
+            xaxis=dict(title='F1 Score', range=[0, 1]),
+            yaxis_title='Cuisine',
+            height=650
+        )
+        st.plotly_chart(fig_f1, use_container_width=True)
+
+        st.write("---")
+
+        # ── SECTION 5: PREDICTION OUTCOMES ───────────────────────────
+        st.subheader("🔮 Prediction Outcomes on Unknown Reviews")
+
+        col_m1, col_m2, col_m3 = st.columns(3)
+        col_m1.metric("Avg Confidence Score",     f"{ml_summary['avg_prediction_confidence']:.2f}")
+        col_m2.metric("Low-Confidence Predictions",
+                      f"{ml_summary['low_confidence_count']:,}",
+                      f"{ml_summary['low_confidence_pct']}% of total",
+                      delta_color="inverse")
+        col_m3.metric("Confidence Threshold",     f"{ml_summary['low_confidence_threshold']}")
+
+        col_pred_l, col_pred_r = st.columns([1.2, 1])
+
+        with col_pred_l:
+            # Bar chart of predicted cuisine distribution
+            fig_dist = px.bar(
+                df_pred_dist,
+                x='predicted_count',
+                y='cuisine',
+                orientation='h',
+                color='avg_confidence',
+                color_continuous_scale='RdYlGn',
+                range_color=[0, 1],
+                labels={
+                    'predicted_count': 'Reviews Predicted',
+                    'cuisine': 'Cuisine',
+                    'avg_confidence': 'Avg Confidence'
+                },
+                title='Predicted Cuisine Distribution (17k Recovered Reviews)'
+            )
+            fig_dist.update_layout(
+                height=550,
+                yaxis={'categoryorder': 'total ascending'}
+            )
+            st.plotly_chart(fig_dist, use_container_width=True)
+
+        with col_pred_r:
+            st.markdown("**Recovered Reviews by Cuisine**")
+            display_pred = df_pred_dist[['cuisine', 'predicted_count', 'avg_confidence', 'high_conf_count']].copy()
+            display_pred.columns = ['Cuisine', 'Predicted', 'Avg Conf', 'High Conf (≥0.5)']
+            display_pred['Avg Conf'] = display_pred['Avg Conf'].round(3)
+            st.dataframe(display_pred, use_container_width=True, hide_index=True, height=500)
+
+        st.write("---")
+
+        # ── SECTION 6: ENRICHED DATASET SUMMARY ──────────────────────
+        st.subheader("✅ Enriched Dataset")
+        st.write("The classifier output was merged back into `master_reviews_enriched.csv`. A `cuisine_source` column tracks which labels are original vs ML-predicted.")
+
+        col_e1, col_e2, col_e3 = st.columns(3)
+        col_e1.metric("Total Reviews (Enriched)",  f"{ml_summary['enriched_reviews_total']:,}")
+        col_e2.metric("Original Labels",            f"{ml_summary['enriched_original_labels']:,}")
+        col_e3.metric("ML-Predicted Labels",        f"{ml_summary['enriched_predicted_labels']:,}")
+
+        # Donut chart: original vs predicted
+        fig_donut = go.Figure(go.Pie(
+            labels=['Original Metadata', 'ML-Predicted'],
+            values=[ml_summary['enriched_original_labels'], ml_summary['enriched_predicted_labels']],
+            hole=0.55,
+            marker_colors=['#2ecc71', '#3498db']
+        ))
+        fig_donut.update_layout(
+            title='Label Source Breakdown in Enriched Dataset',
+            height=350
+        )
+        st.plotly_chart(fig_donut, use_container_width=True)
+
+        st.caption(
+            "⚠️ ML-predicted labels should be interpreted with caution. "
+            "Low-confidence predictions (< 0.30) are still included but flagged via the `prediction_confidence` column. "
+            "The post-ML NLP section uses this enriched file."
+        )
 
 # FOOTER
 
