@@ -274,7 +274,7 @@ unknown_out = unknown_out.drop(columns=['cuisine_predicted'])
 
 master_enriched = pd.concat([known_out, unknown_out], ignore_index=True)
 
-master_enriched.to_csv('../master_reviews_enriched.csv', index=False)
+master_enriched.to_csv('master_reviews_enriched.csv', index=False)
 print("Saved: master_reviews_enriched.csv")
 print()
 print(f"Original labels:  {(master_enriched['cuisine_source'] == 'original').sum()}")

@@ -55,7 +55,7 @@ st.write("---")
 
 selected_section = option_menu(
     menu_title=None,
-    options=["Search & Filter", "Exploratory Data Analysis", "Feature Analysis", "NLP Analysis", "ML Insights"],
+    options=["Search & Filter", "EDA", "Feature Analysis", "NLP Analysis", "ML Insights"],
     icons=["search", "bar-chart-line", "toggles", "chat-left-text", "cpu"],
     orientation="horizontal",
     default_index=0,
@@ -179,7 +179,7 @@ if selected_section == "Search & Filter":
 
 # SECTION 2: GENERAL ANALYSIS (Placeholder for Friend 1)
 
-elif selected_section == "Exploratory Data Analysis":
+elif selected_section == "EDA":
     st.header("Exploratory Data Analysis")
 
     
@@ -906,199 +906,7 @@ elif selected_section == "Feature Analysis":
                               (source_df['cuisine_primary'] != 'Unknown').sum()) / (2 * len(source_df)) * 100
                 st.write(f"- {source_labels[i]}: {completeness:.0f}% complete")
 
-# SECTION 4: NLP ANALYSIS
-
-elif selected_section == "NLP Analysis":
-    st.header(":material/forum: NLP Analysis")
-    st.write("Sentiment analysis and keyword extraction from restaurant reviews.")
-    st.write("---")
-
-    # --- Load NLP output files ---
-    import json
-
-    @st.cache_data
-    def load_nlp_data():
-        sentiment_area     = pd.read_csv("../nlp/sentiment_by_area.csv")
-        sentiment_cuisine  = pd.read_csv("../nlp/sentiment_by_cuisine.csv")
-        sentiment_price    = pd.read_csv("../nlp/sentiment_by_price.csv")
-        with open("../nlp/area_keywords.json") as f:
-            area_keywords = json.load(f)
-        with open("../nlp/cuisine_keywords.json") as f:
-            cuisine_keywords = json.load(f)
-        try:
-            with open("../nlp/nlp_summary.json") as f:
-                summary = json.load(f)
-        except FileNotFoundError:
-            summary = None
-        return sentiment_area, sentiment_cuisine, sentiment_price, area_keywords, cuisine_keywords, summary
-
-    sentiment_area, sentiment_cuisine, sentiment_price, area_keywords, cuisine_keywords, nlp_summary = load_nlp_data()
-
-    # --- SUMMARY STATS ---
-    st.subheader(":material/assignment: Review Dataset Summary")
-
-    if nlp_summary:
-        col1, col2, col3, col4, col5 = st.columns(5)
-        col1.metric("Total Reviews Loaded", f"{nlp_summary['total_reviews_loaded']:,}")
-        col2.metric("Reviews Used in Analysis", f"{nlp_summary['reviews_used']:,}")
-        col3.metric("Excluded (Unknown metadata)", f"{nlp_summary['reviews_excluded']:,}")
-        col4.metric("Neighborhoods Covered", nlp_summary['neighborhoods_covered'])
-        col5.metric("Cuisine Types Covered", nlp_summary['cuisines_covered'])
-
-        st.info(
-            f"ℹ️ **{nlp_summary['reviews_excluded']:,}** reviews were excluded because their area, cuisine, "
-            f"or price category was unknown. Analysis is based on **{nlp_summary['reviews_used']:,}** reviews "
-            f"with complete metadata."
-        )
-
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Avg Sentiment Score", f"{nlp_summary['avg_sentiment']:.3f}")
-        col2.metric("% Positive", f"{nlp_summary['pct_positive']}%")
-        col3.metric("% Neutral",  f"{nlp_summary['pct_neutral']}%")
-        col4.metric("% Negative", f"{nlp_summary['pct_negative']}%")
-
-        # Source breakdown as a small table
-        with st.expander("📊 Reviews by Source"):
-            source_df = pd.DataFrame(
-                list(nlp_summary['source_breakdown'].items()),
-                columns=["Source", "Review Count"]
-            )
-            st.dataframe(source_df, use_container_width=True)
-    else:
-        st.warning("Run nlp.py first to generate nlp_summary.json")
-
-    st.write("---")
-
-    # --- SENTIMENT BY AREA ---
-    st.subheader(":material/map: Sentiment by Neighborhood")
-
-    color_area = ['#2ecc71' if x > 0 else '#e74c3c' for x in sentiment_area['avg_sentiment']]
-    fig_area = go.Figure(go.Bar(
-        x=sentiment_area['area'],
-        y=sentiment_area['avg_sentiment'],
-        marker_color=color_area,
-        text=sentiment_area['avg_sentiment'].round(3),
-        textposition='outside',
-        customdata=sentiment_area[['review_count', 'pct_positive', 'pct_negative']].values,
-        hovertemplate=(
-            "<b>%{x}</b><br>"
-            "Avg Sentiment: %{y:.3f}<br>"
-            "Reviews: %{customdata[0]}<br>"
-            "% Positive: %{customdata[1]:.1f}%<br>"
-            "% Negative: %{customdata[2]:.1f}%<extra></extra>"
-        )
-    ))
-    fig_area.add_hline(y=0, line_dash="dash", line_color="black", line_width=1)
-    fig_area.update_layout(
-        title="Average Review Sentiment by Neighborhood",
-        xaxis_title="Neighborhood",
-        yaxis_title="Sentiment Score (-1 = negative, +1 = positive)",
-        xaxis_tickangle=-45,
-        height=450
-    )
-    st.plotly_chart(fig_area, use_container_width=True)
-
-    # Show the raw data table underneath (collapsible)
-    with st.expander("📄 View full sentiment-by-area data"):
-        st.dataframe(sentiment_area, use_container_width=True)
-
-    st.write("---")
-
-    # --- SENTIMENT BY CUISINE ---
-    st.subheader(":material/restaurant: Sentiment by Cuisine Type")
-
-    color_cuisine = ['#2ecc71' if x > 0 else '#e74c3c' for x in sentiment_cuisine['avg_sentiment']]
-    fig_cuisine = go.Figure(go.Bar(
-        x=sentiment_cuisine['cuisine_primary'],
-        y=sentiment_cuisine['avg_sentiment'],
-        marker_color=color_cuisine,
-        text=sentiment_cuisine['avg_sentiment'].round(3),
-        textposition='outside',
-        customdata=sentiment_cuisine[['review_count', 'pct_positive', 'pct_negative']].values,
-        hovertemplate=(
-            "<b>%{x}</b><br>"
-            "Avg Sentiment: %{y:.3f}<br>"
-            "Reviews: %{customdata[0]}<br>"
-            "% Positive: %{customdata[1]:.1f}%<br>"
-            "% Negative: %{customdata[2]:.1f}%<extra></extra>"
-        )
-    ))
-    fig_cuisine.add_hline(y=0, line_dash="dash", line_color="black", line_width=1)
-    fig_cuisine.update_layout(
-        title="Average Review Sentiment by Cuisine Type",
-        xaxis_title="Cuisine",
-        yaxis_title="Sentiment Score (-1 = negative, +1 = positive)",
-        xaxis_tickangle=-45,
-        height=450
-    )
-    st.plotly_chart(fig_cuisine, use_container_width=True)
-
-    with st.expander("📄 View full sentiment-by-cuisine data"):
-        st.dataframe(sentiment_cuisine, use_container_width=True)
-
-    st.write("---")
-
-    # --- SENTIMENT BY PRICE ---
-    st.subheader(":material/payments: Sentiment by Price Tier")
-
-    color_price = ['#2ecc71' if x > 0 else '#e74c3c' for x in sentiment_price['avg_sentiment']]
-    fig_price = go.Figure(go.Bar(
-        x=sentiment_price['price_category'],
-        y=sentiment_price['avg_sentiment'],
-        marker_color=color_price,
-        text=sentiment_price['avg_sentiment'].round(3),
-        textposition='outside',
-        customdata=sentiment_price[['review_count', 'pct_positive', 'pct_negative']].values,
-        hovertemplate=(
-            "<b>%{x}</b><br>"
-            "Avg Sentiment: %{y:.3f}<br>"
-            "Reviews: %{customdata[0]}<br>"
-            "% Positive: %{customdata[1]:.1f}%<br>"
-            "% Negative: %{customdata[2]:.1f}%<extra></extra>"
-        )
-    ))
-    fig_price.add_hline(y=0, line_dash="dash", line_color="black", line_width=1)
-    fig_price.update_layout(
-        title="Average Review Sentiment by Price Tier",
-        xaxis_title="Price Category",
-        yaxis_title="Sentiment Score (-1 = negative, +1 = positive)",
-        height=400
-    )
-    st.plotly_chart(fig_price, use_container_width=True)
-
-    with st.expander("📄 View full sentiment-by-price data"):
-        st.dataframe(sentiment_price, use_container_width=True)
-
-    st.write("---")
-
-    # --- TF-IDF KEYWORDS ---
-    st.subheader(":material/key: Top Keywords by Neighborhood (TF-IDF)")
-    st.write("These are the words that uniquely characterize each neighborhood's reviews compared to all others.")
-
-    selected_area_kw = st.selectbox("Select a neighborhood:", sorted(area_keywords.keys()))
-    if selected_area_kw:
-        keywords = area_keywords[selected_area_kw]
-        kw_df = pd.DataFrame({
-            "Rank": range(1, len(keywords) + 1),
-            "Keyword": keywords
-        })
-        st.dataframe(kw_df, use_container_width=True, hide_index=True)
-
-    st.write("---")
-
-    st.subheader(":material/key: Top Keywords by Cuisine (TF-IDF)")
-    st.write("These are the words that uniquely characterize each cuisine type's reviews.")
-
-    selected_cuisine_kw = st.selectbox("Select a cuisine:", sorted(cuisine_keywords.keys()))
-    if selected_cuisine_kw:
-        keywords = cuisine_keywords[selected_cuisine_kw]
-        kw_df = pd.DataFrame({
-            "Rank": range(1, len(keywords) + 1),
-            "Keyword": keywords
-        })
-        st.dataframe(kw_df, use_container_width=True, hide_index=True)
-
-# SECTION 5: ML INSIGHTS 
+# SECTION 4: ML INSIGHTS 
 
 elif selected_section == "ML Insights":
     st.header(":material/smart_toy: ML Insights — Cuisine Classifier")
@@ -1195,12 +1003,6 @@ elif selected_section == "ML Insights":
             acc  = ml_summary['best_model_accuracy'] * 100
             f1   = ml_summary['best_model_f1']
             st.success(f"**Best model: {best}** — {acc:.1f}% accuracy, F1: {f1:.4f}")
-
-            st.info(
-                "**Why ~45% accuracy is acceptable:** With 28 cuisine classes, "
-                "random guessing yields ~3.5%. The classifier is 13× better than chance. "
-                "Short, noisy multilingual reviews make this a genuinely hard problem."
-            )
 
         st.write("---")
 
@@ -1339,6 +1141,330 @@ elif selected_section == "ML Insights":
             "Low-confidence predictions (< 0.30) are still included but flagged via the `prediction_confidence` column. "
             "The post-ML NLP section uses this enriched file."
         )
+        
+        st.write("---")
+
+        # ── SECTION 7: ENRICHED REVIEWS TABLE ────────────────────────
+        st.subheader(":material/table_rows: Enriched Reviews Dataset")
+        st.write("Browse the full enriched reviews file. Filter to inspect only the rows where cuisine was filled in by the ML classifier.")
+
+        @st.cache_data
+        def load_enriched_reviews():
+            return pd.read_csv(os.path.join(ML_DIR, 'master_reviews_enriched.csv'))
+
+        try:
+            df_enriched = load_enriched_reviews()
+
+            # ── FILTER CONTROLS ──────────────────────────────────────
+            col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+
+            with col_f1:
+                source_filter = st.radio(
+                    "Label Source:",
+                    options=["All", "ML-Predicted Only", "Original Only"],
+                    horizontal=True
+                )
+
+            with col_f2:
+                cuisine_opts = ["All"] + sorted(df_enriched['cuisine_primary'].dropna().unique().tolist())
+                cuisine_filter = st.selectbox("Cuisine:", cuisine_opts, key="enr_table_cuisine")
+
+            with col_f3:
+                area_opts = ["All"] + sorted(df_enriched['area'].dropna().unique().tolist())
+                area_filter = st.selectbox("Area:", area_opts, key="enr_table_area")
+
+            with col_f4:
+                if 'prediction_confidence' in df_enriched.columns:
+                    min_conf = st.slider(
+                        "Min Confidence (ML rows only):",
+                        min_value=0.0, max_value=1.0, value=0.0, step=0.05
+                    )
+                else:
+                    min_conf = 0.0
+
+            # ── APPLY FILTERS ────────────────────────────────────────
+            filtered = df_enriched.copy()
+
+            if source_filter == "ML-Predicted Only":
+                filtered = filtered[filtered['cuisine_source'] == 'predicted']
+            elif source_filter == "Original Only":
+                filtered = filtered[filtered['cuisine_source'] == 'original']
+
+            if cuisine_filter != "All":
+                filtered = filtered[filtered['cuisine_primary'] == cuisine_filter]
+
+            if area_filter != "All":
+                filtered = filtered[filtered['area'] == area_filter]
+
+            if min_conf > 0.0:
+                # only apply confidence filter to ML rows; original rows have NaN confidence
+                ml_mask      = filtered['cuisine_source'] == 'predicted'
+                orig_mask    = filtered['cuisine_source'] == 'original'
+                filtered = pd.concat([
+                    filtered[ml_mask & (filtered['prediction_confidence'] >= min_conf)],
+                    filtered[orig_mask]
+                ]).sort_index()
+
+            # ── SUMMARY METRICS ──────────────────────────────────────
+            col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+            col_m1.metric("Showing",          f"{len(filtered):,} reviews")
+            col_m2.metric("ML-Predicted",     f"{(filtered['cuisine_source'] == 'predicted').sum():,}")
+            col_m3.metric("Original Labels",  f"{(filtered['cuisine_source'] == 'original').sum():,}")
+            if 'prediction_confidence' in filtered.columns:
+                avg_conf = filtered[filtered['cuisine_source'] == 'predicted']['prediction_confidence'].mean()
+                col_m4.metric("Avg Confidence (ML)", f"{avg_conf:.3f}" if not pd.isna(avg_conf) else "—")
+
+            # ── TABLE ────────────────────────────────────────────────
+            display_cols = [
+                'restaurant_name', 'cuisine_primary', 'cuisine_source',
+                'prediction_confidence', 'area', 'price_category',
+                'rating', 'sentiment_category', 'sentiment_score',
+                'review_source', 'review_text'
+            ]
+            display_cols = [c for c in display_cols if c in filtered.columns]
+
+            st.dataframe(
+                filtered[display_cols].reset_index(drop=True),
+                use_container_width=True,
+                height=500,
+                column_config={
+                    "cuisine_source": st.column_config.TextColumn(
+                        "Label Source",
+                        help="'predicted' = filled in by ML classifier | 'original' = came from source data"
+                    ),
+                    "prediction_confidence": st.column_config.ProgressColumn(
+                        "Confidence",
+                        help="ML confidence score (only for predicted rows)",
+                        min_value=0.0,
+                        max_value=1.0,
+                        format="%.3f"
+                    ),
+                    "sentiment_score": st.column_config.NumberColumn(
+                        "Sentiment", format="%.3f"
+                    ),
+                    "review_text": st.column_config.TextColumn(
+                        "Review Text", width="large"
+                    )
+                }
+            )
+
+        except FileNotFoundError:
+            st.warning("⚠️ `master_reviews_enriched.csv` not found in the ML directory. Run `cuisine_classifier.py` first.")
+        
+# SECTION 5: NLP ANALYSIS
+
+elif selected_section == "NLP Analysis":
+    st.header(":material/forum: NLP Analysis")
+    st.write("Sentiment analysis and keyword extraction from restaurant reviews.")
+    st.write("---")
+
+    # ── LOAD BOTH NLP DATASETS ──────────────────────────────────────
+    @st.cache_data
+    def load_nlp_data():
+        # Original (pre-ML)
+        sa_orig  = pd.read_csv("../nlp/sentiment_by_area.csv")
+        sc_orig  = pd.read_csv("../nlp/sentiment_by_cuisine.csv")
+        sp_orig  = pd.read_csv("../nlp/sentiment_by_price.csv")
+        with open("../nlp/area_keywords.json")    as f: ak_orig = json.load(f)
+        with open("../nlp/cuisine_keywords.json") as f: ck_orig = json.load(f)
+        try:
+            with open("../nlp/nlp_summary.json")  as f: sum_orig = json.load(f)
+        except FileNotFoundError:
+            sum_orig = None
+
+        # Enriched (post-ML)
+        try:
+            sa_enr  = pd.read_csv("../nlp/sentiment_by_area_enriched.csv")
+            sc_enr  = pd.read_csv("../nlp/sentiment_by_cuisine_enriched.csv")
+            sp_enr  = pd.read_csv("../nlp/sentiment_by_price_enriched.csv")
+            with open("../nlp/area_keywords_enriched.json")    as f: ak_enr = json.load(f)
+            with open("../nlp/cuisine_keywords_enriched.json") as f: ck_enr = json.load(f)
+            with open("../nlp/nlp_summary_enriched.json")      as f: sum_enr = json.load(f)
+            enriched_loaded = True
+        except FileNotFoundError:
+            sa_enr = sc_enr = sp_enr = ak_enr = ck_enr = sum_enr = None
+            enriched_loaded = False
+
+        return (sa_orig, sc_orig, sp_orig, ak_orig, ck_orig, sum_orig,
+                sa_enr,  sc_enr,  sp_enr,  ak_enr,  ck_enr,  sum_enr,
+                enriched_loaded)
+
+    (sentiment_area, sentiment_cuisine, sentiment_price, area_keywords, cuisine_keywords, nlp_summary,
+     sentiment_area_enr, sentiment_cuisine_enr, sentiment_price_enr, area_keywords_enr, cuisine_keywords_enr, nlp_summary_enr,
+     enriched_loaded) = load_nlp_data()
+
+    # ── TABS ────────────────────────────────────────────────────────
+    tab_before, tab_after = st.tabs([" Before ML — Original Reviews", " After ML — Enriched Reviews"])
+
+    # ── HELPER: renders all NLP charts for a given dataset ──────────
+    def render_nlp_tab(s_area, s_cuisine, s_price, a_kw, c_kw, summary, tag):
+        """
+        tag: short string appended to selectbox keys to avoid duplicate widget IDs
+        """
+
+        # SUMMARY STATS
+        st.subheader(":material/assignment: Review Dataset Summary")
+        if summary:
+            col1, col2, col3, col4, col5 = st.columns(5)
+            col1.metric("Total Reviews Loaded",       f"{summary['total_reviews_loaded']:,}")
+            col2.metric("Reviews Used in Analysis",   f"{summary['reviews_used']:,}")
+            col3.metric("Excluded (Unknown metadata)",f"{summary['reviews_excluded']:,}")
+            col4.metric("Neighborhoods Covered",       summary['neighborhoods_covered'])
+            col5.metric("Cuisine Types Covered",       summary['cuisines_covered'])
+
+            st.info(
+                f"ℹ️ **{summary['reviews_excluded']:,}** reviews excluded due to unknown metadata. "
+                f"Analysis based on **{summary['reviews_used']:,}** reviews."
+            )
+
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("Avg Sentiment Score", f"{summary['avg_sentiment']:.3f}")
+            col2.metric("% Positive",          f"{summary['pct_positive']}%")
+            col3.metric("% Neutral",           f"{summary['pct_neutral']}%")
+            col4.metric("% Negative",          f"{summary['pct_negative']}%")
+
+            with st.expander("📊 Reviews by Source"):
+                source_df = pd.DataFrame(
+                    list(summary['source_breakdown'].items()),
+                    columns=["Source", "Review Count"]
+                )
+                st.dataframe(source_df, use_container_width=True)
+        else:
+            st.warning("Run `nlp.py` first to generate the summary JSON.")
+
+        st.write("---")
+
+        # SENTIMENT BY AREA
+        st.subheader(":material/map: Sentiment by Neighborhood")
+        color_area = ['#2ecc71' if x > 0 else '#e74c3c' for x in s_area['avg_sentiment']]
+        fig_area = go.Figure(go.Bar(
+            x=s_area['area'],
+            y=s_area['avg_sentiment'],
+            marker_color=color_area,
+            text=s_area['avg_sentiment'].round(3),
+            textposition='outside',
+            customdata=s_area[['review_count', 'pct_positive', 'pct_negative']].values,
+            hovertemplate=(
+                "<b>%{x}</b><br>"
+                "Avg Sentiment: %{y:.3f}<br>"
+                "Reviews: %{customdata[0]}<br>"
+                "% Positive: %{customdata[1]:.1f}%<br>"
+                "% Negative: %{customdata[2]:.1f}%<extra></extra>"
+            )
+        ))
+        fig_area.add_hline(y=0, line_dash="dash", line_color="black", line_width=1)
+        fig_area.update_layout(
+            title="Average Review Sentiment by Neighborhood",
+            xaxis_title="Neighborhood",
+            yaxis_title="Sentiment Score (-1 to +1)",
+            xaxis_tickangle=-45,
+            height=450
+        )
+        st.plotly_chart(fig_area, use_container_width=True, key=f"area_{tag}")
+
+        with st.expander("📄 View full sentiment-by-area data"):
+            st.dataframe(s_area, use_container_width=True)
+
+        st.write("---")
+
+        # SENTIMENT BY CUISINE
+        st.subheader(":material/restaurant: Sentiment by Cuisine Type")
+        color_cuisine = ['#2ecc71' if x > 0 else '#e74c3c' for x in s_cuisine['avg_sentiment']]
+        fig_cuisine = go.Figure(go.Bar(
+            x=s_cuisine['cuisine_primary'],
+            y=s_cuisine['avg_sentiment'],
+            marker_color=color_cuisine,
+            text=s_cuisine['avg_sentiment'].round(3),
+            textposition='outside',
+            customdata=s_cuisine[['review_count', 'pct_positive', 'pct_negative']].values,
+            hovertemplate=(
+                "<b>%{x}</b><br>"
+                "Avg Sentiment: %{y:.3f}<br>"
+                "Reviews: %{customdata[0]}<br>"
+                "% Positive: %{customdata[1]:.1f}%<br>"
+                "% Negative: %{customdata[2]:.1f}%<extra></extra>"
+            )
+        ))
+        fig_cuisine.add_hline(y=0, line_dash="dash", line_color="black", line_width=1)
+        fig_cuisine.update_layout(
+            title="Average Review Sentiment by Cuisine Type",
+            xaxis_title="Cuisine",
+            yaxis_title="Sentiment Score (-1 to +1)",
+            xaxis_tickangle=-45,
+            height=450
+        )
+        st.plotly_chart(fig_cuisine, use_container_width=True, key=f"cuisine_{tag}")
+
+        with st.expander("📄 View full sentiment-by-cuisine data"):
+            st.dataframe(s_cuisine, use_container_width=True)
+
+        st.write("---")
+
+        # SENTIMENT BY PRICE
+        st.subheader(":material/payments: Sentiment by Price Tier")
+        color_price = ['#2ecc71' if x > 0 else '#e74c3c' for x in s_price['avg_sentiment']]
+        fig_price = go.Figure(go.Bar(
+            x=s_price['price_category'],
+            y=s_price['avg_sentiment'],
+            marker_color=color_price,
+            text=s_price['avg_sentiment'].round(3),
+            textposition='outside',
+            customdata=s_price[['review_count', 'pct_positive', 'pct_negative']].values,
+            hovertemplate=(
+                "<b>%{x}</b><br>"
+                "Avg Sentiment: %{y:.3f}<br>"
+                "Reviews: %{customdata[0]}<br>"
+                "% Positive: %{customdata[1]:.1f}%<br>"
+                "% Negative: %{customdata[2]:.1f}%<extra></extra>"
+            )
+        ))
+        fig_price.add_hline(y=0, line_dash="dash", line_color="black", line_width=1)
+        fig_price.update_layout(
+            title="Average Review Sentiment by Price Tier",
+            xaxis_title="Price Category",
+            yaxis_title="Sentiment Score (-1 to +1)",
+            height=400
+        )
+        st.plotly_chart(fig_price, use_container_width=True, key=f"price_{tag}")
+
+        with st.expander("📄 View full sentiment-by-price data"):
+            st.dataframe(s_price, use_container_width=True)
+
+        st.write("---")
+
+        # TF-IDF KEYWORDS
+        st.subheader(":material/key: Top Keywords by Neighborhood (TF-IDF)")
+        st.write("Words that uniquely characterize each neighborhood's reviews compared to all others.")
+        selected_area_kw = st.selectbox("Select a neighborhood:", sorted(a_kw.keys()), key=f"kw_area_{tag}")
+        if selected_area_kw:
+            kw_df = pd.DataFrame({"Rank": range(1, 11), "Keyword": a_kw[selected_area_kw]})
+            st.dataframe(kw_df, use_container_width=True, hide_index=True)
+
+        st.write("---")
+
+        st.subheader(":material/key: Top Keywords by Cuisine (TF-IDF)")
+        st.write("Words that uniquely characterize each cuisine type's reviews.")
+        selected_cuisine_kw = st.selectbox("Select a cuisine:", sorted(c_kw.keys()), key=f"kw_cuisine_{tag}")
+        if selected_cuisine_kw:
+            kw_df = pd.DataFrame({"Rank": range(1, 11), "Keyword": c_kw[selected_cuisine_kw]})
+            st.dataframe(kw_df, use_container_width=True, hide_index=True)
+
+    # ── RENDER EACH TAB ─────────────────────────────────────────────
+    with tab_before:
+        st.caption("Analysis based on **master_reviews.csv** — reviews with Unknown cuisine are excluded from cuisine-level charts.")
+        render_nlp_tab(sentiment_area, sentiment_cuisine, sentiment_price,
+                       area_keywords, cuisine_keywords, nlp_summary, tag="orig")
+
+    with tab_after:
+        if enriched_loaded:
+            st.caption("Analysis based on **master_reviews_enriched.csv** — Unknown cuisine labels have been filled in by the ML classifier, so more reviews are included in cuisine-level charts.")
+            render_nlp_tab(sentiment_area_enr, sentiment_cuisine_enr, sentiment_price_enr,
+                           area_keywords_enr, cuisine_keywords_enr, nlp_summary_enr, tag="enr")
+        else:
+            st.warning("⚠️ Enriched NLP files not found. Run `nlp.py` after `cuisine_classifier.py` to generate them.")
+            st.info("Expected files: `sentiment_by_area_enriched.csv`, `sentiment_by_cuisine_enriched.csv`, `sentiment_by_price_enriched.csv`, `area_keywords_enriched.json`, `cuisine_keywords_enriched.json`, `nlp_summary_enriched.json`")
+
+
 
 # FOOTER
 
