@@ -5,7 +5,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from streamlit_option_menu import option_menu
 import json, os
-
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
 # PAGE CONFIGURATION
 
 st.set_page_config(
@@ -1433,21 +1434,87 @@ elif selected_section == "NLP Analysis":
         st.write("---")
 
         # TF-IDF KEYWORDS
+        # TF-IDF KEYWORDS
         st.subheader(":material/key: Top Keywords by Neighborhood (TF-IDF)")
         st.write("Words that uniquely characterize each neighborhood's reviews compared to all others.")
+
         selected_area_kw = st.selectbox("Select a neighborhood:", sorted(a_kw.keys()), key=f"kw_area_{tag}")
         if selected_area_kw:
-            kw_df = pd.DataFrame({"Rank": range(1, 11), "Keyword": a_kw[selected_area_kw]})
-            st.dataframe(kw_df, use_container_width=True, hide_index=True)
+            keywords = a_kw[selected_area_kw]
+
+            col_wc, col_tbl = st.columns([1.4, 1])
+
+            with col_wc:
+                # Build TF-IDF weighted dict: rank 10 = highest weight, rank 1 = lowest
+                n = len(keywords)
+                word_weights = {word: (n - i) for i, word in enumerate(keywords)}
+
+                wc = WordCloud(
+                    width=600,
+                    height=350,
+                    background_color='white',
+                    colormap='Set2',
+                    prefer_horizontal=0.85,
+                    min_font_size=12
+                ).generate_from_frequencies(word_weights)
+
+                fig_wc, ax_wc = plt.subplots(figsize=(6, 3.5))
+                ax_wc.imshow(wc, interpolation='bilinear')
+                ax_wc.axis('off')
+                ax_wc.set_title(f'"{selected_area_kw}" — Distinctive Keywords', fontsize=11)
+                plt.tight_layout(pad=0)
+                st.pyplot(fig_wc, use_container_width=True)
+                plt.close(fig_wc)
+
+            with col_tbl:
+                st.write("**Ranked Keywords**")
+                kw_df = pd.DataFrame({
+                    "Rank":    range(1, n + 1),
+                    "Keyword": keywords,
+                    "Weight":  [round((n - i) / n, 2) for i in range(n)]
+                })
+                st.dataframe(kw_df, use_container_width=True, hide_index=True)
 
         st.write("---")
 
         st.subheader(":material/key: Top Keywords by Cuisine (TF-IDF)")
         st.write("Words that uniquely characterize each cuisine type's reviews.")
+
         selected_cuisine_kw = st.selectbox("Select a cuisine:", sorted(c_kw.keys()), key=f"kw_cuisine_{tag}")
         if selected_cuisine_kw:
-            kw_df = pd.DataFrame({"Rank": range(1, 11), "Keyword": c_kw[selected_cuisine_kw]})
-            st.dataframe(kw_df, use_container_width=True, hide_index=True)
+            keywords = c_kw[selected_cuisine_kw]
+
+            col_wc2, col_tbl2 = st.columns([1.4, 1])
+
+            with col_wc2:
+                n = len(keywords)
+                word_weights = {word: (n - i) for i, word in enumerate(keywords)}
+
+                wc2 = WordCloud(
+                    width=600,
+                    height=350,
+                    background_color='white',
+                    colormap='tab10',
+                    prefer_horizontal=0.85,
+                    min_font_size=12
+                ).generate_from_frequencies(word_weights)
+
+                fig_wc2, ax_wc2 = plt.subplots(figsize=(6, 3.5))
+                ax_wc2.imshow(wc2, interpolation='bilinear')
+                ax_wc2.axis('off')
+                ax_wc2.set_title(f'"{selected_cuisine_kw}" — Distinctive Keywords', fontsize=11)
+                plt.tight_layout(pad=0)
+                st.pyplot(fig_wc2, use_container_width=True)
+                plt.close(fig_wc2)
+
+            with col_tbl2:
+                st.write("**Ranked Keywords**")
+                kw_df2 = pd.DataFrame({
+                    "Rank":    range(1, n + 1),
+                    "Keyword": keywords,
+                    "Weight":  [round((n - i) / n, 2) for i in range(n)]
+                })
+                st.dataframe(kw_df2, use_container_width=True, hide_index=True)
 
     # ── RENDER EACH TAB ─────────────────────────────────────────────
     with tab_before:
