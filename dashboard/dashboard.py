@@ -51,46 +51,48 @@ st.title("Lebasese Restaurant Analysis Dashboard")
 st.write("COSC 482 - Data Science Project | Interactive exploration of Lebanese restaurants")
 st.write("---")
 
-# SIDEBAR - NAVIGATION
+# TOP NAVIGATION
 
-with st.sidebar:
-    selected_section = option_menu(
-        menu_title="Dashboard",
-        options=["Search & Filter", "Exploratory Data Analysis", "Feature Analysis", "NLP Analysis", "ML Insights"],
-        icons=["search", "bar-chart-line", "toggles", "chat-left-text", "cpu"],
-        default_index=0,
-        styles={
-            "nav-link-selected": {"background-color": "#c0392b"},
-        }
-    )
-    st.write("---")
+selected_section = option_menu(
+    menu_title=None,
+    options=["Search & Filter", "Exploratory Data Analysis", "Feature Analysis", "NLP Analysis", "ML Insights"],
+    icons=["search", "bar-chart-line", "toggles", "chat-left-text", "cpu"],
+    orientation="horizontal",
+    default_index=0,
+    styles={
+        "container": {"padding": "0", "margin": "0 0 1rem 0"},
+        "nav-link-selected": {"background-color": "#3ad1e5"},
+    }
+)
+
+st.write("---")
 
 # SECTION 1: SEARCH & FILTER
 
 if selected_section == "Search & Filter":
-    st.header("🔍 Search and Filter Restaurants")
+    st.header(":material/search: Search and Filter Restaurants")
     
     # Filters in sidebar
     st.sidebar.subheader("Filters")
     
     # Text search
-    search_name = st.sidebar.text_input("🔎 Search by Name:").strip().lower()
+    search_name = st.sidebar.text_input(" Search by Name:").strip().lower()
     
     # Cuisine filter
     cuisine_options = ["All Cuisines"] + sorted(df_restaurants['cuisine_primary'].unique().tolist())
-    selected_cuisine = st.sidebar.selectbox("🍽️ Cuisine Type:", cuisine_options)
+    selected_cuisine = st.sidebar.selectbox(" Cuisine Type:", cuisine_options)
     
     # Area filter
     area_options = ["All Areas"] + sorted(df_restaurants['area'].unique().tolist())
-    selected_area = st.sidebar.selectbox("📍 Area:", area_options)
+    selected_area = st.sidebar.selectbox(" Area:", area_options)
     
     # Price filter
     price_options = ["All Prices", "Budget", "Mid-Range", "High-End"]
-    selected_price = st.sidebar.selectbox("💰 Price Category:", price_options)
+    selected_price = st.sidebar.selectbox(" Price Category:", price_options)
     
     # Rating filter
     min_rating = st.sidebar.slider(
-        "⭐ Minimum Rating:",
+        " Minimum Rating:",
         min_value=0.0,
         max_value=5.0,
         value=0.0,
@@ -138,7 +140,7 @@ if selected_section == "Search & Filter":
         filtered_df = filtered_df[filtered_df['kids_friendly'] == '✓']
     
     # Display results
-    st.subheader(f"📊 Showing {len(filtered_df)} of {len(df_display)} restaurants")
+    st.subheader(f":material/table_rows: Showing {len(filtered_df)} of {len(df_display)} restaurants")
     
     # Summary metrics
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -165,7 +167,7 @@ if selected_section == "Search & Filter":
     )
     
     # Top rated restaurants
-    st.subheader("🏆 Top 10 Highest Rated")
+    st.subheader(":material/emoji_events: Top 10 Highest Rated")
     top_rated = filtered_df.nlargest(10, 'rating_overall')[
         ['name', 'rating_overall', 'review_count_total', 'area', 'cuisine_primary', 'price_category']
     ]
@@ -328,7 +330,7 @@ elif selected_section == "Exploratory Data Analysis":
     st.dataframe(top_reviewed, use_container_width=True)
 
     st.write("---")
-    st.subheader("📈 Rating vs Review Count")
+    st.subheader(":material/show_chart: Rating vs Review Count")
 
     fig = px.scatter(
         df_restaurants,
@@ -344,7 +346,7 @@ elif selected_section == "Exploratory Data Analysis":
     st.plotly_chart(fig, use_container_width=True)
 
     st.write("---")
-    st.subheader("💎 Hidden Gems (High Rating, Low Reviews)")
+    st.subheader(":material/diamond: Hidden Gems (High Rating, Low Reviews)")
 
     hidden = df_restaurants[
         (df_restaurants["rating_overall"] >= 4.5) &
@@ -360,7 +362,7 @@ elif selected_section == "Exploratory Data Analysis":
 
 
     st.write("---")
-    st.subheader("📊 Density vs Quality by Area")
+    st.subheader(":material/bubble_chart: Density vs Quality by Area")
     df_geo = df_restaurants[df_restaurants["area"] != "Unknown"].copy()
 
     area_stats = df_geo.groupby("area").agg({
@@ -387,7 +389,7 @@ elif selected_section == "Exploratory Data Analysis":
     
     st.write("---")
 
-    st.subheader("🏆 Best Areas Overall (Combined Score)")
+    st.subheader(":material/emoji_events: Best Areas Overall (Combined Score)")
 
     df_geo = df_restaurants[df_restaurants["area"] != "Unknown"].copy()
 
@@ -433,7 +435,7 @@ elif selected_section == "Exploratory Data Analysis":
 # SECTION 3: FEATURE ANALYSIS (YOUR WORK)
 
 elif selected_section == "Feature Analysis":
-    st.header("✨ Feature Analysis")
+    st.header(":material/auto_awesome: Feature Analysis")
     st.write("Analysis of 12 features extracted from restaurant descriptions and reviews")
     
     # Calculate feature statistics
@@ -444,7 +446,7 @@ elif selected_section == "Feature Analysis":
         feature_stats[feature.replace('_', ' ').title()] = {'count': count, 'percent': pct}
     
     # Summary metrics
-    st.subheader("📊 Feature Summary")
+    st.subheader(":material/bar_chart: Feature Summary")
     
     col1, col2, col3, col4 = st.columns(4)
     
@@ -591,7 +593,7 @@ elif selected_section == "Feature Analysis":
     st.write("---")
     
     # Star Distribution Analysis
-    st.subheader("⭐ Star Distribution Analysis")
+    st.subheader(":material/star: Star Distribution Analysis")
     
     col1, col2 = st.columns(2)
     
@@ -663,7 +665,7 @@ elif selected_section == "Feature Analysis":
     st.write("---")
     
     # Data Quality Analysis
-    st.subheader("📈 Data Quality Analysis")
+    st.subheader(":material/monitoring: Data Quality Analysis")
     
     col1, col2 = st.columns(2)
     
@@ -795,7 +797,7 @@ elif selected_section == "Feature Analysis":
      geocoded_restaurants = df_restaurants[df_restaurants['latitude'].notna() & df_restaurants['longitude'].notna()]
     
     if len(geocoded_restaurants) > 0:
-        st.subheader("🗺️ Geographic Distribution")
+        st.subheader(":material/map: Geographic Distribution")
         
         # Map 1 & 2: Side by side
         col1, col2 = st.columns(2)
@@ -873,7 +875,7 @@ elif selected_section == "Feature Analysis":
     st.write("---")
     
     # Feature Insights
-    st.subheader("💡 Key Insights")
+    st.subheader(":material/lightbulb: Key Insights")
     
     col1, col2, col3 = st.columns(3)
     
@@ -907,7 +909,7 @@ elif selected_section == "Feature Analysis":
 # SECTION 4: NLP ANALYSIS
 
 elif selected_section == "NLP Analysis":
-    st.header("💬 NLP Analysis")
+    st.header(":material/forum: NLP Analysis")
     st.write("Sentiment analysis and keyword extraction from restaurant reviews.")
     st.write("---")
 
@@ -933,7 +935,7 @@ elif selected_section == "NLP Analysis":
     sentiment_area, sentiment_cuisine, sentiment_price, area_keywords, cuisine_keywords, nlp_summary = load_nlp_data()
 
     # --- SUMMARY STATS ---
-    st.subheader("📋 Review Dataset Summary")
+    st.subheader(":material/assignment: Review Dataset Summary")
 
     if nlp_summary:
         col1, col2, col3, col4, col5 = st.columns(5)
@@ -968,7 +970,7 @@ elif selected_section == "NLP Analysis":
     st.write("---")
 
     # --- SENTIMENT BY AREA ---
-    st.subheader("🗺️ Sentiment by Neighborhood")
+    st.subheader(":material/map: Sentiment by Neighborhood")
 
     color_area = ['#2ecc71' if x > 0 else '#e74c3c' for x in sentiment_area['avg_sentiment']]
     fig_area = go.Figure(go.Bar(
@@ -1003,7 +1005,7 @@ elif selected_section == "NLP Analysis":
     st.write("---")
 
     # --- SENTIMENT BY CUISINE ---
-    st.subheader("🍽️ Sentiment by Cuisine Type")
+    st.subheader(":material/restaurant: Sentiment by Cuisine Type")
 
     color_cuisine = ['#2ecc71' if x > 0 else '#e74c3c' for x in sentiment_cuisine['avg_sentiment']]
     fig_cuisine = go.Figure(go.Bar(
@@ -1037,7 +1039,7 @@ elif selected_section == "NLP Analysis":
     st.write("---")
 
     # --- SENTIMENT BY PRICE ---
-    st.subheader("💰 Sentiment by Price Tier")
+    st.subheader(":material/payments: Sentiment by Price Tier")
 
     color_price = ['#2ecc71' if x > 0 else '#e74c3c' for x in sentiment_price['avg_sentiment']]
     fig_price = go.Figure(go.Bar(
@@ -1070,7 +1072,7 @@ elif selected_section == "NLP Analysis":
     st.write("---")
 
     # --- TF-IDF KEYWORDS ---
-    st.subheader("🔑 Top Keywords by Neighborhood (TF-IDF)")
+    st.subheader(":material/key: Top Keywords by Neighborhood (TF-IDF)")
     st.write("These are the words that uniquely characterize each neighborhood's reviews compared to all others.")
 
     selected_area_kw = st.selectbox("Select a neighborhood:", sorted(area_keywords.keys()))
@@ -1084,7 +1086,7 @@ elif selected_section == "NLP Analysis":
 
     st.write("---")
 
-    st.subheader("🔑 Top Keywords by Cuisine (TF-IDF)")
+    st.subheader(":material/key: Top Keywords by Cuisine (TF-IDF)")
     st.write("These are the words that uniquely characterize each cuisine type's reviews.")
 
     selected_cuisine_kw = st.selectbox("Select a cuisine:", sorted(cuisine_keywords.keys()))
@@ -1099,7 +1101,7 @@ elif selected_section == "NLP Analysis":
 # SECTION 5: ML INSIGHTS 
 
 elif selected_section == "ML Insights":
-    st.header("🤖 ML Insights — Cuisine Classifier")
+    st.header(":material/smart_toy: ML Insights — Cuisine Classifier")
     st.write("We trained a text classifier on review content to predict the cuisine type for ~17k reviews that had missing metadata, unlocking them for the full NLP pipeline.")
     st.write("---")
 
@@ -1130,7 +1132,7 @@ elif selected_section == "ML Insights":
     if ml_loaded:
 
         # ── SECTION 1: PIPELINE OVERVIEW METRICS ─────────────────────
-        st.subheader("📦 Data Overview")
+        st.subheader(":material/inventory_2: Data Overview")
 
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Total Reviews",         f"{ml_summary['total_reviews_loaded']:,}")
@@ -1141,7 +1143,7 @@ elif selected_section == "ML Insights":
         st.write("---")
 
         # ── SECTION 2: MODEL COMPARISON ───────────────────────────────
-        st.subheader("🏆 Model Comparison")
+        st.subheader(":material/emoji_events: Model Comparison")
         st.caption("All three models were evaluated on a held-out 20% test set across all cuisine classes. The best model was selected by weighted F1 score.")
 
         col_left, col_right = st.columns([1, 1])
@@ -1203,7 +1205,7 @@ elif selected_section == "ML Insights":
         st.write("---")
 
         # ── SECTION 3: CONFUSION ANALYSIS ────────────────────────────
-        st.subheader("🔀 Where the Model Gets Confused")
+        st.subheader(":material/shuffle: Where the Model Gets Confused")
         st.caption(ml_summary['confusion_matrix_note'])
 
         col_a, col_b = st.columns([1, 1])
@@ -1235,7 +1237,7 @@ elif selected_section == "ML Insights":
         st.write("---")
 
         # ── SECTION 4: PER-CLASS F1 BREAKDOWN ────────────────────────
-        st.subheader("📊 Per-Class F1 Score Breakdown")
+        st.subheader(":material/bar_chart: Per-Class F1 Score Breakdown")
         st.caption(f"Performance of {ml_summary['best_model']} broken down by cuisine class. Classes with 0.0 F1 were never correctly predicted.")
 
         per_class = ml_summary['per_class_f1']
@@ -1266,7 +1268,7 @@ elif selected_section == "ML Insights":
         st.write("---")
 
         # ── SECTION 5: PREDICTION OUTCOMES ───────────────────────────
-        st.subheader("🔮 Prediction Outcomes on Unknown Reviews")
+        st.subheader(":material/auto_awesome: Prediction Outcomes on Unknown Reviews")
 
         col_m1, col_m2, col_m3 = st.columns(3)
         col_m1.metric("Avg Confidence Score",     f"{ml_summary['avg_prediction_confidence']:.2f}")
@@ -1311,7 +1313,7 @@ elif selected_section == "ML Insights":
         st.write("---")
 
         # ── SECTION 6: ENRICHED DATASET SUMMARY ──────────────────────
-        st.subheader("✅ Enriched Dataset")
+        st.subheader(":material/check_circle: Enriched Dataset")
         st.write("The classifier output was merged back into `master_reviews_enriched.csv`. A `cuisine_source` column tracks which labels are original vs ML-predicted.")
 
         col_e1, col_e2, col_e3 = st.columns(3)
