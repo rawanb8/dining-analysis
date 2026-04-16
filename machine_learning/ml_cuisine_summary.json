@@ -1,0 +1,88 @@
+{
+  "total_reviews_loaded": 35349,
+  "known_cuisine_reviews": 17941,
+  "unknown_cuisine_reviews": 17408,
+  "models_evaluated": {
+    "Logistic Regression": {
+      "accuracy": 0.4519,
+      "weighted_f1": 0.3778
+    },
+    "Naive Bayes": {
+      "accuracy": 0.448,
+      "weighted_f1": 0.384
+    },
+    "Random Forest": {
+      "accuracy": 0.4324,
+      "weighted_f1": 0.3618
+    }
+  },
+  "best_model": "Naive Bayes",
+  "best_model_accuracy": 0.448,
+  "best_model_f1": 0.384,
+  "confusion_matrix_note": "Confusion matrix shown for top 10 cuisines only (out of 28 total classes)",
+  "top_confusion_pairs": [
+    {
+      "actual": "Armenian",
+      "predicted": "Lebanese",
+      "rate": 0.9
+    },
+    {
+      "actual": "Barbecue",
+      "predicted": "Lebanese",
+      "rate": 0.882
+    },
+    {
+      "actual": "Middle Eastern",
+      "predicted": "Lebanese",
+      "rate": 0.875
+    },
+    {
+      "actual": "Mediterranean",
+      "predicted": "Lebanese",
+      "rate": 0.833
+    },
+    {
+      "actual": "Japanese",
+      "predicted": "Lebanese",
+      "rate": 0.828
+    }
+  ],
+  "predictions_made": 17408,
+  "low_confidence_count": 1638,
+  "low_confidence_pct": 9.4,
+  "low_confidence_threshold": 0.3,
+  "avg_prediction_confidence": 0.52,
+  "per_class_f1": {
+    "American": 0.341,
+    "Armenian": 0.0,
+    "Asian": 0.0,
+    "Barbecue": 0.0,
+    "Chinese": 0.353,
+    "Cocktail bars": 0.366,
+    "Delis": 0.0,
+    "Dessert": 0.658,
+    "European": 0.133,
+    "Fast food": 0.28,
+    "French": 0.223,
+    "Fusion": 0.069,
+    "Healthy food": 0.0,
+    "International": 0.071,
+    "Italian": 0.218,
+    "Japanese": 0.0,
+    "Jewish": 0.667,
+    "Lebanese": 0.547,
+    "Mediterranean": 0.0,
+    "Mexican": 0.167,
+    "Middle Eastern": 0.065,
+    "Other": 0.163,
+    "Pizza": 0.151,
+    "Salads": 0.067,
+    "Seafood": 0.336,
+    "Sushi": 0.0,
+    "Turkish": 0.0,
+    "Wine bars": 0.0
+  },
+  "enriched_reviews_total": 35349,
+  "enriched_original_labels": 17941,
+  "enriched_predicted_labels": 17408
+}

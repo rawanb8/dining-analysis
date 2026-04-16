@@ -1,0 +1,19 @@
+cuisine,predicted_count,avg_confidence,high_conf_count
+Lebanese,12698,0.535,7509
+Dessert,1879,0.569,1020
+American,1628,0.432,440
+Italian,265,0.405,63
+Pizza,226,0.37,28
+Fast food,187,0.386,35
+French,142,0.392,29
+Cocktail bars,124,0.358,20
+Jewish,80,0.73,62
+Other,73,0.324,4
+Seafood,64,0.5,28
+Chinese,18,0.472,8
+Middle Eastern,14,0.278,1
+Mexican,3,0.598,2
+Sushi,2,0.244,0
+Healthy food,2,0.24,0
+Wine bars,2,0.38,0
+Fusion,1,0.365,0
