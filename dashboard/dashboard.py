@@ -56,7 +56,7 @@ st.write("---")
 
 selected_section = option_menu(
     menu_title=None,
-    options=["Search & Filter", "EDA", "Feature Analysis", "NLP Analysis", "ML Insights"],
+    options=["Search & Filter", "EDA", "Feature Analysis", "ML Insights", "NLP Analysis",],
     icons=["search", "bar-chart-line", "toggles", "chat-left-text", "cpu"],
     orientation="horizontal",
     default_index=0,
@@ -911,7 +911,6 @@ elif selected_section == "Feature Analysis":
 
 elif selected_section == "ML Insights":
     st.header(":material/smart_toy: ML Insights — Cuisine Classifier")
-    st.write("We trained a text classifier on review content to predict the cuisine type for ~17k reviews that had missing metadata, unlocking them for the full NLP pipeline.")
     st.write("---")
 
     # ── LOAD ML OUTPUT FILES 
@@ -1031,12 +1030,12 @@ elif selected_section == "ML Insights":
                 "restaurants in Beirut often serve similar dishes and receive nearly identical "
                 "review vocabulary. This is a real-world ambiguity, not purely a model weakness."
             )
-            st.warning(
-                "**Lebanese over-prediction:** Lebanese cuisine dominates the training data "
-                "(5,112 samples vs ~145 for Japanese). The model defaults to Lebanese when "
-                "uncertain. This is expected in imbalanced multiclass problems."
-            )
-
+            # st.warning(
+            #     "**Lebanese over-prediction:** Lebanese cuisine dominates the training data "
+            #     "(5,112 samples vs ~145 for Japanese). The model defaults to Lebanese when "
+            #     "uncertain. This is expected in imbalanced multiclass problems."
+            # )
+    
         st.write("---")
 
         # ── SECTION 4: PER-CLASS F1 BREAKDOWN ────────────────────────
