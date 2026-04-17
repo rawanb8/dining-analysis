@@ -1,4 +1,4 @@
 price_category,avg_sentiment,review_count,pct_positive,pct_negative
-High-End,0.314,2039,70.623,7.7
-Budget,0.297,7176,69.565,8.431
-Mid-Range,0.28,8726,65.46,9.076
+High-End,0.312,2282,70.377,8.238
+Budget,0.293,7991,69.215,8.585
+Mid-Range,0.279,9134,65.437,9.185
