@@ -183,255 +183,345 @@ if selected_section == "Search & Filter":
 elif selected_section == "EDA":
     st.header("Exploratory Data Analysis")
 
-    
-    st.write("---")
+    st.sidebar.subheader("EDA Filters")
 
-    # Top 10 cuisines
-    st.subheader("1️⃣ Cuisine Distribution (Top 10 - Excluding Unknown)")
-    cuisine_counts = df_restaurants["cuisine_primary"].value_counts().head(10)
-    total_restaurants = len(df_restaurants)
-    unknown_count = (df_restaurants["cuisine_primary"] == "Unknown").sum()
-    unknown_pct = (unknown_count / total_restaurants) * 100
+    eda_cuisine_opts = ["All Cuisines"] + sorted(
+        df_restaurants[df_restaurants["cuisine_primary"] != "Unknown"]["cuisine_primary"].unique().tolist()
+    )
+    eda_cuisine = st.sidebar.selectbox("Cuisine:", eda_cuisine_opts, key="eda_cuisine")
 
-    st.info(f"⚠️ {unknown_pct:.1f}% of restaurants have unknown cuisine.")
 
-    cuisine_counts = df_restaurants[
-        df_restaurants["cuisine_primary"] != "Unknown"
-    ]["cuisine_primary"].value_counts().head(10)
 
-    fig1 = px.bar(
-        x=cuisine_counts.index,
-        y=cuisine_counts.values,
-        labels={'x': 'Cuisine', 'y': 'Number of Restaurants'},
-        title='Top 10 Cuisines',
-        text=cuisine_counts.values
+    eda_price_opts = ["All Prices"] + sorted(
+        df_restaurants[df_restaurants["price_category"] != "Unknown"]["price_category"].unique().tolist()
+    )
+    eda_price = st.sidebar.selectbox("Price Category:", eda_price_opts, key="eda_price")
+
+    eda_min_rating = st.sidebar.slider(
+        "Min Rating:", min_value=0.0, max_value=5.0, value=0.0, step=0.5, key="eda_rating"
     )
 
-    fig1.update_traces(textposition='outside')
-    fig1.update_layout(xaxis_tickangle=-45)
+    only_with_reviews = st.sidebar.checkbox("Only restaurants with reviews", value=False)
 
-    st.plotly_chart(fig1, use_container_width=True)
+    # APPLY FILTERS 
+    df_eda = df_restaurants.copy()
 
-    st.write("---")
+    if eda_cuisine != "All Cuisines":
+        df_eda = df_eda[df_eda["cuisine_primary"] == eda_cuisine]
 
-    st.subheader("2️⃣ Rating Distribution")
-
-    rating_counts = df_restaurants["rating_overall"].value_counts().sort_index()
-
-    fig2 = px.bar(
-        x=rating_counts.index,
-        y=rating_counts.values,
-        labels={"x": "Rating", "y": "Number of Restaurants"},
-        title="Distribution of Restaurant Ratings"
-    )
-
-    st.plotly_chart(fig2, use_container_width=True)
-    avg_rating = df_restaurants["rating_overall"].mean()
-    st.metric("⭐ Average Rating", f"{avg_rating:.2f}")
+    if eda_price != "All Prices":
+        df_eda = df_eda[df_eda["price_category"] == eda_price]
+    if eda_min_rating > 0:
+        df_eda = df_eda[df_eda["rating_overall"] >= eda_min_rating]
 
 
-    st.write("---")
+    df_eda["review_count_total"] = pd.to_numeric(df_eda["review_count_total"], errors="coerce")
+    if only_with_reviews:
+        df_eda = df_eda[df_eda["review_count_total"] > 0]
 
-    st.subheader("3️⃣ Price Category Breakdown (Excluding Unknown)")
+    # ACTIVE FILTER BANNER
+    active_filters = []
+    if eda_cuisine != "All Cuisines":    active_filters.append(f"Cuisine: {eda_cuisine}")
+    if eda_price != "All Prices":        active_filters.append(f"Price: {eda_price}")
+    if eda_min_rating > 0:              active_filters.append(f"Rating ≥ {eda_min_rating}")
+    if only_with_reviews:
+        active_filters.append("With Reviews Only")
 
-    # Calculate Unknown percentage
-    total_restaurants = len(df_restaurants)
-    unknown_count = (df_restaurants["price_category"] == "Unknown").sum()
-    unknown_pct = (unknown_count / total_restaurants) * 100
-
-    st.info(f"⚠️ {unknown_pct:.1f}% of restaurants have unknown price category.")
-
-    # Remove Unknown for visualization
-    price_counts = df_restaurants[
-        df_restaurants["price_category"] != "Unknown"
-    ]["price_category"].value_counts()
-
-    # Plot
-    fig3 = px.bar(
-        x=price_counts.index,
-        y=price_counts.values,
-        labels={"x": "Price Category", "y": "Number of Restaurants"},
-        title="Distribution of Restaurants by Price Category",
-        text=price_counts.values
-    )
-
-    fig3.update_traces(textposition='outside')
-
-    st.plotly_chart(fig3, use_container_width=True)
+    if active_filters:
+        st.info(f"Active filters: {' · '.join(active_filters)} — showing **{len(df_eda)}** of **{len(df_restaurants)}** restaurants")
+    else:
+        st.info(f"Showing all **{len(df_eda)}** restaurants. Use the sidebar to filter.")
 
     st.write("---")
 
-    st.subheader("4️⃣ Restaurants by Area (Top 10 - Excluding Unknown)")
+    # SUMMARY METRICS 
+    col1, col2, col3, col4, col5 = st.columns(5)
+    col1.metric("Restaurants", len(df_eda))
+    avg_rating = df_eda["rating_overall"].mean()
 
-    # Calculate Unknown percentage
-    total_restaurants = len(df_restaurants)
-    unknown_count = (df_restaurants["area"] == "Unknown").sum()
-    unknown_pct = (unknown_count / total_restaurants) * 100
-
-    st.info(f"⚠️ {unknown_pct:.1f}% of restaurants have unknown area.")
-
-    # Remove Unknown and get top 10
-    area_counts = df_restaurants[
-        df_restaurants["area"] != "Unknown"
-    ]["area"].value_counts().head(10)
-
-    # Plot
-    fig4 = px.bar(
-        x=area_counts.index,
-        y=area_counts.values,
-        labels={"x": "Area", "y": "Number of Restaurants"},
-        title="Top 10 Areas by Number of Restaurants",
-        text=area_counts.values
+    col2.metric(
+        "Avg Rating",
+        f"{avg_rating:.2f}" if pd.notna(avg_rating) else "—"
     )
-
-    fig4.update_traces(textposition='outside')
-    fig4.update_layout(xaxis_tickangle=-45)
-
-    st.plotly_chart(fig4, use_container_width=True)
+    col3.metric("Total Reviews", f"{int(df_eda['review_count_total'].sum()):,}" if len(df_eda) else "—")
+    col4.metric("Areas", df_eda[df_eda['area'] != 'Unknown']['area'].nunique())
+    col5.metric("Cuisine Types", df_eda[df_eda['cuisine_primary'] != 'Unknown']['cuisine_primary'].nunique())
 
     st.write("---")
 
-    st.subheader("5️⃣ Review Count Distribution")
+    if df_eda.empty:
+        st.warning("No restaurants match the selected filters.")
+    else:
+        # 1️⃣ Cuisine Distribution
+        st.subheader("1️⃣ Cuisine Distribution (Top 10 — Excluding Unknown)")
 
-    # Convert to numeric
-    df_restaurants["review_count_total"] = pd.to_numeric(
-        df_restaurants["review_count_total"], errors="coerce"
-    )
+        if eda_cuisine != "All Cuisines":
+            st.info(f"Showing only **{eda_cuisine}** restaurants — cuisine distribution not applicable.")
 
-    fig5a = px.histogram(
-        df_restaurants,
-        x="review_count_total",
-        nbins=30,
-        title="Distribution of Review Counts"
-    )
-    fig5a.update_layout(
-        xaxis_title="Number of Reviews",
-        yaxis_title="Number of Restaurants"
-    )
-    st.plotly_chart(fig5a, use_container_width=True)
+        else:
+            unknown_count = (df_eda["cuisine_primary"] == "Unknown").sum()
 
+            if unknown_count > 0:
+                unknown_pct = (unknown_count / len(df_eda)) * 100
+                st.info(f"⚠️ {unknown_pct:.1f}% of filtered restaurants have unknown cuisine.")
 
-    st.write("---")
+            cuisine_counts = df_eda[df_eda["cuisine_primary"] != "Unknown"]["cuisine_primary"].value_counts().head(10)
 
-    st.subheader("6️⃣ Top 10 Most Reviewed Restaurants")
+            if cuisine_counts.empty:
+                st.warning("No cuisine data available after filtering.")
+            else:
+                fig1 = px.bar(
+                    x=cuisine_counts.index,
+                    y=cuisine_counts.values,
+                    labels={'x': 'Cuisine', 'y': 'Number of Restaurants'},
+                    title='Top 10 Cuisines',
+                    text=cuisine_counts.values
+                )
+                fig1.update_traces(textposition='outside')
+                fig1.update_layout(xaxis_tickangle=-45)
+                st.plotly_chart(fig1, use_container_width=True)
 
-    top_reviewed = df_restaurants.nlargest(10, "review_count_total")[
-        ["name", "review_count_total", "rating_overall", "area", "cuisine_primary", "price_category"]
-    ].copy()
+        # 2️⃣ Rating Distribution
+        st.subheader("2️⃣ Rating Distribution")
+        rating_series = pd.to_numeric(df_eda["rating_overall"], errors="coerce").dropna()
 
-    top_reviewed.columns = [
-        "Restaurant Name",
-        "Total Reviews",
-        "Rating",
-        "Area",
-        "Cuisine",
-        "Price Category"
-    ]
+        if rating_series.empty:
+            st.info("No valid rating data to display for the selected filters.")
+        else:
+            rating_counts = rating_series.value_counts().sort_index()
 
-    st.dataframe(top_reviewed, use_container_width=True)
+            fig2 = px.bar(
+                x=rating_counts.index,
+                y=rating_counts.values,
+                labels={"x": "Rating", "y": "Number of Restaurants"},
+                title="Distribution of Restaurant Ratings"
+            )
+            st.plotly_chart(fig2, use_container_width=True)
 
-    st.write("---")
-    st.subheader(":material/show_chart: Rating vs Review Count")
+        # 3️⃣ Price Category
+        st.subheader("3️⃣ Price Category Breakdown (Excluding Unknown)")
+        price_counts = df_eda[df_eda["price_category"] != "Unknown"]["price_category"].value_counts()
+        unknown_price_count = (df_eda["price_category"] == "Unknown").sum()
 
-    fig = px.scatter(
-        df_restaurants,
-        x="review_count_total",
-        y="rating_overall",
-        title="Rating vs Number of Reviews",
-        labels={"review_count_total": "Number of Reviews", "rating_overall": "Rating"},
-        opacity=0.6
-    )
+        if unknown_price_count > 0:
+            unknown_price_pct = (unknown_price_count / len(df_eda)) * 100
+            st.info(f"⚠️ {unknown_price_pct:.1f}% of filtered restaurants have unknown price category.")
+        if len(price_counts):
+            fig3 = px.bar(x=price_counts.index, y=price_counts.values,
+                        labels={"x": "Price Category", "y": "Number of Restaurants"},
+                        title="Distribution by Price Category", text=price_counts.values)
+            fig3.update_traces(textposition='outside')
+            st.plotly_chart(fig3, use_container_width=True)
 
-    fig.update_layout(xaxis_type="log")
+        st.write("---")
 
-    st.plotly_chart(fig, use_container_width=True)
+        st.subheader("💰 Price vs Rating")
 
-    st.write("---")
-    st.subheader(":material/diamond: Hidden Gems (High Rating, Low Reviews)")
+        price_rating_df = df_eda.copy()
+        price_rating_df["rating_overall"] = pd.to_numeric(price_rating_df["rating_overall"], errors="coerce")
 
-    hidden = df_restaurants[
-        (df_restaurants["rating_overall"] >= 4.5) &
-        (df_restaurants["review_count_total"] < 50)
-    ].head(10)[
-        ["name", "rating_overall", "review_count_total", "area"]
-    ]
+        price_rating_df = price_rating_df.dropna(subset=["rating_overall"])
+        price_rating_df = price_rating_df[price_rating_df["price_category"] != "Unknown"]
 
-    st.dataframe(hidden, use_container_width=True)
+        if price_rating_df.empty:
+            st.info("No valid price vs rating data for the selected filters.")
+        else:
+            fig = px.box(
+                price_rating_df,
+                x="price_category",
+                y="rating_overall",
+                color="price_category",
+                category_orders={"price_category": ["Budget", "Mid-Range", "High-End"]},
+                title="Rating Distribution by Price Category"
+            )
 
+            fig.update_traces(boxmean=True)
 
+            st.plotly_chart(fig, use_container_width=True)
 
+        st.write("---")
+        st.subheader("🏆 Top Rated Restaurants")
 
+        top_rated_clean = df_eda.copy()
+        top_rated_clean["rating_overall"] = pd.to_numeric(top_rated_clean["rating_overall"], errors="coerce")
+        top_rated_clean = top_rated_clean.dropna(subset=["rating_overall"])
 
-    st.write("---")
-    st.subheader(":material/bubble_chart: Density vs Quality by Area")
-    df_geo = df_restaurants[df_restaurants["area"] != "Unknown"].copy()
+        if top_rated_clean.empty:
+            st.info("No valid rating data available for the selected filters.")
+        else:
+            top_rated = top_rated_clean.nlargest(10, "rating_overall")[
+                ["name", "rating_overall", "review_count_total", "area", "cuisine_primary", "price_category"]
+            ].copy()
+            top_rated.columns = ["Restaurant Name", "Rating", "Total Reviews", "Area", "Cuisine", "Price Category"]
+            st.dataframe(top_rated, use_container_width=True)
 
-    area_stats = df_geo.groupby("area").agg({
-        "name": "count",
-        "rating_overall": "mean"
-    }).rename(columns={"name": "restaurant_count"})
+        st.write("---")
 
-    area_stats = area_stats[area_stats["restaurant_count"] >= 5]
-    area_stats["total_reviews"] = df_geo.groupby("area")["review_count_total"].sum()
+        st.subheader("⚠️ Lowest Rated Restaurants")
 
-    fig = px.scatter(
-        area_stats,
-        x="restaurant_count",
-        y="rating_overall",
-        size="total_reviews", 
-        text=area_stats.index,
-        title="Density vs Quality by Area (Bubble = Popularity)"
-    )
+        worst_rated_clean = df_eda.copy()
+        worst_rated_clean["rating_overall"] = pd.to_numeric(worst_rated_clean["rating_overall"], errors="coerce")
+        worst_rated_clean = worst_rated_clean.dropna(subset=["rating_overall"])
 
+        if worst_rated_clean.empty:
+            st.info("No valid rating data available for the selected filters.")
+        else:
+            worst_rated = worst_rated_clean.nsmallest(10, "rating_overall")[
+                ["name", "rating_overall", "review_count_total", "area", "cuisine_primary", "price_category"]
+            ].copy()
+            worst_rated.columns = ["Restaurant Name", "Rating", "Total Reviews", "Area", "Cuisine", "Price Category"]
+            st.dataframe(worst_rated, use_container_width=True)
 
-    fig.update_traces(textposition="top center")
+        st.write("---")
+        # 4️⃣ Restaurants by Area
+        st.subheader("4️⃣ Restaurants by Area (Top 10 — Excluding Unknown)")
+        area_counts = df_eda[df_eda["area"] != "Unknown"]["area"].value_counts().head(10)
+        unknown_area_count = (df_eda["area"] == "Unknown").sum()
 
-    st.plotly_chart(fig, use_container_width=True)
-    
-    st.write("---")
+        if unknown_area_count > 0:
+            unknown_area_pct = (unknown_area_count / len(df_eda)) * 100
+            st.info(f"⚠️ {unknown_area_pct:.1f}% of filtered restaurants have unknown area.")
+        if len(area_counts):
+            fig4 = px.bar(x=area_counts.index, y=area_counts.values,
+                        labels={"x": "Area", "y": "Number of Restaurants"},
+                        title="Top 10 Areas by Number of Restaurants", text=area_counts.values)
+            fig4.update_traces(textposition='outside')
+            fig4.update_layout(xaxis_tickangle=-45)
+            st.plotly_chart(fig4, use_container_width=True)
 
-    st.subheader(":material/emoji_events: Best Areas Overall (Combined Score)")
+        st.write("---")
 
-    df_geo = df_restaurants[df_restaurants["area"] != "Unknown"].copy()
+        # 5️⃣ Review Count Distribution
+        st.subheader("5️⃣ Review Count Distribution")
+        if len(df_eda):
+            fig5 = px.histogram(df_eda, x="review_count_total", nbins=30,
+                                title="Distribution of Review Counts",
+                                labels={"review_count_total": "Number of Reviews"})
+            fig5.update_layout(yaxis_title="Number of Restaurants")
+            st.plotly_chart(fig5, use_container_width=True)
 
-  
-    area_stats = df_geo.groupby("area").agg({
-        "rating_overall": "mean",
-        "review_count_total": "sum",
-        "name": "count"
-    }).rename(columns={"name": "restaurant_count"})
+        st.write("---")
 
-   
-    area_stats = area_stats[area_stats["restaurant_count"] >= 5]
+        # 6️⃣ Top 10 Most Reviewed
+        st.subheader("6️⃣ Top 10 Most Reviewed Restaurants")
+        if len(df_eda):
+            top_reviewed = df_eda.nlargest(10, "review_count_total")[
+                ["name", "review_count_total", "rating_overall", "area", "cuisine_primary", "price_category"]
+            ].copy()
+            top_reviewed.columns = ["Restaurant Name", "Total Reviews", "Rating", "Area", "Cuisine", "Price Category"]
+            st.dataframe(top_reviewed, use_container_width=True)
 
+        st.write("---")
 
-    area_stats["norm_rating"] = area_stats["rating_overall"] / 5
-    area_stats["norm_reviews"] = area_stats["review_count_total"] / area_stats["review_count_total"].max()
-    area_stats["norm_density"] = area_stats["restaurant_count"] / area_stats["restaurant_count"].max()
+        # 7️⃣ Rating vs Review Count
+        st.subheader("📈 Rating vs Review Count")
 
+        # Clean data
+        scatter_df = df_eda.copy()
 
-    area_stats["score"] = (
-        area_stats["norm_rating"] +
-        area_stats["norm_reviews"] +
-        area_stats["norm_density"]
-    ) / 3
+        scatter_df["rating_overall"] = pd.to_numeric(scatter_df["rating_overall"], errors="coerce")
+        scatter_df["review_count_total"] = pd.to_numeric(scatter_df["review_count_total"], errors="coerce")
 
-    # Top areas
-    top_areas = area_stats.sort_values("score", ascending=False).head(10)
+        # Remove invalid rows
+        scatter_df = scatter_df.dropna(subset=["rating_overall", "review_count_total"])
+        scatter_df = scatter_df[scatter_df["review_count_total"] > 0]
 
-    # Plot
-    fig = px.bar(
-        x=top_areas.index,
-        y=top_areas["score"],
-        title="Top Areas Overall (Quality + Popularity + Density)",
-        labels={"x": "Area", "y": "Score"},
-        text=[f"{v:.2f}" for v in top_areas["score"]]
-    )
+        # Check if data exists
+        if scatter_df.empty:
+            st.info("No valid rating vs review data to display for the selected filters.")
+        else:
+            fig = px.scatter(
+                scatter_df,
+                x="review_count_total",
+                y="rating_overall",
+                title="Rating vs Number of Reviews",
+                labels={
+                    "review_count_total": "Number of Reviews",
+                    "rating_overall": "Rating"
+                }
+            )
 
-    fig.update_traces(textposition='outside')
-    fig.update_layout(xaxis_tickangle=-45)
+            fig.update_xaxes(type="log")  # optional but nice
+            st.plotly_chart(fig, use_container_width=True)
 
-    st.plotly_chart(fig, use_container_width=True)
+        # 8️⃣ Hidden Gems
+        st.subheader(":material/diamond: Hidden Gems (Rating ≥ 4.5, Reviews < 50)")
+        hidden = df_eda[
+            (df_eda["rating_overall"] >= 4.5) & (df_eda["review_count_total"] < 50)
+        ].head(10)[["name", "rating_overall", "review_count_total", "area"]]
+        if len(hidden):
+            st.dataframe(hidden, use_container_width=True)
+        else:
+            st.info("No hidden gems match the current filters.")
+
+        st.write("---")
+
+        # 9️⃣ Density vs Quality by Area
+        st.subheader(":material/bubble_chart: Density vs Quality by Area")
+
+        df_geo_eda = df_eda[df_eda["area"] != "Unknown"].copy()
+
+        if df_geo_eda.empty:
+            st.info("No area data available for the selected filters.")
+        else:
+            # Clean data
+            df_geo_eda["rating_overall"] = pd.to_numeric(df_geo_eda["rating_overall"], errors="coerce")
+            df_geo_eda["review_count_total"] = pd.to_numeric(df_geo_eda["review_count_total"], errors="coerce")
+
+            area_stats = df_geo_eda.groupby("area").agg(
+                restaurant_count=("name", "count"),
+                rating_overall=("rating_overall", "mean"),
+                total_reviews=("review_count_total", "sum")
+            )
+
+            # Drop invalid rows
+            area_stats = area_stats.dropna(subset=["rating_overall"])
+
+            if area_stats.empty:
+                st.info("No valid area statistics to display.")
+            else:
+                # OPTIONAL: only apply >=3 rule if enough data exists
+                if len(area_stats) > 10:
+                    area_stats = area_stats[area_stats["restaurant_count"] >= 3]
+
+                fig_bubble = px.scatter(
+                    area_stats,
+                    x="restaurant_count",
+                    y="rating_overall",
+                    size="total_reviews",
+                    text=area_stats.index,
+                    title="Density vs Quality by Area (Bubble = Popularity)"
+                )
+
+                fig_bubble.update_traces(textposition="top center")
+                st.plotly_chart(fig_bubble, use_container_width=True)
+
+        # 🏆 Best Areas Combined Score
+        st.subheader(":material/emoji_events: Best Areas Overall (Combined Score)")
+        if area_stats.empty:
+            st.info("No area data available for the selected filters.")
+        else:
+            if len(df_geo_eda):
+                area_stats2 = df_geo_eda.groupby("area").agg(
+                    rating_overall=("rating_overall", "mean"),
+                    review_count_total=("review_count_total", "sum"),
+                    restaurant_count=("name", "count")
+                )
+                area_stats2 = area_stats2[area_stats2["restaurant_count"] >= 3]
+                if len(area_stats2):
+                    area_stats2["norm_rating"]  = area_stats2["rating_overall"] / 5
+                    area_stats2["norm_reviews"] = area_stats2["review_count_total"] / area_stats2["review_count_total"].max()
+                    area_stats2["norm_density"] = area_stats2["restaurant_count"] / area_stats2["restaurant_count"].max()
+                    area_stats2["score"] = (area_stats2["norm_rating"] + area_stats2["norm_reviews"] + area_stats2["norm_density"]) / 3
+
+                    top_areas2 = area_stats2.sort_values("score", ascending=False).head(10)
+                    fig_best = px.bar(x=top_areas2.index, y=top_areas2["score"],
+                                    title="Top Areas (Quality + Popularity + Density)",
+                                    labels={"x": "Area", "y": "Score"},
+                                    text=[f"{v:.2f}" for v in top_areas2["score"]])
+                    fig_best.update_traces(textposition='outside')
+                    fig_best.update_layout(xaxis_tickangle=-45)
+                    st.plotly_chart(fig_best, use_container_width=True)
 
 # SECTION 3: FEATURE ANALYSIS (YOUR WORK)
 
