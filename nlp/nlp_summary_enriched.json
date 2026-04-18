@@ -1,17 +1,1 @@
-{
-    "total_reviews_loaded": 41428,
-    "reviews_used": 31525,
-    "reviews_excluded": 9903,
-    "neighborhoods_covered": 59,
-    "cuisines_covered": 52,
-    "avg_sentiment": 0.293,
-    "pct_positive": 65.7,
-    "pct_negative": 7.8,
-    "pct_neutral": 26.2,
-    "source_breakdown": {
-        "Google": 21559,
-        "Zomato": 8351,
-        "Facebook": 1300,
-        "Foursquare": 315
-    }
-}
+{"total_reviews_loaded": 44578, "reviews_used": 34172, "reviews_excluded": 10406, "neighborhoods_covered": 60, "cuisines_covered": 54, "avg_sentiment": 0.295, "pct_positive": 66.0, "pct_negative": 7.8, "pct_neutral": 26.0, "source_breakdown": {"Google": 23174, "Zomato": 9169, "Facebook": 1489, "Foursquare": 340}}

@@ -1,4 +1,4 @@
 model,accuracy,weighted_f1,weighted_precision,weighted_recall,is_best
-Logistic Regression,0.4475,0.3672,0.4748,0.4475,False
-Naive Bayes,0.442,0.3675,0.517,0.442,True
-Random Forest,0.4275,0.3535,0.4531,0.4275,False
+Logistic Regression,0.4452,0.3716,0.4882,0.4452,True
+Naive Bayes,0.4376,0.3689,0.4675,0.4376,False
+Random Forest,0.4291,0.3562,0.4504,0.4291,False
