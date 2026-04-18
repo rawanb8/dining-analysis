@@ -18,14 +18,27 @@ st.set_page_config(
 # LOAD DATA
 
 @st.cache_data
+@st.cache_data
 def load_data():
-    # Try to load geocoded file first, fallback to regular file
+    # Always load master_restaurants.csv as primary data source
+    restaurants = pd.read_csv(r"../merged/master_restaurants.csv")
+    print("✓ Loaded master restaurant data")
+    
     try:
-        restaurants = pd.read_csv(r"../merged/master_restaurants_geocoded.csv")
-        print("✓ Loaded geocoded restaurant data")
+        restaurants_geocoded = pd.read_csv(r"../merged/master_restaurants_geocoded.csv")
+        print("✓ Loaded geocoded data for maps")
+        
+        # Merge lat/long from geocoded file into main restaurants dataframe
+        if 'latitude' in restaurants_geocoded.columns and 'longitude' in restaurants_geocoded.columns:
+            restaurants = restaurants.merge(
+                restaurants_geocoded[['restaurant_id', 'latitude', 'longitude']],
+                on='restaurant_id',
+                how='left',
+                suffixes=('', '_geocoded')
+            )
+            print(f"✓ Merged coordinates for {restaurants['latitude'].notna().sum()} restaurants")
     except FileNotFoundError:
-        restaurants = pd.read_csv(r"../merged/master_restaurants.csv")
-        print("⚠️ Geocoded file not found, using non-geocoded data")
+        print("⚠️ Geocoded file not found, maps will not display")
     
     reviews = pd.read_csv(r"../merged/master_reviews.csv")
     return restaurants, reviews
@@ -102,13 +115,69 @@ if selected_section == "Search & Filter":
     
     # Feature filters
     st.sidebar.subheader("Features")
-    filter_delivery = st.sidebar.checkbox("Delivery Available")
-    filter_outdoor = st.sidebar.checkbox("Outdoor Seating")
-    filter_parking = st.sidebar.checkbox("Parking Available")
-    filter_wifi = st.sidebar.checkbox("WiFi")
-    filter_music = st.sidebar.checkbox("Live Music")
-    filter_kids = st.sidebar.checkbox("Kids Friendly")
-    
+
+    # Organize in 2 columns for better layout
+    col1, col2 = st.sidebar.columns(2)
+
+    with col1:
+        filter_delivery = st.checkbox("Delivery", key="s1_delivery")
+        filter_takeaway = st.checkbox("Takeaway", key="s1_takeaway")
+        filter_outdoor = st.checkbox("Outdoor", key="s1_outdoor")
+        filter_parking = st.checkbox("Parking", key="s1_parking")
+        filter_wifi = st.checkbox("WiFi", key="s1_wifi")
+        filter_music = st.checkbox("Live Music", key="s1_music")
+
+    with col2:
+        filter_reservation = st.checkbox("Reservation", key="s1_reservation")
+        filter_credit = st.checkbox("Credit Cards", key="s1_credit")
+        filter_cash = st.checkbox("Cash Only", key="s1_cash")
+        filter_wheelchair = st.checkbox("Wheelchair", key="s1_wheelchair")
+        filter_pet = st.checkbox("Pet Friendly", key="s1_pet")
+        filter_kids = st.checkbox("Kids Friendly", key="s1_kids")
+
+    # Apply filters
+    filtered_df = df_display.copy()
+
+    if search_name:
+        filtered_df = filtered_df[filtered_df['name'].str.lower().str.contains(search_name, na=False)]
+
+    if selected_cuisine != "All Cuisines":
+        filtered_df = filtered_df[filtered_df['cuisine_primary'] == selected_cuisine]
+
+    if selected_area != "All Areas":
+        filtered_df = filtered_df[filtered_df['area'] == selected_area]
+
+    if selected_price != "All Prices":
+        filtered_df = filtered_df[filtered_df['price_category'] == selected_price]
+
+    if min_rating > 0:
+        filtered_df = filtered_df[filtered_df['rating_overall'] >= min_rating]
+
+    # Apply ALL 12 feature filters
+    if filter_delivery:
+        filtered_df = filtered_df[filtered_df['delivery_available'] == '✓']
+    if filter_takeaway:
+        filtered_df = filtered_df[filtered_df['takeaway_available'] == '✓']
+    if filter_outdoor:
+        filtered_df = filtered_df[filtered_df['outdoor_seating'] == '✓']
+    if filter_parking:
+        filtered_df = filtered_df[filtered_df['parking_available'] == '✓']
+    if filter_wifi:
+        filtered_df = filtered_df[filtered_df['wifi_available'] == '✓']
+    if filter_music:
+        filtered_df = filtered_df[filtered_df['live_music'] == '✓']
+    if filter_reservation:
+        filtered_df = filtered_df[filtered_df['reservation_required'] == '✓']
+    if filter_credit:
+        filtered_df = filtered_df[filtered_df['credit_cards_accepted'] == '✓']
+    if filter_cash:
+        filtered_df = filtered_df[filtered_df['cash_only'] == '✓']
+    if filter_wheelchair:
+        filtered_df = filtered_df[filtered_df['wheelchair_accessible'] == '✓']
+    if filter_pet:
+        filtered_df = filtered_df[filtered_df['pet_friendly'] == '✓']
+    if filter_kids:
+        filtered_df = filtered_df[filtered_df['kids_friendly'] == '✓']
     # Apply filters
     filtered_df = df_display.copy()
     
@@ -523,18 +592,119 @@ elif selected_section == "EDA":
                     fig_best.update_layout(xaxis_tickangle=-45)
                     st.plotly_chart(fig_best, use_container_width=True)
 
-# SECTION 3: FEATURE ANALYSIS (YOUR WORK)
+# SECTION 3: FEATURE ANALYSIS
+
+# SECTION 3: FEATURE ANALYSIS
 
 elif selected_section == "Feature Analysis":
     st.header(":material/auto_awesome: Feature Analysis")
     st.write("Analysis of 12 features extracted from restaurant descriptions and reviews")
     
+    # SIDEBAR FILTERS
+    st.sidebar.subheader("Feature Analysis Filters")
+    
+    # Get unique values for filters
+    all_cuisines = sorted([c for c in df_restaurants['cuisine_primary'].unique() if c != 'Unknown'])
+    all_areas = sorted([a for a in df_restaurants['area'].unique() if a != 'Unknown'])
+    all_prices = ['Budget', 'Mid-Range', 'High-End']
+    
+    filter_cuisine = st.sidebar.multiselect("Filter by Cuisine:", all_cuisines, key="feat_cuisine")
+    filter_area = st.sidebar.multiselect("Filter by Area:", all_areas, key="feat_area")
+    filter_price = st.sidebar.multiselect("Filter by Price:", all_prices, key="feat_price")
+    
+    # Apply filters
+    df_feat = df_restaurants.copy()
+    
+    if filter_cuisine:
+        df_feat = df_feat[df_feat['cuisine_primary'].isin(filter_cuisine)]
+    if filter_area:
+        df_feat = df_feat[df_feat['area'].isin(filter_area)]
+    if filter_price:
+        df_feat = df_feat[df_feat['price_category'].isin(filter_price)]
+    
+    # Show active filters
+    active_filters = []
+    if filter_cuisine: active_filters.append(f"Cuisine: {len(filter_cuisine)} selected")
+    if filter_area: active_filters.append(f"Area: {len(filter_area)} selected")
+    if filter_price: active_filters.append(f"Price: {len(filter_price)} selected")
+    
+    if active_filters:
+        st.info(f"Active filters: {' · '.join(active_filters)} — showing **{len(df_feat)}** of **{len(df_restaurants)}** restaurants")
+    
+    st.write("---")
+    
+    # ── KPI CARDS ────────────────────────────────────────────────
+    geocoded_count = df_feat[df_feat['latitude'].notna()]['latitude'].count() if 'latitude' in df_feat.columns else 0
+    geocoded_pct = (geocoded_count / len(df_feat) * 100) if len(df_feat) > 0 else 0
+    most_common_cuisine = df_feat[df_feat['cuisine_primary'] != 'Unknown']['cuisine_primary'].value_counts().index[0] if len(df_feat) > 0 else "N/A"
+    
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Total Restaurants", f"{len(df_feat):,}")
+    col2.metric("Avg Rating", f"{df_feat['rating_overall'].mean():.2f}⭐" if len(df_feat) > 0 else "—")
+    col3.metric("Geocoded", f"{geocoded_count:,} ({geocoded_pct:.1f}%)")
+    col4.metric("Top Cuisine", most_common_cuisine)
+    
+    st.write("---")
+    
+    # ── CUISINE PIE CHART ────────────────────────────────────────
+    st.subheader(":material/pie_chart: Top 10 Cuisines Distribution")
+    
+    top_10_cuisines = df_feat[df_feat['cuisine_primary'] != 'Unknown']['cuisine_primary'].value_counts().head(10)
+    
+    if len(top_10_cuisines) > 0:
+        fig_pie = px.pie(
+            values=top_10_cuisines.values,
+            names=top_10_cuisines.index,
+            title='Top 10 Cuisines',
+            hole=0.3
+        )
+        st.plotly_chart(fig_pie, use_container_width=True)
+    else:
+        st.info("No cuisine data to display after filtering.")
+    
+    st.write("---")
+    
+    # ── RATING HISTOGRAM ─────────────────────────────────────────
+    st.subheader(":material/bar_chart: Rating Distribution")
+    
+    if len(df_feat) > 0:
+        fig_hist = px.histogram(
+            df_feat,
+            x='rating_overall',
+            nbins=20,
+            title='Rating Distribution',
+            labels={'rating_overall': 'Rating', 'count': 'Number of Restaurants'},
+            color_discrete_sequence=['#3498db']
+        )
+        fig_hist.update_layout(yaxis_title="Number of Restaurants")
+        st.plotly_chart(fig_hist, use_container_width=True)
+    else:
+        st.info("No rating data to display after filtering.")
+    
+    st.write("---")
+    
     # Calculate feature statistics
     feature_stats = {}
     for feature in feature_cols:
-        count = (df_restaurants[feature] == 'TRUE').sum()
-        pct = (count / len(df_restaurants)) * 100
+        count = (df_feat[feature] == 'TRUE').sum()
+        pct = (count / len(df_feat)) * 100 if len(df_feat) > 0 else 0
         feature_stats[feature.replace('_', ' ').title()] = {'count': count, 'percent': pct}
+    
+    # FEATURE SUMMARY TABLE
+    st.subheader(":material/table_chart: Feature Summary Table")
+    
+    feature_summary_data = []
+    for feature_name, stats in feature_stats.items():
+        feature_summary_data.append({
+            'Feature': feature_name,
+            'Count': stats['count'],
+            'Percentage': f"{stats['percent']:.1f}%"
+        })
+    
+    feature_summary = pd.DataFrame(feature_summary_data).sort_values('Count', ascending=False)
+    st.dataframe(feature_summary, use_container_width=True, hide_index=True)
+    
+    st.write("---")
     
     # Summary metrics
     st.subheader(":material/bar_chart: Feature Summary")
@@ -542,12 +712,12 @@ elif selected_section == "Feature Analysis":
     col1, col2, col3, col4 = st.columns(4)
     
     # Calculate actual values
-    outdoor_count = (df_restaurants['outdoor_seating'] == 'TRUE').sum()
-    outdoor_pct = (outdoor_count / len(df_restaurants)) * 100
-    avg_features = sum([v['count'] for v in feature_stats.values()]) / len(df_restaurants)
+    outdoor_count = (df_feat['outdoor_seating'] == 'TRUE').sum()
+    outdoor_pct = (outdoor_count / len(df_feat)) * 100 if len(df_feat) > 0 else 0
+    avg_features = sum([v['count'] for v in feature_stats.values()]) / len(df_feat) if len(df_feat) > 0 else 0
     
     col1.metric("Most Common Feature", "Outdoor Seating", f"{outdoor_pct:.0f}%")
-    col2.metric("Total Restaurants", len(df_restaurants))
+    col2.metric("Total Restaurants", len(df_feat))
     col3.metric("Features Detected", "12 types")
     col4.metric("Avg Features/Restaurant", f"{avg_features:.1f}")
     
@@ -580,12 +750,12 @@ elif selected_section == "Feature Analysis":
         st.subheader("2️⃣ Features by Top Areas")
         
         # Get top 10 areas
-        top_areas = df_restaurants['area'].value_counts().head(10).index.tolist()
+        top_areas = df_feat['area'].value_counts().head(10).index.tolist()
         
         # Calculate feature percentages by area
         area_data = []
         for area in top_areas:
-            area_df = df_restaurants[df_restaurants['area'] == area]
+            area_df = df_feat[df_feat['area'] == area]
             for feature in ['outdoor_seating', 'parking_available', 'wifi_available', 'live_music']:
                 count = (area_df[feature] == 'TRUE').sum()
                 pct = (count / len(area_df) * 100) if len(area_df) > 0 else 0
@@ -614,12 +784,12 @@ elif selected_section == "Feature Analysis":
         st.subheader("3️⃣ Features by Cuisine")
         
         # Get top 8 cuisines (excluding Unknown)
-        top_cuisines = df_restaurants[df_restaurants['cuisine_primary'] != 'Unknown']['cuisine_primary'].value_counts().head(8).index.tolist()
+        top_cuisines = df_feat[df_feat['cuisine_primary'] != 'Unknown']['cuisine_primary'].value_counts().head(8).index.tolist()
         
         # Calculate feature percentages by cuisine
         cuisine_data = []
         for cuisine in top_cuisines:
-            cuisine_df = df_restaurants[df_restaurants['cuisine_primary'] == cuisine]
+            cuisine_df = df_feat[df_feat['cuisine_primary'] == cuisine]
             for feature in ['outdoor_seating', 'delivery_available', 'reservation_required', 'live_music']:
                 count = (cuisine_df[feature] == 'TRUE').sum()
                 pct = (count / len(cuisine_df) * 100) if len(cuisine_df) > 0 else 0
@@ -653,7 +823,7 @@ elif selected_section == "Feature Analysis":
     price_feature_data = []
     
     for price in price_categories:
-        price_df = df_restaurants[df_restaurants['price_category'] == price]
+        price_df = df_feat[df_feat['price_category'] == price]
         if len(price_df) == 0:
             continue
         for feature in ['outdoor_seating', 'parking_available', 'wifi_available', 'live_music', 'delivery_available']:
@@ -692,11 +862,11 @@ elif selected_section == "Feature Analysis":
         st.subheader("5️⃣ Average Star Distribution")
         
         star_averages = [
-            df_restaurants['star_5_percent'].mean(),
-            df_restaurants['star_4_percent'].mean(),
-            df_restaurants['star_3_percent'].mean(),
-            df_restaurants['star_2_percent'].mean(),
-            df_restaurants['star_1_percent'].mean()
+            df_feat['star_5_percent'].mean(),
+            df_feat['star_4_percent'].mean(),
+            df_feat['star_3_percent'].mean(),
+            df_feat['star_2_percent'].mean(),
+            df_feat['star_1_percent'].mean()
         ]
         
         fig5 = go.Figure(data=[
@@ -727,7 +897,7 @@ elif selected_section == "Feature Analysis":
         star_labels = ['5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star']
         
         for price in price_categories:
-            price_df = df_restaurants[df_restaurants['price_category'] == price]
+            price_df = df_feat[df_feat['price_category'] == price]
             if len(price_df) == 0:
                 continue
             for i, star_col in enumerate(star_cols_list):
@@ -769,7 +939,7 @@ elif selected_section == "Feature Analysis":
         completeness_data = []
         
         for i, source in enumerate(sources):
-            source_df = df_restaurants[df_restaurants['data_source'] == source]
+            source_df = df_feat[df_feat['data_source'] == source]
             
             if len(source_df) == 0:
                 continue
@@ -821,7 +991,7 @@ elif selected_section == "Feature Analysis":
         source_feature_data = []
         
         for i, source in enumerate(sources):
-            source_df = df_restaurants[df_restaurants['data_source'] == source]
+            source_df = df_feat[df_feat['data_source'] == source]
             
             if len(source_df) == 0:
                 continue
@@ -856,7 +1026,7 @@ elif selected_section == "Feature Analysis":
     st.subheader("9️⃣ Feature Correlation Heatmap")
     
     # Create binary matrix for features
-    feature_matrix = df_restaurants[feature_cols].map(lambda x: 1 if x == 'TRUE' else 0)
+    feature_matrix = df_feat[feature_cols].map(lambda x: 1 if x == 'TRUE' else 0)
     
     # Calculate correlation
     correlation = feature_matrix.corr()
@@ -881,89 +1051,127 @@ elif selected_section == "Feature Analysis":
     )
     
     st.plotly_chart(fig9, use_container_width=True)
+
+    # ── CORRELATION INSIGHTS (DYNAMIC) ──────────────────────────────
+    st.write("**Key Correlation Insights:**")
+
+    # Get correlation matrix
+    corr_matrix = correlation.copy()
+
+    # Mask diagonal and lower triangle
+    mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
+    corr_matrix_masked = corr_matrix.where(~mask)
+
+    # Find strongest positive correlations
+    corr_unstacked = corr_matrix_masked.unstack()
+    top_positive = corr_unstacked[corr_unstacked > 0.40].sort_values(ascending=False).head(4)
+
+    # Find strongest negative correlations
+    top_negative = corr_unstacked[corr_unstacked < -0.30].sort_values().head(2)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("**Strong Positive Correlations (>0.40):**")
+        for (feat1, feat2), val in top_positive.items():
+            feat1_clean = feat1.replace('_', ' ').title()
+            feat2_clean = feat2.replace('_', ' ').title()
+            st.write(f"• {feat1_clean} ↔ {feat2_clean} ({val:.2f})")
+
+    with col2:
+        st.markdown("**Strong Negative Correlations (<-0.30):**")
+        for (feat1, feat2), val in top_negative.items():
+            feat1_clean = feat1.replace('_', ' ').title()
+            feat2_clean = feat2.replace('_', ' ').title()
+            st.write(f"• {feat1_clean} ↔ {feat2_clean} ({val:.2f})")
+
+    st.markdown("**Service Model Clusters:**")
+    st.write("🎭 **Dine-In Premium:** Outdoor + Parking + Live Music + Reservations")
+    st.write("📱 **Modern Convenience:** Delivery + Takeaway + WiFi + Credit Cards")
+    st.write("💵 **Traditional Budget:** Cash Only + Limited amenities")
     st.write("---")
 
-# Geographic Maps
-    if 'latitude' in df_restaurants.columns and 'longitude' in df_restaurants.columns:
-     geocoded_restaurants = df_restaurants[df_restaurants['latitude'].notna() & df_restaurants['longitude'].notna()]
-    
-    if len(geocoded_restaurants) > 0:
-        st.subheader(":material/map: Geographic Distribution")
+    # Geographic Maps
+    if 'latitude' in df_feat.columns and 'longitude' in df_feat.columns:
+        geocoded_restaurants = df_feat[df_feat['latitude'].notna() & df_feat['longitude'].notna()]
         
-        # Map 1 & 2: Side by side
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.write("**All Restaurants by Price**")
+        if len(geocoded_restaurants) > 0:
+            st.subheader(":material/map: Geographic Distribution")
             
-            map_price = px.scatter_mapbox(
-                geocoded_restaurants,
-                lat='latitude',
-                lon='longitude',
-                hover_name='name',
-                hover_data=['rating_overall', 'area'],
-                color='price_category',
-                color_discrete_map={'Budget': '#2ecc71', 'Mid-Range': '#3498db', 'High-End': '#e74c3c'},
-                zoom=11,
-                height=500
-            )
+            # Map 1 & 2: Side by side
+            col1, col2 = st.columns(2)
             
-            map_price.update_layout(mapbox_style="open-street-map")
-            st.plotly_chart(map_price, use_container_width=True)
-        
-        with col2:
-            st.write("**Top Rated (4.5+)**")
-            
-            top_rated_geo = geocoded_restaurants[geocoded_restaurants['rating_overall'] >= 4.5]
-            
-            if len(top_rated_geo) > 0:
-                map_top = px.scatter_mapbox(
-                    top_rated_geo,
+            with col1:
+                st.write("**All Restaurants by Price**")
+                
+                map_price = px.scatter_mapbox(
+                    geocoded_restaurants,
                     lat='latitude',
                     lon='longitude',
                     hover_name='name',
-                    hover_data=['rating_overall', 'area', 'cuisine_primary'],
-                    color='rating_overall',
-                    size='rating_overall',
-                    color_continuous_scale='RdYlGn',
+                    hover_data=['rating_overall', 'area'],
+                    color='price_category',
+                    color_discrete_map={'Budget': '#2ecc71', 'Mid-Range': '#3498db', 'High-End': '#e74c3c'},
                     zoom=11,
                     height=500
                 )
                 
-                map_top.update_layout(mapbox_style="open-street-map")
-                st.plotly_chart(map_top, use_container_width=True)
-        
-        # Map 3: Density
-        st.write("**Restaurant Density by Area**")
-        
-        area_counts = geocoded_restaurants['area'].value_counts().head(15).reset_index()
-        area_counts.columns = ['Area', 'Count']
-        
-        area_coords = geocoded_restaurants.groupby('area').agg({
-            'latitude': 'mean',
-            'longitude': 'mean'
-        }).reset_index()
-        
-        area_map_data = area_counts.merge(area_coords, left_on='Area', right_on='area')
-        
-        map_density = px.scatter_mapbox(
-            area_map_data,
-            lat='latitude',
-            lon='longitude',
-            size='Count',
-            hover_name='Area',
-            hover_data=['Count'],
-            color='Count',
-            color_continuous_scale='YlOrRd',
-            zoom=11,
-            height=500
-        )
-        
-        map_density.update_layout(mapbox_style="open-street-map")
-        st.plotly_chart(map_density, use_container_width=True)
-        
-        st.info(f"📊 {len(geocoded_restaurants)} of {len(df_restaurants)} restaurants geocoded")
-    st.write("---")
+                map_price.update_layout(mapbox_style="open-street-map")
+                st.plotly_chart(map_price, use_container_width=True)
+            
+            with col2:
+                st.write("**Top Rated (4.5+)**")
+                
+                top_rated_geo = geocoded_restaurants[geocoded_restaurants['rating_overall'] >= 4.5]
+                
+                if len(top_rated_geo) > 0:
+                    map_top = px.scatter_mapbox(
+                        top_rated_geo,
+                        lat='latitude',
+                        lon='longitude',
+                        hover_name='name',
+                        hover_data=['rating_overall', 'area', 'cuisine_primary'],
+                        color='rating_overall',
+                        size='rating_overall',
+                        color_continuous_scale='RdYlGn',
+                        zoom=11,
+                        height=500
+                    )
+                    
+                    map_top.update_layout(mapbox_style="open-street-map")
+                    st.plotly_chart(map_top, use_container_width=True)
+            
+            # Map 3: Density
+            st.write("**Restaurant Density by Area**")
+            
+            area_counts = geocoded_restaurants['area'].value_counts().head(15).reset_index()
+            area_counts.columns = ['Area', 'Count']
+            
+            area_coords = geocoded_restaurants.groupby('area').agg({
+                'latitude': 'mean',
+                'longitude': 'mean'
+            }).reset_index()
+            
+            area_map_data = area_counts.merge(area_coords, left_on='Area', right_on='area')
+            
+            map_density = px.scatter_mapbox(
+                area_map_data,
+                lat='latitude',
+                lon='longitude',
+                size='Count',
+                hover_name='Area',
+                hover_data=['Count'],
+                color='Count',
+                color_continuous_scale='YlOrRd',
+                zoom=11,
+                height=500
+            )
+            
+            map_density.update_layout(mapbox_style="open-street-map")
+            st.plotly_chart(map_density, use_container_width=True)
+            
+            st.info(f"📊 {len(geocoded_restaurants)} of {len(df_feat)} restaurants geocoded")
+        st.write("---")
     
     # Feature Insights
     st.subheader(":material/lightbulb: Key Insights")
@@ -979,7 +1187,7 @@ elif selected_section == "Feature Analysis":
         
     with col2:
         st.write("**High-End Trends:**")
-        high_end_df = df_restaurants[df_restaurants['price_category'] == 'High-End']
+        high_end_df = df_feat[df_feat['price_category'] == 'High-End']
         if len(high_end_df) > 0:
             parking_pct = (high_end_df['parking_available'] == 'TRUE').sum() / len(high_end_df) * 100
             music_pct = (high_end_df['live_music'] == 'TRUE').sum() / len(high_end_df) * 100
@@ -991,12 +1199,11 @@ elif selected_section == "Feature Analysis":
     with col3:
         st.write("**Data Quality:**")
         for i, source in enumerate(sources):
-            source_df = df_restaurants[df_restaurants['data_source'] == source]
+            source_df = df_feat[df_feat['data_source'] == source]
             if len(source_df) > 0:
                 completeness = (source_df['phone'].notna().sum() + 
                               (source_df['cuisine_primary'] != 'Unknown').sum()) / (2 * len(source_df)) * 100
                 st.write(f"- {source_labels[i]}: {completeness:.0f}% complete")
-
 # SECTION 4: ML INSIGHTS 
 
 elif selected_section == "ML Insights":
