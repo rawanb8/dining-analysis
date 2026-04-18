@@ -28,6 +28,7 @@ src1_016,src2_2087,Cocteau Restaurant,Duo Restaurant,0.875
 src1_016,src2_2363,Cocteau Restaurant,Fattouh Restaurant,0.861
 src1_016,src2_2460,Cocteau Restaurant,Foulna restaurant,0.871
 src1_016,src2_2677,Cocteau Restaurant,Gavi Restaurant,0.864
+src1_016,src2_3045,Cocteau Restaurant,Jabbour Restaurant,0.861
 src1_019,src2_355,Al Falamanki Sodeco,Al Falamanki Raouche,0.885
 src1_042,src2_090,Amelia,Amelia,1.0
 src1_042,src2_654,Amelia,Angelina,0.857
@@ -44,4 +45,6 @@ src1_050,src2_1463,ASH Beirut,Catrinas Beirut,0.86
 src1_050,src2_1950,ASH Beirut,Dar Beirut,0.9
 src1_050,src2_2689,ASH Beirut,Bahr Beirut,0.929
 src1_050,src2_2978,ASH Beirut,HUSK Beirut,0.881
-src1_020,src3_202,Fred Kitchen & Bar,Fred Kitchen & Bar,0.878
+src1_050,src2_3100,ASH Beirut,Joy Beirut,0.85
+src1_050,src2_3135,ASH Beirut,KAOS BEIRUT,0.929
+src1_020,src3_204,Fred Kitchen & Bar,Fred Kitchen & Bar,0.878

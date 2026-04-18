@@ -1,88 +1,89 @@
 {
-  "total_reviews_loaded": 38791,
-  "known_cuisine_reviews": 19407,
-  "unknown_cuisine_reviews": 19384,
+  "total_reviews_loaded": 41428,
+  "known_cuisine_reviews": 21003,
+  "unknown_cuisine_reviews": 20425,
   "models_evaluated": {
     "Logistic Regression": {
-      "accuracy": 0.4382,
-      "weighted_f1": 0.3654
+      "accuracy": 0.4475,
+      "weighted_f1": 0.3672
     },
     "Naive Bayes": {
-      "accuracy": 0.4387,
-      "weighted_f1": 0.3709
+      "accuracy": 0.442,
+      "weighted_f1": 0.3675
     },
     "Random Forest": {
-      "accuracy": 0.4207,
-      "weighted_f1": 0.3515
+      "accuracy": 0.4275,
+      "weighted_f1": 0.3535
     }
   },
   "best_model": "Naive Bayes",
-  "best_model_accuracy": 0.4387,
-  "best_model_f1": 0.3709,
-  "confusion_matrix_note": "Confusion matrix shown for top 10 cuisines only (out of 28 total classes)",
+  "best_model_accuracy": 0.442,
+  "best_model_f1": 0.3675,
+  "confusion_matrix_note": "Confusion matrix shown for top 10 cuisines only (out of 29 total classes)",
   "top_confusion_pairs": [
     {
       "actual": "Armenian",
       "predicted": "Lebanese",
-      "rate": 0.944
-    },
-    {
-      "actual": "Mediterranean",
-      "predicted": "Lebanese",
-      "rate": 0.917
+      "rate": 0.972
     },
     {
       "actual": "Barbecue",
       "predicted": "Lebanese",
-      "rate": 0.895
+      "rate": 0.864
+    },
+    {
+      "actual": "Indian",
+      "predicted": "Lebanese",
+      "rate": 0.857
     },
     {
       "actual": "Middle Eastern",
       "predicted": "Lebanese",
-      "rate": 0.864
+      "rate": 0.849
     },
     {
       "actual": "Seafood",
       "predicted": "Lebanese",
-      "rate": 0.824
+      "rate": 0.84
     }
   ],
-  "predictions_made": 19384,
-  "low_confidence_count": 1722,
-  "low_confidence_pct": 8.9,
+  "predictions_made": 20425,
+  "low_confidence_count": 1554,
+  "low_confidence_pct": 7.6,
   "low_confidence_threshold": 0.3,
-  "avg_prediction_confidence": 0.522,
+  "avg_prediction_confidence": 0.534,
   "per_class_f1": {
-    "American": 0.347,
+    "American": 0.341,
     "Armenian": 0.0,
     "Asian": 0.0,
     "Barbecue": 0.0,
-    "Chinese": 0.275,
-    "Cocktail bars": 0.362,
+    "Chinese": 0.327,
+    "Cocktail bars": 0.275,
     "Delis": 0.0,
-    "Dessert": 0.645,
-    "European": 0.114,
-    "Fast food": 0.18,
-    "French": 0.212,
-    "Fusion": 0.0,
-    "Healthy food": 0.0,
-    "International": 0.0,
-    "Italian": 0.298,
-    "Japanese": 0.067,
-    "Jewish": 0.624,
-    "Lebanese": 0.54,
+    "Dessert": 0.639,
+    "European": 0.0,
+    "Fast food": 0.202,
+    "French": 0.184,
+    "Fusion": 0.069,
+    "Healthy food": 0.083,
+    "Indian": 0.0,
+    "International": 0.033,
+    "Italian": 0.251,
+    "Japanese": 0.0,
+    "Jewish": 0.612,
+    "Lebanese": 0.555,
     "Mediterranean": 0.0,
-    "Mexican": 0.087,
-    "Middle Eastern": 0.022,
-    "Other": 0.182,
-    "Pizza": 0.209,
+    "Mexican": 0.148,
+    "Middle Eastern": 0.021,
+    "Other": 0.186,
+    "Pizza": 0.133,
     "Salads": 0.0,
-    "Seafood": 0.221,
+    "Seafood": 0.199,
     "Sushi": 0.0,
-    "Turkish": 0.154,
+    "Turkish": 0.08,
     "Wine bars": 0.0
   },
-  "enriched_reviews_total": 38791,
-  "enriched_original_labels": 19407,
-  "enriched_predicted_labels": 19384
+  "enriched_reviews_total": 41428,
+  "enriched_original_labels": 21003,
+  "enriched_predicted_labels": 20425
 }
