@@ -217,7 +217,7 @@ if selected_section == "Search & Filter":
     
     col1.metric("Total Restaurants", len(filtered_df))
     col2.metric("Average Rating", f"{filtered_df['rating_overall'].mean():.2f}⭐")
-    col3.metric("Total Reviews", f"{filtered_df['review_count_total'].sum():,}")
+    col3.metric("Total Reviews", f"{len(df_reviews):,}")
     col4.metric("Avg Reviews/Restaurant", f"{filtered_df['review_count_total'].mean():.0f}")
     col5.metric("High-End Count", len(filtered_df[filtered_df['price_category'] == 'High-End']))
     
@@ -312,7 +312,10 @@ elif selected_section == "EDA":
         "Avg Rating",
         f"{avg_rating:.2f}" if pd.notna(avg_rating) else "—"
     )
-    col3.metric("Total Reviews", f"{int(df_eda['review_count_total'].sum()):,}" if len(df_eda) else "—")
+    # Count reviews from filtered restaurants
+    filtered_restaurant_ids = df_eda['restaurant_id'].unique()
+    review_count = len(df_reviews[df_reviews['restaurant_id'].isin(filtered_restaurant_ids)])
+    col3.metric("Total Reviews", f"{review_count:,}" if len(df_eda) else "—")
     col4.metric("Areas", df_eda[df_eda['area'] != 'Unknown']['area'].nunique())
     col5.metric("Cuisine Types", df_eda[df_eda['cuisine_primary'] != 'Unknown']['cuisine_primary'].nunique())
 
@@ -1235,13 +1238,19 @@ elif selected_section == "ML Insights":
         # ── SECTION 1: DATA OVERVIEW ──────────────────────────────────
         st.subheader(":material/inventory_2: Data Overview")
 
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Total Reviews",          f"{ml_summary['total_reviews_loaded']:,}")
-        col2.metric("Known Cuisine (Train)",   f"{ml_summary['known_cuisine_reviews']:,}")
-        col3.metric("Unknown Cuisine",         f"{ml_summary['unknown_cuisine_reviews']:,}")
-        col4.metric("Reviews Recovered",       f"{ml_summary['predictions_made']:,}")
+        # Calculate CURRENT counts from actual data
+        current_total = len(df_reviews)
+        current_known = ml_summary['known_cuisine_reviews'] 
+        current_unknown = ml_summary['unknown_cuisine_reviews'] 
 
-        st.write("---")
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Total Reviews", f"{current_total:,}")  
+        col2.metric("Known Cuisine (Train)", f"{current_known:,}")
+        col3.metric("Unknown Cuisine", f"{current_unknown:,}")
+        col4.metric("Reviews Recovered", f"{ml_summary['predictions_made']:,}")
+
+        # Add note about snapshot
+        st.caption(f"📊 Current dataset: {current_total:,} reviews | ML model trained on: {ml_summary['total_reviews_loaded']:,} reviews")
 
         # ── SECTION 2: PHASE 1 — MODEL COMPARISON (NO BALANCING) ─────
         st.subheader(":material/emoji_events: Phase 1 — Model Comparison (No Balancing)")
@@ -1701,12 +1710,11 @@ elif selected_section == "NLP Analysis":
         """
         tag: short string appended to selectbox keys to avoid duplicate widget IDs
         """
-
         # SUMMARY STATS
         st.subheader(":material/assignment: Review Dataset Summary")
         if summary:
             col1, col2, col3, col4, col5 = st.columns(5)
-            col1.metric("Total Reviews Loaded",       f"{summary['total_reviews_loaded']:,}")
+            col1.metric("Total Reviews Loaded", f"{len(df_reviews):,}")
             col2.metric("Reviews Used in Analysis",   f"{summary['reviews_used']:,}")
             col3.metric("Excluded (Unknown metadata)",f"{summary['reviews_excluded']:,}")
             col4.metric("Neighborhoods Covered",       summary['neighborhoods_covered'])
