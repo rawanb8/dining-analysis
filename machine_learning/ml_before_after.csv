@@ -1,0 +1,30 @@
+cuisine,f1_before,f1_after,f1_change
+Indian,0.0,0.5,0.5
+Armenian,0.0,0.35,0.35
+Asian,0.0,0.317,0.317
+Healthy food,0.063,0.373,0.31
+Fusion,0.0,0.277,0.277
+Salads,0.0,0.222,0.222
+Turkish,0.041,0.243,0.202
+Seafood,0.223,0.42,0.197
+Chinese,0.392,0.578,0.186
+Mediterranean,0.0,0.149,0.149
+Japanese,0.167,0.309,0.142
+Wine bars,0.0,0.138,0.138
+Delis,0.0,0.131,0.131
+Fast food,0.187,0.312,0.125
+French,0.158,0.281,0.123
+Middle Eastern,0.0,0.091,0.091
+International,0.0,0.079,0.079
+Other,0.087,0.16,0.073
+Cocktail bars,0.304,0.37,0.066
+European,0.111,0.176,0.065
+Pizza,0.216,0.277,0.061
+Mexican,0.179,0.233,0.054
+Barbecue,0.0,0.038,0.038
+Dessert,0.633,0.639,0.006
+Italian,0.352,0.335,-0.017
+American,0.302,0.272,-0.03
+Sushi,0.217,0.184,-0.033
+Jewish,0.757,0.704,-0.053
+Lebanese,0.55,0.481,-0.069

@@ -1,18 +1,30 @@
 cuisine,predicted_count,avg_confidence,high_conf_count
-Lebanese,16052,0.36,2126
-Dessert,2539,0.402,672
-American,1542,0.296,82
-Italian,329,0.332,58
-Cocktail bars,309,0.241,5
-Pizza,259,0.377,43
-French,133,0.248,2
-Seafood,123,0.482,52
-Jewish,110,0.702,85
-Fast food,106,0.386,18
-Japanese,36,0.199,0
-Healthy food,16,0.296,1
-Sushi,14,0.213,0
-Chinese,10,0.317,2
-Mexican,9,0.299,1
-Other,7,0.22,0
-Turkish,6,0.431,1
+Lebanese,3522,0.349,651
+Dessert,2247,0.454,809
+Barbecue,2078,0.11,39
+Pizza,1372,0.404,381
+American,1328,0.278,106
+Italian,1192,0.338,210
+Other,1184,0.3,142
+French,1182,0.33,166
+Fast food,1167,0.381,261
+Cocktail bars,1013,0.391,266
+Seafood,692,0.448,224
+Middle Eastern,686,0.356,111
+International,385,0.282,18
+Salads,381,0.376,94
+Mexican,365,0.281,41
+Delis,337,0.403,86
+Japanese,323,0.481,107
+Jewish,305,0.571,135
+Healthy food,280,0.386,69
+Mediterranean,220,0.383,52
+Turkish,216,0.414,55
+Armenian,208,0.396,48
+Fusion,208,0.374,48
+European,198,0.325,21
+Sushi,144,0.375,28
+Chinese,129,0.405,42
+Asian,118,0.322,12
+Indian,61,0.528,29
+Wine bars,59,0.388,19

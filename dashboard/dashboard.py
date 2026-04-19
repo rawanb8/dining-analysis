@@ -1210,25 +1210,21 @@ elif selected_section == "ML Insights":
     st.header(":material/smart_toy: ML Insights — Cuisine Classifier")
     st.write("---")
 
-    # ── LOAD ML OUTPUT FILES 
-    
-
     ML_DIR = os.path.join(os.path.dirname(__file__), '..', 'machine_learning')
+
     @st.cache_data
     def load_ml_data():
-        summary_path     = os.path.join(ML_DIR, 'ml_cuisine_summary.json')
-        comparison_path  = os.path.join(ML_DIR, 'ml_model_comparison.csv')
-        pred_dist_path   = os.path.join(ML_DIR, 'ml_predicted_distribution.csv')
-
-        with open(summary_path, 'r') as f:
+        with open(os.path.join(ML_DIR, 'ml_cuisine_summary.json'), 'r') as f:
             summary = json.load(f)
-
-        df_comparison = pd.read_csv(comparison_path)
-        df_pred_dist  = pd.read_csv(pred_dist_path)
-        return summary, df_comparison, df_pred_dist
+        df_model_comparison  = pd.read_csv(os.path.join(ML_DIR, 'ml_model_comparison.csv'))
+        df_balancing         = pd.read_csv(os.path.join(ML_DIR, 'ml_balancing_comparison.csv'))
+        df_final_comparison  = pd.read_csv(os.path.join(ML_DIR, 'ml_final_comparison.csv'))
+        df_before_after      = pd.read_csv(os.path.join(ML_DIR, 'ml_before_after.csv'))
+        df_pred_dist         = pd.read_csv(os.path.join(ML_DIR, 'ml_predicted_distribution.csv'))
+        return summary, df_model_comparison, df_balancing, df_final_comparison, df_before_after, df_pred_dist
 
     try:
-        ml_summary, df_comparison, df_pred_dist = load_ml_data()
+        ml_summary, df_model_comparison, df_balancing, df_final_comparison, df_before_after, df_pred_dist = load_ml_data()
         ml_loaded = True
     except FileNotFoundError:
         st.warning("⚠️ ML output files not found. Run `cuisine_classifier.py` first.")
@@ -1236,47 +1232,44 @@ elif selected_section == "ML Insights":
 
     if ml_loaded:
 
-        # ── SECTION 1: PIPELINE OVERVIEW METRICS ─────────────────────
+        # ── SECTION 1: DATA OVERVIEW ──────────────────────────────────
         st.subheader(":material/inventory_2: Data Overview")
 
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Total Reviews",         f"{ml_summary['total_reviews_loaded']:,}")
-        col2.metric("Known Cuisine (Train)",  f"{ml_summary['known_cuisine_reviews']:,}")
-        col3.metric("Unknown Cuisine",        f"{ml_summary['unknown_cuisine_reviews']:,}")
-        col4.metric("Reviews Recovered",      f"{ml_summary['predictions_made']:,}")
+        col1.metric("Total Reviews",          f"{ml_summary['total_reviews_loaded']:,}")
+        col2.metric("Known Cuisine (Train)",   f"{ml_summary['known_cuisine_reviews']:,}")
+        col3.metric("Unknown Cuisine",         f"{ml_summary['unknown_cuisine_reviews']:,}")
+        col4.metric("Reviews Recovered",       f"{ml_summary['predictions_made']:,}")
 
         st.write("---")
 
-        # ── SECTION 2: MODEL COMPARISON ───────────────────────────────
-        st.subheader(":material/emoji_events: Model Comparison")
-        st.caption("All three models were evaluated on a held-out 20% test set across all cuisine classes. The best model was selected by weighted F1 score.")
+        # ── SECTION 2: PHASE 1 — MODEL COMPARISON (NO BALANCING) ─────
+        st.subheader(":material/emoji_events: Phase 1 — Model Comparison (No Balancing)")
+        st.caption("All three models trained on a 80/20 split with no balancing. Best model selected by weighted F1.")
 
         col_left, col_right = st.columns([1, 1])
 
         with col_left:
-            # Bar chart: accuracy vs F1 for each model
             fig_compare = go.Figure()
-
             fig_compare.add_trace(go.Bar(
                 name='Accuracy',
-                x=df_comparison['model'],
-                y=(df_comparison['accuracy'] * 100).round(1),
+                x=df_model_comparison['model'],
+                y=(df_model_comparison['accuracy'] * 100).round(1),
                 marker_color='#3498db',
-                text=(df_comparison['accuracy'] * 100).round(1).astype(str) + '%',
+                text=(df_model_comparison['accuracy'] * 100).round(1).astype(str) + '%',
                 textposition='outside'
             ))
             fig_compare.add_trace(go.Bar(
                 name='Weighted F1',
-                x=df_comparison['model'],
-                y=(df_comparison['weighted_f1'] * 100).round(1),
+                x=df_model_comparison['model'],
+                y=(df_model_comparison['weighted_f1'] * 100).round(1),
                 marker_color='#2ecc71',
-                text=(df_comparison['weighted_f1'] * 100).round(1).astype(str) + '%',
+                text=(df_model_comparison['weighted_f1'] * 100).round(1).astype(str) + '%',
                 textposition='outside'
             ))
-
             fig_compare.update_layout(
                 barmode='group',
-                title='Accuracy vs Weighted F1 by Model',
+                title='Accuracy vs Weighted F1 — No Balancing',
                 yaxis=dict(title='Score (%)', range=[0, 100]),
                 xaxis_title='Model',
                 legend=dict(orientation='h', yanchor='bottom', y=1.02),
@@ -1285,25 +1278,170 @@ elif selected_section == "ML Insights":
             st.plotly_chart(fig_compare, use_container_width=True)
 
         with col_right:
-            # Detailed metrics table
-            display_df = df_comparison[['model', 'accuracy', 'weighted_f1', 'weighted_precision', 'weighted_recall', 'is_best']].copy()
-            display_df.columns = ['Model', 'Accuracy', 'Weighted F1', 'Precision', 'Recall', 'Best']
-            display_df['Accuracy']    = (display_df['Accuracy'] * 100).round(1).astype(str) + '%'
-            display_df['Weighted F1'] = (display_df['Weighted F1'] * 100).round(1).astype(str) + '%'
-            display_df['Precision']   = (display_df['Precision'] * 100).round(1).astype(str) + '%'
-            display_df['Recall']      = (display_df['Recall'] * 100).round(1).astype(str) + '%'
-            display_df['Best']        = display_df['Best'].apply(lambda x: '✅' if x else '')
-
-            st.dataframe(display_df, use_container_width=True, hide_index=True)
-
-            best = ml_summary['best_model']
-            acc  = ml_summary['best_model_accuracy'] * 100
-            f1   = ml_summary['best_model_f1']
-            st.success(f"**Best model: {best}** — {acc:.1f}% accuracy, F1: {f1:.4f}")
+            display_p1 = df_model_comparison[['model', 'accuracy', 'weighted_f1', 'weighted_precision', 'weighted_recall', 'is_best']].copy()
+            display_p1.columns = ['Model', 'Accuracy', 'Weighted F1', 'Precision', 'Recall', 'Best']
+            display_p1['Accuracy']    = (display_p1['Accuracy'] * 100).round(1).astype(str) + '%'
+            display_p1['Weighted F1'] = (display_p1['Weighted F1'] * 100).round(1).astype(str) + '%'
+            display_p1['Precision']   = (display_p1['Precision'] * 100).round(1).astype(str) + '%'
+            display_p1['Recall']      = (display_p1['Recall'] * 100).round(1).astype(str) + '%'
+            display_p1['Best']        = display_p1['Best'].apply(lambda x: '✅' if x else '')
+            st.dataframe(display_p1, use_container_width=True, hide_index=True)
+            st.info(f"**Phase 1 winner: {ml_summary['phase1_best_model']}** — carried forward to balancing comparison.")
 
         st.write("---")
 
-        # ── SECTION 3: CONFUSION ANALYSIS ────────────────────────────
+        # ── SECTION 3: PHASE 2 — BALANCING STRATEGY COMPARISON ───────
+        st.subheader(":material/balance: Phase 2 — Balancing Strategy Comparison")
+        st.caption(f"The Phase 1 winner ({ml_summary['phase1_best_model']}) was tested with 3 balancing strategies using 5-Fold Stratified Cross-Validation.")
+
+        col_bal_l, col_bal_r = st.columns([1, 1])
+
+        with col_bal_l:
+            fig_bal = go.Figure()
+            fig_bal.add_trace(go.Bar(
+                name='Mean F1',
+                x=df_balancing['strategy'],
+                y=(df_balancing['mean_f1'] * 100).round(2),
+                marker_color=['#2ecc71' if b else '#3498db' for b in df_balancing['is_best']],
+                error_y=dict(type='data', array=(df_balancing['std_f1'] * 100).round(2), visible=True),
+                text=(df_balancing['mean_f1'] * 100).round(2).astype(str) + '%',
+                textposition='outside'
+            ))
+            fig_bal.update_layout(
+                title='Mean Weighted F1 by Balancing Strategy (5-Fold CV)',
+                yaxis=dict(title='Mean F1 (%)', range=[0, 100]),
+                xaxis_title='Strategy',
+                height=400
+            )
+            st.plotly_chart(fig_bal, use_container_width=True)
+
+        with col_bal_r:
+            display_bal = df_balancing.copy()
+            display_bal.columns = ['Strategy', 'Mean F1', 'Std F1', 'Best']
+            display_bal['Mean F1'] = (display_bal['Mean F1'] * 100).round(2).astype(str) + '%'
+            display_bal['Std F1']  = (display_bal['Std F1'] * 100).round(2).astype(str) + '%'
+            display_bal['Best']    = display_bal['Best'].apply(lambda x: '✅' if x else '')
+            st.dataframe(display_bal, use_container_width=True, hide_index=True)
+
+            st.success(f"**Best strategy: {ml_summary['phase2_best_strategy']}** — applied to all 3 models in Phase 3.")
+
+            st.markdown("**What each strategy does:**")
+            st.markdown(
+                "- **Baseline** — no balancing, model is biased toward Lebanese (dominant class)\n"
+                "- **Class Weights** — penalises mistakes on minority classes more during training\n"
+                "- **SMOTE** — generates synthetic samples for minority classes to even out the distribution"
+            )
+
+        st.write("---")
+
+        # ── SECTION 4: PHASE 3 — FINAL MODEL COMPARISON (WITH BALANCING) ──
+        st.subheader(":material/military_tech: Phase 3 — Final Model Comparison (With Balancing)")
+        st.caption(f"All 3 models retrained using the best balancing strategy: **{ml_summary['phase2_best_strategy']}**")
+
+        col_fin_l, col_fin_r = st.columns([1, 1])
+
+        with col_fin_l:
+            fig_final = go.Figure()
+            fig_final.add_trace(go.Bar(
+                name='Accuracy',
+                x=df_final_comparison['model'],
+                y=(df_final_comparison['accuracy'] * 100).round(1),
+                marker_color='#9b59b6',
+                text=(df_final_comparison['accuracy'] * 100).round(1).astype(str) + '%',
+                textposition='outside'
+            ))
+            fig_final.add_trace(go.Bar(
+                name='Weighted F1',
+                x=df_final_comparison['model'],
+                y=(df_final_comparison['weighted_f1'] * 100).round(1),
+                marker_color='#e67e22',
+                text=(df_final_comparison['weighted_f1'] * 100).round(1).astype(str) + '%',
+                textposition='outside'
+            ))
+            fig_final.update_layout(
+                barmode='group',
+                title=f'Accuracy vs Weighted F1 — With {ml_summary["phase2_best_strategy"]}',
+                yaxis=dict(title='Score (%)', range=[0, 100]),
+                xaxis_title='Model',
+                legend=dict(orientation='h', yanchor='bottom', y=1.02),
+                height=400
+            )
+            st.plotly_chart(fig_final, use_container_width=True)
+
+        with col_fin_r:
+            display_fin = df_final_comparison[['model', 'accuracy', 'weighted_f1', 'weighted_precision', 'weighted_recall', 'is_best']].copy()
+            display_fin.columns = ['Model', 'Accuracy', 'Weighted F1', 'Precision', 'Recall', 'Best']
+            display_fin['Accuracy']    = (display_fin['Accuracy'] * 100).round(1).astype(str) + '%'
+            display_fin['Weighted F1'] = (display_fin['Weighted F1'] * 100).round(1).astype(str) + '%'
+            display_fin['Precision']   = (display_fin['Precision'] * 100).round(1).astype(str) + '%'
+            display_fin['Recall']      = (display_fin['Recall'] * 100).round(1).astype(str) + '%'
+            display_fin['Best']        = display_fin['Best'].apply(lambda x: '✅' if x else '')
+            st.dataframe(display_fin, use_container_width=True, hide_index=True)
+            st.success(f"**Final best model: {ml_summary['phase3_best_model']}** — used for all predictions.")
+
+        st.write("---")
+
+        # ── SECTION 5: PHASE 4 — BEFORE vs AFTER ─────────────────────
+        st.subheader(":material/compare_arrows: Phase 4 — Before vs After Balancing")
+        st.caption(f"Same model ({ml_summary['before_after']['model']}), with and without the best balancing strategy.")
+
+        ba = ml_summary['before_after']
+
+        col_b1, col_b2, col_b3, col_b4 = st.columns(4)
+        col_b1.metric("Accuracy Before",  f"{ba['accuracy_before']*100:.1f}%")
+        col_b2.metric("Accuracy After",   f"{ba['accuracy_after']*100:.1f}%",  delta=f"{(ba['accuracy_after']-ba['accuracy_before'])*100:+.1f}%")
+        col_b3.metric("F1 Before",        f"{ba['f1_before']:.4f}")
+        col_b4.metric("F1 After",         f"{ba['f1_after']:.4f}",             delta=f"{ba['f1_after']-ba['f1_before']:+.4f}")
+
+        # Per-class before vs after bar chart
+        df_ba_sorted = df_before_after.sort_values('f1_change', ascending=True)
+
+        fig_ba = go.Figure()
+        fig_ba.add_trace(go.Bar(
+            name='Before',
+            y=df_ba_sorted['cuisine'],
+            x=df_ba_sorted['f1_before'],
+            orientation='h',
+            marker_color='#e74c3c'
+        ))
+        fig_ba.add_trace(go.Bar(
+            name='After',
+            y=df_ba_sorted['cuisine'],
+            x=df_ba_sorted['f1_after'],
+            orientation='h',
+            marker_color='#2ecc71'
+        ))
+        fig_ba.update_layout(
+            barmode='group',
+            title='Per-Cuisine F1 Score: Before vs After Balancing',
+            xaxis=dict(title='F1 Score', range=[0, 1]),
+            yaxis_title='Cuisine',
+            legend=dict(orientation='h', yanchor='bottom', y=1.02),
+            height=650
+        )
+        st.plotly_chart(fig_ba, use_container_width=True)
+
+        # Most improved cuisines table
+        col_imp_l, col_imp_r = st.columns([1, 1])
+        with col_imp_l:
+            st.markdown("**Most Improved Cuisines**")
+            most_improved = df_before_after.sort_values('f1_change', ascending=False).head(8)
+            display_imp = most_improved[['cuisine', 'f1_before', 'f1_after', 'f1_change']].copy()
+            display_imp.columns = ['Cuisine', 'F1 Before', 'F1 After', 'Change']
+            display_imp['Change'] = display_imp['Change'].apply(lambda x: f"{x:+.3f}")
+            st.dataframe(display_imp, use_container_width=True, hide_index=True)
+
+        with col_imp_r:
+            st.markdown("**Least Improved / Declined**")
+            least_improved = df_before_after.sort_values('f1_change', ascending=True).head(8)
+            display_least = least_improved[['cuisine', 'f1_before', 'f1_after', 'f1_change']].copy()
+            display_least.columns = ['Cuisine', 'F1 Before', 'F1 After', 'Change']
+            display_least['Change'] = display_least['Change'].apply(lambda x: f"{x:+.3f}")
+            st.dataframe(display_least, use_container_width=True, hide_index=True)
+
+        st.write("---")
+
+        # ── SECTION 6: CONFUSION ANALYSIS ────────────────────────────
         st.subheader(":material/shuffle: Where the Model Gets Confused")
         st.caption(ml_summary['confusion_matrix_note'])
 
@@ -1312,7 +1450,6 @@ elif selected_section == "ML Insights":
         with col_a:
             st.markdown("**Top Confusion Pairs**")
             st.caption("Cuisines most commonly mispredicted as another class (> 5% bleed rate)")
-
             pairs = ml_summary['top_confusion_pairs']
             df_pairs = pd.DataFrame(pairs)
             df_pairs.columns = ['Actual', 'Predicted As', 'Rate']
@@ -1327,22 +1464,16 @@ elif selected_section == "ML Insights":
                 "restaurants in Beirut often serve similar dishes and receive nearly identical "
                 "review vocabulary. This is a real-world ambiguity, not purely a model weakness."
             )
-            # st.warning(
-            #     "**Lebanese over-prediction:** Lebanese cuisine dominates the training data "
-            #     "(5,112 samples vs ~145 for Japanese). The model defaults to Lebanese when "
-            #     "uncertain. This is expected in imbalanced multiclass problems."
-            # )
-    
+
         st.write("---")
 
-        # ── SECTION 4: PER-CLASS F1 BREAKDOWN ────────────────────────
-        st.subheader(":material/bar_chart: Per-Class F1 Score Breakdown")
-        st.caption(f"Performance of {ml_summary['best_model']} broken down by cuisine class. Classes with 0.0 F1 were never correctly predicted.")
+        # ── SECTION 7: PER-CLASS F1 BREAKDOWN (FINAL MODEL) ──────────
+        st.subheader(":material/bar_chart: Per-Class F1 Score Breakdown (Final Model)")
+        st.caption(f"Performance of {ml_summary['phase3_best_model']} with {ml_summary['phase2_best_strategy']} applied.")
 
         per_class = ml_summary['per_class_f1']
         df_f1 = pd.DataFrame(
-            list(per_class.items()),
-            columns=['Cuisine', 'F1 Score']
+            list(per_class.items()), columns=['Cuisine', 'F1 Score']
         ).sort_values('F1 Score', ascending=True)
 
         colors = ['#e74c3c' if v == 0 else '#f39c12' if v < 0.3 else '#2ecc71'
@@ -1357,7 +1488,7 @@ elif selected_section == "ML Insights":
             textposition='outside'
         ))
         fig_f1.update_layout(
-            title=f'F1 Score per Cuisine — {ml_summary["best_model"]}',
+            title=f'F1 Score per Cuisine — {ml_summary["phase3_best_model"]} + {ml_summary["phase2_best_strategy"]}',
             xaxis=dict(title='F1 Score', range=[0, 1]),
             yaxis_title='Cuisine',
             height=650
@@ -1366,21 +1497,20 @@ elif selected_section == "ML Insights":
 
         st.write("---")
 
-        # ── SECTION 5: PREDICTION OUTCOMES ───────────────────────────
+        # ── SECTION 8: PREDICTION OUTCOMES ───────────────────────────
         st.subheader(":material/auto_awesome: Prediction Outcomes on Unknown Reviews")
 
         col_m1, col_m2, col_m3 = st.columns(3)
-        col_m1.metric("Avg Confidence Score",     f"{ml_summary['avg_prediction_confidence']:.2f}")
+        col_m1.metric("Avg Confidence Score",       f"{ml_summary['avg_prediction_confidence']:.2f}")
         col_m2.metric("Low-Confidence Predictions",
                       f"{ml_summary['low_confidence_count']:,}",
                       f"{ml_summary['low_confidence_pct']}% of total",
                       delta_color="inverse")
-        col_m3.metric("Confidence Threshold",     f"{ml_summary['low_confidence_threshold']}")
+        col_m3.metric("Confidence Threshold",       f"{ml_summary['low_confidence_threshold']}")
 
         col_pred_l, col_pred_r = st.columns([1.2, 1])
 
         with col_pred_l:
-            # Bar chart of predicted cuisine distribution
             fig_dist = px.bar(
                 df_pred_dist,
                 x='predicted_count',
@@ -1394,12 +1524,9 @@ elif selected_section == "ML Insights":
                     'cuisine': 'Cuisine',
                     'avg_confidence': 'Avg Confidence'
                 },
-                title='Predicted Cuisine Distribution (17k Recovered Reviews)'
+                title='Predicted Cuisine Distribution (Recovered Reviews)'
             )
-            fig_dist.update_layout(
-                height=550,
-                yaxis={'categoryorder': 'total ascending'}
-            )
+            fig_dist.update_layout(height=550, yaxis={'categoryorder': 'total ascending'})
             st.plotly_chart(fig_dist, use_container_width=True)
 
         with col_pred_r:
@@ -1411,37 +1538,32 @@ elif selected_section == "ML Insights":
 
         st.write("---")
 
-        # ── SECTION 6: ENRICHED DATASET SUMMARY ──────────────────────
+        # ── SECTION 9: ENRICHED DATASET SUMMARY ──────────────────────
         st.subheader(":material/check_circle: Enriched Dataset")
         st.write("The classifier output was merged back into `master_reviews_enriched.csv`. A `cuisine_source` column tracks which labels are original vs ML-predicted.")
 
         col_e1, col_e2, col_e3 = st.columns(3)
-        col_e1.metric("Total Reviews (Enriched)",  f"{ml_summary['enriched_reviews_total']:,}")
-        col_e2.metric("Original Labels",            f"{ml_summary['enriched_original_labels']:,}")
-        col_e3.metric("ML-Predicted Labels",        f"{ml_summary['enriched_predicted_labels']:,}")
+        col_e1.metric("Total Reviews (Enriched)", f"{ml_summary['enriched_reviews_total']:,}")
+        col_e2.metric("Original Labels",           f"{ml_summary['enriched_original_labels']:,}")
+        col_e3.metric("ML-Predicted Labels",       f"{ml_summary['enriched_predicted_labels']:,}")
 
-        # Donut chart: original vs predicted
         fig_donut = go.Figure(go.Pie(
             labels=['Original Metadata', 'ML-Predicted'],
             values=[ml_summary['enriched_original_labels'], ml_summary['enriched_predicted_labels']],
             hole=0.55,
             marker_colors=['#2ecc71', '#3498db']
         ))
-        fig_donut.update_layout(
-            title='Label Source Breakdown in Enriched Dataset',
-            height=350
-        )
+        fig_donut.update_layout(title='Label Source Breakdown in Enriched Dataset', height=350)
         st.plotly_chart(fig_donut, use_container_width=True)
 
         st.caption(
             "⚠️ ML-predicted labels should be interpreted with caution. "
-            "Low-confidence predictions (< 0.30) are still included but flagged via the `prediction_confidence` column. "
-            "The post-ML NLP section uses this enriched file."
+            "Low-confidence predictions (< 0.30) are still included but flagged via the `prediction_confidence` column."
         )
-        
+
         st.write("---")
 
-        # ── SECTION 7: ENRICHED REVIEWS TABLE ────────────────────────
+        # ── SECTION 10: ENRICHED REVIEWS TABLE ───────────────────────
         st.subheader(":material/table_rows: Enriched Reviews Dataset")
         st.write("Browse the full enriched reviews file. Filter to inspect only the rows where cuisine was filled in by the ML classifier.")
 
@@ -1452,7 +1574,6 @@ elif selected_section == "ML Insights":
         try:
             df_enriched = load_enriched_reviews()
 
-            # ── FILTER CONTROLS ──────────────────────────────────────
             col_f1, col_f2, col_f3, col_f4 = st.columns(4)
 
             with col_f1:
@@ -1461,25 +1582,18 @@ elif selected_section == "ML Insights":
                     options=["All", "ML-Predicted Only", "Original Only"],
                     horizontal=True
                 )
-
             with col_f2:
                 cuisine_opts = ["All"] + sorted(df_enriched['cuisine_primary'].dropna().unique().tolist())
                 cuisine_filter = st.selectbox("Cuisine:", cuisine_opts, key="enr_table_cuisine")
-
             with col_f3:
                 area_opts = ["All"] + sorted(df_enriched['area'].dropna().unique().tolist())
                 area_filter = st.selectbox("Area:", area_opts, key="enr_table_area")
-
             with col_f4:
                 if 'prediction_confidence' in df_enriched.columns:
-                    min_conf = st.slider(
-                        "Min Confidence (ML rows only):",
-                        min_value=0.0, max_value=1.0, value=0.0, step=0.05
-                    )
+                    min_conf = st.slider("Min Confidence (ML rows only):", 0.0, 1.0, 0.0, 0.05)
                 else:
                     min_conf = 0.0
 
-            # ── APPLY FILTERS ────────────────────────────────────────
             filtered = df_enriched.copy()
 
             if source_filter == "ML-Predicted Only":
@@ -1489,29 +1603,24 @@ elif selected_section == "ML Insights":
 
             if cuisine_filter != "All":
                 filtered = filtered[filtered['cuisine_primary'] == cuisine_filter]
-
             if area_filter != "All":
                 filtered = filtered[filtered['area'] == area_filter]
-
             if min_conf > 0.0:
-                # only apply confidence filter to ML rows; original rows have NaN confidence
-                ml_mask      = filtered['cuisine_source'] == 'predicted'
-                orig_mask    = filtered['cuisine_source'] == 'original'
-                filtered = pd.concat([
+                ml_mask   = filtered['cuisine_source'] == 'predicted'
+                orig_mask = filtered['cuisine_source'] == 'original'
+                filtered  = pd.concat([
                     filtered[ml_mask & (filtered['prediction_confidence'] >= min_conf)],
                     filtered[orig_mask]
                 ]).sort_index()
 
-            # ── SUMMARY METRICS ──────────────────────────────────────
             col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-            col_m1.metric("Showing",          f"{len(filtered):,} reviews")
-            col_m2.metric("ML-Predicted",     f"{(filtered['cuisine_source'] == 'predicted').sum():,}")
-            col_m3.metric("Original Labels",  f"{(filtered['cuisine_source'] == 'original').sum():,}")
+            col_m1.metric("Showing",         f"{len(filtered):,} reviews")
+            col_m2.metric("ML-Predicted",    f"{(filtered['cuisine_source'] == 'predicted').sum():,}")
+            col_m3.metric("Original Labels", f"{(filtered['cuisine_source'] == 'original').sum():,}")
             if 'prediction_confidence' in filtered.columns:
                 avg_conf = filtered[filtered['cuisine_source'] == 'predicted']['prediction_confidence'].mean()
                 col_m4.metric("Avg Confidence (ML)", f"{avg_conf:.3f}" if not pd.isna(avg_conf) else "—")
 
-            # ── TABLE ────────────────────────────────────────────────
             display_cols = [
                 'restaurant_name', 'cuisine_primary', 'cuisine_source',
                 'prediction_confidence', 'area', 'price_category',
@@ -1532,21 +1641,15 @@ elif selected_section == "ML Insights":
                     "prediction_confidence": st.column_config.ProgressColumn(
                         "Confidence",
                         help="ML confidence score (only for predicted rows)",
-                        min_value=0.0,
-                        max_value=1.0,
-                        format="%.3f"
+                        min_value=0.0, max_value=1.0, format="%.3f"
                     ),
-                    "sentiment_score": st.column_config.NumberColumn(
-                        "Sentiment", format="%.3f"
-                    ),
-                    "review_text": st.column_config.TextColumn(
-                        "Review Text", width="large"
-                    )
+                    "sentiment_score": st.column_config.NumberColumn("Sentiment", format="%.3f"),
+                    "review_text": st.column_config.TextColumn("Review Text", width="large")
                 }
             )
 
         except FileNotFoundError:
-            st.warning("⚠️ `master_reviews_enriched.csv` not found in the ML directory. Run `cuisine_classifier.py` first.")
+            st.warning("⚠️ `master_reviews_enriched.csv` not found. Run `cuisine_classifier.py` first.")
         
 # SECTION 5: NLP ANALYSIS
 
