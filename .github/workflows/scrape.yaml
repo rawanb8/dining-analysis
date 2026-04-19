@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -20,8 +20,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pandas numpy textblob nltk scikit-learn matplotlib seaborn
-          python -m textblob.download_corpora
+          pip install pandas numpy textblob nltk scikit-learn matplotlib seaborn spacy
+          python -m spacy download en_core_web_sm
+          python -c "import nltk; nltk.download('brown'); nltk.download('punkt'); nltk.download('averaged_perceptron_tagger')"
 
       - name: Run Wandorlog cleaning
         working-directory: Cleaners
@@ -48,7 +49,7 @@ jobs:
         working-directory: sentiment
         run: python sentiment_analysis.py
 
-      - name: Run ML cuisine classifier 
+      - name: Run ML cuisine classifier
         working-directory: machine_learning
         run: python cuisine_classifier.py
 
