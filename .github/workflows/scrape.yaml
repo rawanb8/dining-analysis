@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pandas numpy textblob nltk scikit-learn matplotlib seaborn spacy
+          pip install pandas numpy textblob nltk scikit-learn matplotlib seaborn spacy imbalanced-learn
           python -m spacy download en_core_web_sm
           python -c "import nltk; nltk.download('brown'); nltk.download('punkt'); nltk.download('averaged_perceptron_tagger')"
 

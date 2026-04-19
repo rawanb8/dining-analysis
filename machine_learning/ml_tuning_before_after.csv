@@ -1,0 +1,16 @@
+cuisine,f1_untuned,f1_tuned,f1_change
+French,0.09,0.193,0.103
+Healthy food,0.0,0.102,0.102
+Seafood,0.2,0.274,0.074
+American,0.191,0.235,0.044
+Japanese,0.0,0.043,0.043
+Pizza,0.089,0.107,0.018
+International,0.0,0.0,0.0
+Chinese,0.0,0.0,0.0
+Mexican,0.0,0.0,0.0
+Levantine,0.573,0.571,-0.002
+Jewish,0.562,0.558,-0.004
+Other,0.319,0.313,-0.006
+Dessert,0.624,0.616,-0.008
+Italian,0.314,0.294,-0.02
+Fast food,0.139,0.107,-0.032

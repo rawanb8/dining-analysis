@@ -247,7 +247,7 @@ if selected_section == "Search & Filter":
     with st.expander(f"📋 Click to view full filtered dataset ({len(filtered_df)} records)"):
         st.dataframe(filtered_df, use_container_width=True)
 
-# SECTION 2: GENERAL ANALYSIS (Placeholder for Friend 1)
+# SECTION 2: GENERAL ANALYSIS 
 
 elif selected_section == "EDA":
     st.header("Exploratory Data Analysis")
@@ -1220,17 +1220,27 @@ elif selected_section == "ML Insights":
         with open(os.path.join(ML_DIR, 'ml_cuisine_summary.json'), 'r') as f:
             summary = json.load(f)
         df_model_comparison  = pd.read_csv(os.path.join(ML_DIR, 'ml_model_comparison.csv'))
-        df_balancing         = pd.read_csv(os.path.join(ML_DIR, 'ml_balancing_comparison.csv'))
+        df_balancing  = pd.read_csv(os.path.join(ML_DIR, 'ml_balancing_comparison.csv'))
         df_final_comparison  = pd.read_csv(os.path.join(ML_DIR, 'ml_final_comparison.csv'))
-        df_before_after      = pd.read_csv(os.path.join(ML_DIR, 'ml_before_after.csv'))
-        df_pred_dist         = pd.read_csv(os.path.join(ML_DIR, 'ml_predicted_distribution.csv'))
-        return summary, df_model_comparison, df_balancing, df_final_comparison, df_before_after, df_pred_dist
-
+        df_before_after = pd.read_csv(os.path.join(ML_DIR, 'ml_before_after.csv'))
+        df_pred_dist = pd.read_csv(os.path.join(ML_DIR, 'ml_predicted_distribution.csv'))
+        df_confusion= pd.read_csv(os.path.join(ML_DIR, 'ml_confusion_matrix.csv'), index_col=0)
+        df_tuning  = pd.read_csv(os.path.join(ML_DIR, 'ml_tuning_before_after.csv'))
+        df_cv_folds  = pd.read_csv(os.path.join(ML_DIR, 'ml_cv_fold_scores.csv'))
+        df_grid = pd.read_csv(os.path.join(ML_DIR, 'ml_grid_search_results.csv'))
+        df_restaurant_preds = pd.read_csv(os.path.join(ML_DIR, 'ml_restaurant_level_predictions.csv'))
+        df_rest_vs_rev_f1   = pd.read_csv(os.path.join(ML_DIR, 'ml_restaurant_vs_review_f1.csv'))
+        return (summary, df_model_comparison, df_balancing, df_final_comparison,
+                df_before_after, df_pred_dist, df_confusion, df_tuning, df_cv_folds, df_grid,
+                df_restaurant_preds, df_rest_vs_rev_f1)
     try:
-        ml_summary, df_model_comparison, df_balancing, df_final_comparison, df_before_after, df_pred_dist = load_ml_data()
+        (ml_summary, df_model_comparison, df_balancing, df_final_comparison,
+         df_before_after, df_pred_dist, df_confusion, df_tuning,
+         df_cv_folds, df_grid,
+         df_restaurant_preds, df_rest_vs_rev_f1) = load_ml_data()
         ml_loaded = True
     except FileNotFoundError:
-        st.warning("⚠️ ML output files not found. Run `cuisine_classifier.py` first.")
+        st.warning(" ML output files not found. Run `cuisine_classifier.py` first.")
         ml_loaded = False
 
     if ml_loaded:
@@ -1249,8 +1259,7 @@ elif selected_section == "ML Insights":
         col3.metric("Unknown Cuisine", f"{current_unknown:,}")
         col4.metric("Reviews Recovered", f"{ml_summary['predictions_made']:,}")
 
-        # Add note about snapshot
-        st.caption(f"📊 Current dataset: {current_total:,} reviews | ML model trained on: {ml_summary['total_reviews_loaded']:,} reviews")
+        st.caption(f" Current dataset: {current_total:,} reviews | ML model trained on: {ml_summary['total_reviews_loaded']:,} reviews")
 
         # ── SECTION 2: PHASE 1 — MODEL COMPARISON (NO BALANCING) ─────
         st.subheader(":material/emoji_events: Phase 1 — Model Comparison (No Balancing)")
@@ -1263,9 +1272,9 @@ elif selected_section == "ML Insights":
             fig_compare.add_trace(go.Bar(
                 name='Accuracy',
                 x=df_model_comparison['model'],
-                y=(df_model_comparison['accuracy'] * 100).round(1),
+                y=(df_model_comparison['test_accuracy'] * 100).round(1),
                 marker_color='#3498db',
-                text=(df_model_comparison['accuracy'] * 100).round(1).astype(str) + '%',
+                text=(df_model_comparison['test_accuracy'] * 100).round(1).astype(str) + '%',
                 textposition='outside'
             ))
             fig_compare.add_trace(go.Bar(
@@ -1287,14 +1296,16 @@ elif selected_section == "ML Insights":
             st.plotly_chart(fig_compare, use_container_width=True)
 
         with col_right:
-            display_p1 = df_model_comparison[['model', 'accuracy', 'weighted_f1', 'weighted_precision', 'weighted_recall', 'is_best']].copy()
-            display_p1.columns = ['Model', 'Accuracy', 'Weighted F1', 'Precision', 'Recall', 'Best']
-            display_p1['Accuracy']    = (display_p1['Accuracy'] * 100).round(1).astype(str) + '%'
-            display_p1['Weighted F1'] = (display_p1['Weighted F1'] * 100).round(1).astype(str) + '%'
-            display_p1['Precision']   = (display_p1['Precision'] * 100).round(1).astype(str) + '%'
-            display_p1['Recall']      = (display_p1['Recall'] * 100).round(1).astype(str) + '%'
-            display_p1['Best']        = display_p1['Best'].apply(lambda x: '✅' if x else '')
+            display_p1 = df_model_comparison[['model', 'test_accuracy', 'weighted_f1', 'weighted_precision', 'weighted_recall', 'overfit_gap', 'is_best']].copy()
+            display_p1.columns = ['Model', 'Accuracy', 'Weighted F1', 'Precision', 'Recall', 'Overfit Gap', 'Best']
+            display_p1['Accuracy'] = (display_p1['Accuracy'] * 100).round(1).astype(str) + '%'
+            display_p1['Weighted F1']= (display_p1['Weighted F1'] * 100).round(1).astype(str) + '%'
+            display_p1['Precision'] = (display_p1['Precision'] * 100).round(1).astype(str) + '%'
+            display_p1['Recall'] = (display_p1['Recall'] * 100).round(1).astype(str) + '%'
+            display_p1['Overfit Gap'] = display_p1['Overfit Gap'].apply(lambda x: f"{x:+.3f}")
+            display_p1['Best'] = display_p1['Best'].apply(lambda x: '✅' if x else '')
             st.dataframe(display_p1, use_container_width=True, hide_index=True)
+            st.caption("**Overfit Gap** = train accuracy − test accuracy. Values near 0 mean the model generalises well; large positive values mean it memorised training data.")
             st.info(f"**Phase 1 winner: {ml_summary['phase1_best_model']}** — carried forward to balancing comparison.")
 
         st.write("---")
@@ -1341,6 +1352,71 @@ elif selected_section == "ML Insights":
                 "- **SMOTE** — generates synthetic samples for minority classes to even out the distribution"
             )
 
+        # Per-fold breakdown — the actual StratifiedGroupKFold output
+        st.markdown("##### Per-Fold Cross-Validation Scores")
+        st.caption(
+            "Each strategy is evaluated on 5 different train/test splits (folds). StratifiedGroupKFold "
+            "keeps class balance across folds AND ensures no restaurant appears in more than one fold. "
+            "Tight clusters mean the strategy is stable; wide spreads mean it's sensitive to which "
+            "restaurants end up where."
+        )
+
+        col_cv_l, col_cv_r = st.columns([1.4, 1])
+
+        with col_cv_l:
+            # Box plot with individual fold points overlaid
+            fig_cv = go.Figure()
+            for strategy in df_cv_folds['strategy'].unique():
+                strategy_scores = df_cv_folds[df_cv_folds['strategy'] == strategy]['f1_score']
+                fig_cv.add_trace(go.Box(
+                    y=strategy_scores,
+                    name=strategy,
+                    boxpoints='all',       # show every fold as a dot
+                    jitter=0.3,
+                    pointpos=0,
+                    marker=dict(size=10, opacity=0.8),
+                    line=dict(width=2),
+                ))
+            fig_cv.update_layout(
+                title='Distribution of F1 Scores Across 5 Folds',
+                yaxis=dict(title='Weighted F1', range=[0, max(df_cv_folds['f1_score']) * 1.15]),
+                xaxis_title='Balancing Strategy',
+                showlegend=False,
+                height=420
+            )
+            st.plotly_chart(fig_cv, use_container_width=True)
+
+        with col_cv_r:
+            st.markdown("**Raw fold scores**")
+            pivot = df_cv_folds.pivot(index='fold', columns='strategy', values='f1_score')
+            pivot.index = [f"Fold {i}" for i in pivot.index]
+            pivot_display = pivot.map(lambda x: f"{x:.4f}")
+            st.dataframe(pivot_display, use_container_width=True)
+
+            # Quick reading
+            best_strat = ml_summary['phase2_best_strategy']
+            best_mean  = ml_summary['phase2_balancing_strategies'][best_strat]['mean_f1']
+            best_std   = ml_summary['phase2_balancing_strategies'][best_strat]['std_f1']
+            st.info(
+                f"**{best_strat}** had the best mean F1 ({best_mean:.4f}) "
+                f"with a std of {best_std:.4f} across the 5 folds — "
+                f"this is the variance you'd expect on new unseen restaurants."
+            )
+
+        with st.expander("What is StratifiedGroupKFold and why 5 folds?"):
+            st.markdown(
+                "**Cross-validation** trains and tests a model on several different train/test splits "
+                "so you're not trusting a single lucky or unlucky split. You get N scores and take their mean.\n\n"
+                "**Stratified** means each fold preserves the same class distribution as the full dataset — "
+                "if 40% of reviews are Levantine, each fold is also ~40% Levantine. Without stratification, "
+                "a rare class could land entirely in one fold and be untestable in the others.\n\n"
+                "**Group** means reviews from the same restaurant stay in the same fold. Without this, "
+                "the same restaurant's reviews could appear in both train and test, which leaks information "
+                "and inflates scores.\n\n"
+                "**5 folds** is the standard tradeoff — more folds give tighter mean estimates but take "
+                "5× longer to run. With 5 folds, each restaurant is used for training 4 times and testing once."
+            )
+
         st.write("---")
 
         # ── SECTION 4: PHASE 3 — FINAL MODEL COMPARISON (WITH BALANCING) ──
@@ -1354,9 +1430,9 @@ elif selected_section == "ML Insights":
             fig_final.add_trace(go.Bar(
                 name='Accuracy',
                 x=df_final_comparison['model'],
-                y=(df_final_comparison['accuracy'] * 100).round(1),
+                y=(df_final_comparison['test_accuracy'] * 100).round(1),
                 marker_color='#9b59b6',
-                text=(df_final_comparison['accuracy'] * 100).round(1).astype(str) + '%',
+                text=(df_final_comparison['test_accuracy'] * 100).round(1).astype(str) + '%',
                 textposition='outside'
             ))
             fig_final.add_trace(go.Bar(
@@ -1378,29 +1454,179 @@ elif selected_section == "ML Insights":
             st.plotly_chart(fig_final, use_container_width=True)
 
         with col_fin_r:
-            display_fin = df_final_comparison[['model', 'accuracy', 'weighted_f1', 'weighted_precision', 'weighted_recall', 'is_best']].copy()
-            display_fin.columns = ['Model', 'Accuracy', 'Weighted F1', 'Precision', 'Recall', 'Best']
-            display_fin['Accuracy']    = (display_fin['Accuracy'] * 100).round(1).astype(str) + '%'
+            display_fin = df_final_comparison[['model', 'test_accuracy', 'weighted_f1', 'weighted_precision', 'weighted_recall', 'overfit_gap', 'is_best']].copy()
+            display_fin.columns = ['Model', 'Accuracy', 'Weighted F1', 'Precision', 'Recall', 'Overfit Gap', 'Best']
+            display_fin['Accuracy'] = (display_fin['Accuracy'] * 100).round(1).astype(str) + '%'
             display_fin['Weighted F1'] = (display_fin['Weighted F1'] * 100).round(1).astype(str) + '%'
-            display_fin['Precision']   = (display_fin['Precision'] * 100).round(1).astype(str) + '%'
-            display_fin['Recall']      = (display_fin['Recall'] * 100).round(1).astype(str) + '%'
-            display_fin['Best']        = display_fin['Best'].apply(lambda x: '✅' if x else '')
+            display_fin['Precision'] = (display_fin['Precision'] * 100).round(1).astype(str) + '%'
+            display_fin['Recall']  = (display_fin['Recall'] * 100).round(1).astype(str) + '%'
+            display_fin['Overfit Gap'] = display_fin['Overfit Gap'].apply(lambda x: f"{x:+.3f}")
+            display_fin['Best'] = display_fin['Best'].apply(lambda x: '✅' if x else '')
             st.dataframe(display_fin, use_container_width=True, hide_index=True)
             st.success(f"**Final best model: {ml_summary['phase3_best_model']}** — used for all predictions.")
+
+        st.write("---")
+        
+        # ── SECTION 4.5: PIPELINE IMPROVEMENT BREAKDOWN ──────────────
+        st.subheader(":material/timeline: Pipeline Improvement Breakdown")
+        st.caption(
+            "This shows exactly where each F1 improvement came from. Each row builds on the previous one, "
+            "so you can see which pipeline step actually moved the needle on this dataset."
+        )
+
+        # Pull the numbers from the summary
+        phase1_f1    = ml_summary['phase1_models'][ml_summary['phase1_best_model']]['weighted_f1']
+        phase1_acc   = ml_summary['phase1_models'][ml_summary['phase1_best_model']]['accuracy']
+        tba          = ml_summary['tuning_before_after']
+        rl           = ml_summary['restaurant_level']
+        untuned_f1   = tba['f1_untuned']
+        untuned_acc  = tba['accuracy_untuned']
+        tuned_f1     = tba['f1_tuned']
+        tuned_acc    = tba['accuracy_tuned']
+        rest_f1      = rl['f1_restaurant_level']
+        rest_acc     = rl['accuracy_restaurant_level']
+
+        # Did balancing help? (compare phase1 winner's F1 to phase3 winner's UNTUNED F1)
+        # Those numbers are the same model with and without the winning balancing strategy.
+        balancing_delta_f1  = untuned_f1 - phase1_f1
+        balancing_delta_acc = untuned_acc - phase1_acc
+        tuning_delta_f1     = tuned_f1 - untuned_f1
+        tuning_delta_acc    = tuned_acc - untuned_acc
+        aggregation_delta_f1  = rest_f1 - tuned_f1
+        aggregation_delta_acc = rest_acc - tuned_acc
+
+        # Build the stepwise table
+        steps_df = pd.DataFrame([
+            {
+                'Step':           '1. Phase 1 baseline',
+                'Description':    f"{ml_summary['phase1_best_model']}, default hyperparameters, no balancing",
+                'Accuracy':       f"{phase1_acc*100:.1f}%",
+                'Weighted F1':    f"{phase1_f1:.4f}",
+                'Δ F1':           '—',
+                'What Changed':   'Starting point'
+            },
+            {
+                'Step':           '2. + Balancing',
+                'Description':    f"Applied best strategy from Phase 2: {ml_summary['phase2_best_strategy']}",
+                'Accuracy':       f"{untuned_acc*100:.1f}%",
+                'Weighted F1':    f"{untuned_f1:.4f}",
+                'Δ F1':           f"{balancing_delta_f1:+.4f}",
+                'What Changed':   'No-op (baseline won)' if abs(balancing_delta_f1) < 0.001 else 'Balancing strategy'
+            },
+            {
+                'Step':           '3. + Hyperparameter Tuning',
+                'Description':    f"GridSearchCV picked: {', '.join(f'{k}={v}' for k,v in tba['best_params'].items())}",
+                'Accuracy':       f"{tuned_acc*100:.1f}%",
+                'Weighted F1':    f"{tuned_f1:.4f}",
+                'Δ F1':           f"{tuning_delta_f1:+.4f}",
+                'What Changed':   'Larger vocab, weaker regularization'
+            },
+            {
+                'Step':           '4. + Restaurant-Level Aggregation',
+                'Description':    "Average probability vectors across all reviews of each restaurant",
+                'Accuracy':       f"{rest_acc*100:.1f}%",
+                'Weighted F1':    f"{rest_f1:.4f}",
+                'Δ F1':           f"{aggregation_delta_f1:+.4f}",
+                'What Changed':   'Prediction unit (review → restaurant)'
+            },
+        ])
+
+        st.dataframe(steps_df, use_container_width=True, hide_index=True)
+
+        # Waterfall-style bar chart showing F1 at each step
+        fig_waterfall = go.Figure()
+        fig_waterfall.add_trace(go.Bar(
+            x=steps_df['Step'],
+            y=[phase1_f1, untuned_f1, tuned_f1, rest_f1],
+            marker_color=['#95a5a6', '#3498db', '#9b59b6', '#27ae60'],
+            text=[f'{phase1_f1:.4f}', f'{untuned_f1:.4f}', f'{tuned_f1:.4f}', f'{rest_f1:.4f}'],
+            textposition='outside',
+        ))
+        # Add delta annotations between bars
+        deltas = [None, balancing_delta_f1, tuning_delta_f1, aggregation_delta_f1]
+        for i, delta in enumerate(deltas):
+            if delta is not None:
+                color = '#27ae60' if delta > 0.001 else ('#95a5a6' if abs(delta) < 0.001 else '#e74c3c')
+                fig_waterfall.add_annotation(
+                    x=i, y=max(phase1_f1, untuned_f1, tuned_f1, rest_f1) * 1.08,
+                    text=f"{delta:+.4f}",
+                    showarrow=False,
+                    font=dict(color=color, size=14, weight='bold'),
+                )
+        fig_waterfall.update_layout(
+            title='Weighted F1 at Each Pipeline Step',
+            yaxis=dict(title='Weighted F1', range=[0, max(phase1_f1, untuned_f1, tuned_f1, rest_f1) * 1.2]),
+            height=450,
+            showlegend=False,
+        )
+        st.plotly_chart(fig_waterfall, use_container_width=True)
+
+        # Callout boxes highlighting what worked and what didn't
+        col_w1, col_w2, col_w3 = st.columns(3)
+
+        with col_w1:
+            if abs(balancing_delta_f1) < 0.001:
+                st.error(
+                    "**Balancing: no-op**\n\n"
+                    f"Δ F1 = {balancing_delta_f1:+.4f}\n\n"
+                    "On our collapsed 15-class dataset, balancing did not improve performance. "
+                    "Baseline beat SMOTE and Class Weights in cross-validation — the rebalancing cost "
+                    "exceeded its benefit."
+                )
+            else:
+                st.success(
+                    f"**Balancing: +{balancing_delta_f1:.4f} F1**\n\n"
+                    f"Strategy: {ml_summary['phase2_best_strategy']}"
+                )
+
+        with col_w2:
+            if tuning_delta_f1 > 0:
+                st.success(
+                    f"**Tuning: +{tuning_delta_f1:.4f} F1**\n\n"
+                    "GridSearchCV found that our data benefits from a larger TF-IDF vocabulary "
+                    "and weaker regularization than sklearn's defaults."
+                )
+            else:
+                st.warning(
+                    f"**Tuning: {tuning_delta_f1:+.4f} F1**\n\n"
+                    "Tuning did not improve held-out performance."
+                )
+
+        with col_w3:
+            if aggregation_delta_f1 > 0:
+                st.success(
+                    f"**Aggregation: +{aggregation_delta_f1:.4f} F1**\n\n"
+                    "Averaging probabilities across each restaurant's reviews eliminated per-review noise. "
+                    "This is the largest single gain in the pipeline."
+                )
+            else:
+                st.info(
+                    f"**Aggregation: {aggregation_delta_f1:+.4f} F1**\n\n"
+                    "Restaurant-level aggregation did not improve F1 on this test set."
+                )
+
+        with st.expander("Why this ordering matters"):
+            st.markdown(
+                "The pipeline improvements are **cumulative** — each step builds on the previous one. "
+                "This matters because it lets us attribute gains honestly:\n\n"
+                "- **Balancing** tries to correct class imbalance. On our dataset (15 collapsed classes, "
+                "moderate imbalance) it didn't help because the imbalance isn't severe enough to make "
+                "rebalancing worth its cost.\n"
+                "- **Hyperparameter tuning** searches a grid of model settings via cross-validation. "
+                "It found that our data rewards more vocabulary and more confident word weights.\n"
+                "- **Restaurant-level aggregation** changes *what we're predicting* — from noisy individual "
+                "reviews to stable restaurant-level labels. This isn't a model improvement; it's a task "
+                "redefinition that matches what 'cuisine' actually means.\n\n"
+                "The honest takeaway: most of the F1 improvement in this project came from the **final step** "
+                "(aggregation), not from any model-level trick. A simple TF-IDF + Logistic Regression, "
+                "evaluated at the right unit of analysis, does most of the work."
+            )
 
         st.write("---")
 
         # ── SECTION 5: PHASE 4 — BEFORE vs AFTER ─────────────────────
         st.subheader(":material/compare_arrows: Phase 4 — Before vs After Balancing")
         st.caption(f"Same model ({ml_summary['before_after']['model']}), with and without the best balancing strategy.")
-
-        ba = ml_summary['before_after']
-
-        col_b1, col_b2, col_b3, col_b4 = st.columns(4)
-        col_b1.metric("Accuracy Before",  f"{ba['accuracy_before']*100:.1f}%")
-        col_b2.metric("Accuracy After",   f"{ba['accuracy_after']*100:.1f}%",  delta=f"{(ba['accuracy_after']-ba['accuracy_before'])*100:+.1f}%")
-        col_b3.metric("F1 Before",        f"{ba['f1_before']:.4f}")
-        col_b4.metric("F1 After",         f"{ba['f1_after']:.4f}",             delta=f"{ba['f1_after']-ba['f1_before']:+.4f}")
 
         # Per-class before vs after bar chart
         df_ba_sorted = df_before_after.sort_values('f1_change', ascending=True)
@@ -1449,6 +1675,147 @@ elif selected_section == "ML Insights":
             st.dataframe(display_least, use_container_width=True, hide_index=True)
 
         st.write("---")
+        
+        # BEFORE vs AFTER TUNING ──────────────
+        st.subheader(":material/tune: Before vs After Hyperparameter Tuning")
+        st.caption(
+            f"Same model ({ml_summary['tuning_before_after']['model']}), "
+            "with default hyperparameters vs tuned hyperparameters from GridSearchCV (3-fold grouped CV)."
+        )
+
+        tba = ml_summary['tuning_before_after']
+
+        col_t1, col_t2, col_t3, col_t4 = st.columns(4)
+        col_t1.metric("Accuracy Untuned", f"{tba['accuracy_untuned']*100:.1f}%")
+        col_t2.metric("Accuracy Tuned",   f"{tba['accuracy_tuned']*100:.1f}%",
+                      delta=f"{(tba['accuracy_tuned']-tba['accuracy_untuned'])*100:+.1f}%")
+        col_t3.metric("F1 Untuned",       f"{tba['f1_untuned']:.4f}")
+        col_t4.metric("F1 Tuned",         f"{tba['f1_tuned']:.4f}",
+                      delta=f"{tba['f1_tuned']-tba['f1_untuned']:+.4f}")
+
+        # Overfit-gap delta — tuning can change how much the model overfits
+        col_o1, col_o2, col_o3 = st.columns([1, 1, 2])
+        col_o1.metric("Overfit Gap Untuned", f"{tba['overfit_gap_untuned']:+.3f}")
+        col_o2.metric("Overfit Gap Tuned",   f"{tba['overfit_gap_tuned']:+.3f}",
+                      delta=f"{tba['overfit_gap_tuned']-tba['overfit_gap_untuned']:+.3f}",
+                      delta_color="inverse")
+        with col_o3:
+            st.markdown("**Winning Hyperparameters**")
+            params_df = pd.DataFrame(
+                list(tba['best_params'].items()),
+                columns=['Hyperparameter', 'Value']
+            )
+            st.dataframe(params_df, use_container_width=True, hide_index=True)
+
+        if tba['tuning_improved']:
+            st.success(
+                f"✅ Tuning improved held-out F1 by {tba['f1_tuned']-tba['f1_untuned']:+.4f}. "
+                "The tuned model was kept as final."
+            )
+        else:
+            st.warning(
+                "⚠️ Tuning did not improve held-out F1. The untuned model was kept as final. "
+                "This happens when the grid's CV winner doesn't generalize to the test set."
+            )
+
+        # Per-class before vs after tuning chart
+        df_t_sorted = df_tuning.sort_values('f1_change', ascending=True)
+
+        fig_tuning = go.Figure()
+        fig_tuning.add_trace(go.Bar(
+            name='Untuned',
+            y=df_t_sorted['cuisine'],
+            x=df_t_sorted['f1_untuned'],
+            orientation='h',
+            marker_color='#95a5a6'
+        ))
+        fig_tuning.add_trace(go.Bar(
+            name='Tuned',
+            y=df_t_sorted['cuisine'],
+            x=df_t_sorted['f1_tuned'],
+            orientation='h',
+            marker_color='#8e44ad'
+        ))
+        fig_tuning.update_layout(
+            barmode='group',
+            title='Per-Cuisine F1 Score: Untuned vs Tuned Hyperparameters',
+            xaxis=dict(title='F1 Score', range=[0, 1]),
+            yaxis_title='Cuisine',
+            legend=dict(orientation='h', yanchor='bottom', y=1.02),
+            height=650
+        )
+        st.plotly_chart(fig_tuning, use_container_width=True)
+
+        col_tu_l, col_tu_r = st.columns([1, 1])
+        with col_tu_l:
+            st.markdown("**Cuisines Helped Most by Tuning**")
+            most_helped = df_tuning.sort_values('f1_change', ascending=False).head(8)
+            d_helped = most_helped[['cuisine', 'f1_untuned', 'f1_tuned', 'f1_change']].copy()
+            d_helped.columns = ['Cuisine', 'F1 Untuned', 'F1 Tuned', 'Change']
+            d_helped['Change'] = d_helped['Change'].apply(lambda x: f"{x:+.3f}")
+            st.dataframe(d_helped, use_container_width=True, hide_index=True)
+        with col_tu_r:
+            st.markdown("**Cuisines Hurt Most by Tuning**")
+            most_hurt = df_tuning.sort_values('f1_change', ascending=True).head(8)
+            d_hurt = most_hurt[['cuisine', 'f1_untuned', 'f1_tuned', 'f1_change']].copy()
+            d_hurt.columns = ['Cuisine', 'F1 Untuned', 'F1 Tuned', 'Change']
+            d_hurt['Change'] = d_hurt['Change'].apply(lambda x: f"{x:+.3f}")
+            st.dataframe(d_hurt, use_container_width=True, hide_index=True)
+            
+        # Show the full grid search CV distribution
+        st.markdown("##### Hyperparameter Search — All Combinations")
+        st.caption(
+            f"GridSearchCV tried {len(df_grid)} hyperparameter combinations, each scored by 3-fold "
+            "StratifiedGroupKFold cross-validation. Each point below is one combination. "
+            "The chosen combination is the one with the highest mean CV F1."
+        )
+
+        fold_score_cols = [c for c in df_grid.columns if c.startswith('split') and c.endswith('_test_score')]
+        df_grid_plot = df_grid.copy()
+        df_grid_plot['combo_rank'] = range(1, len(df_grid_plot) + 1)
+
+        fig_grid = go.Figure()
+        # Error bars: min-to-max across folds
+        fold_values = df_grid_plot[fold_score_cols].values
+        fig_grid.add_trace(go.Scatter(
+            x=df_grid_plot['combo_rank'],
+            y=df_grid_plot['mean_test_score'],
+            mode='markers',
+            marker=dict(
+                size=10,
+                color=df_grid_plot['mean_test_score'],
+                colorscale='Viridis',
+                showscale=True,
+                colorbar=dict(title='Mean F1')
+            ),
+            error_y=dict(
+                type='data',
+                symmetric=False,
+                array=fold_values.max(axis=1) - df_grid_plot['mean_test_score'],
+                arrayminus=df_grid_plot['mean_test_score'] - fold_values.min(axis=1),
+                thickness=1,
+                width=4,
+            ),
+            text=df_grid_plot['params'],
+            hovertemplate='<b>Rank %{x}</b><br>Mean F1: %{y:.4f}<br>%{text}<extra></extra>',
+            name='CV Mean ± range'
+        ))
+        fig_grid.update_layout(
+            title='GridSearchCV: Mean CV F1 per Combination (ranked best to worst)',
+            xaxis_title='Combination Rank',
+            yaxis_title='Mean CV F1',
+            height=400,
+            showlegend=False
+        )
+        st.plotly_chart(fig_grid, use_container_width=True)
+
+        st.caption(
+            "Each dot is one hyperparameter combination; the error bar spans the min–max F1 across "
+            "the 3 folds. Combinations where the bar is tall are unstable (performance depends on "
+            "which restaurants were held out). The leftmost dot is what the tuner picked."
+        )
+
+        st.write("---")
 
         # ── SECTION 6: CONFUSION ANALYSIS ────────────────────────────
         st.subheader(":material/shuffle: Where the Model Gets Confused")
@@ -1473,6 +1840,42 @@ elif selected_section == "ML Insights":
                 "restaurants in Beirut often serve similar dishes and receive nearly identical "
                 "review vocabulary. This is a real-world ambiguity, not purely a model weakness."
             )
+
+        st.write("")
+        st.markdown("**Full Confusion Matrix (row-normalized)**")
+        st.caption(
+            "Rows are the actual cuisine; columns are what the model predicted. "
+            "Each row sums to 1 — a cell shows the probability of predicting the column cuisine "
+            "given the row's true cuisine. A perfect model would have 1.0 on the diagonal and 0 elsewhere."
+        )
+
+        fig_cm = px.imshow(
+            df_confusion.values,
+            x=df_confusion.columns,
+            y=df_confusion.index,
+            color_continuous_scale='Blues',
+            aspect='auto',
+            labels=dict(x='Predicted', y='Actual', color='Rate'),
+            text_auto='.2f',
+            zmin=0,
+            zmax=1,
+        )
+        fig_cm.update_layout(
+            title='Confusion Matrix — Normalized by Actual Class',
+            height=600,
+            xaxis=dict(tickangle=-45),
+        )
+        fig_cm.update_xaxes(side='bottom')
+        st.plotly_chart(fig_cm, use_container_width=True)
+
+        st.caption(
+            "**Reading the matrix:** bright diagonal cells = correct predictions. "
+            "Bright off-diagonal cells = systematic confusion. Notice how most errors "
+            "bleed rightward into the Levantine column — minority cuisines get pulled "
+            "toward the dominant class when the model is uncertain."
+        )
+
+        st.write("---")
 
         st.write("---")
 
@@ -1506,7 +1909,84 @@ elif selected_section == "ML Insights":
 
         st.write("---")
 
+        # SECTION 7.5: RESTAURANT-LEVEL EVALUATION 
+        st.subheader(":material/store: Restaurant-Level Evaluation")
+
+        rl = ml_summary['restaurant_level']
+
+        col_r1, col_r2, col_r3, col_r4 = st.columns(4)
+        col_r1.metric("F1 — Per Review",     f"{rl['f1_review_level']:.4f}")
+        col_r2.metric("F1 — Per Restaurant", f"{rl['f1_restaurant_level']:.4f}",
+                      delta=f"{rl['improvement_f1']:+.4f}")
+        col_r3.metric("Restaurants Predicted", f"{rl['n_restaurants_predicted']:,}")
+        col_r4.metric("High-Confidence (≥0.5)", f"{rl['high_confidence_pct']}%")
+
+        if rl['improvement_f1'] > 0:
+            st.success(
+                f"Aggregating to restaurant level improved weighted F1 by "
+                f"{rl['improvement_f1']:+.4f}. Averaging probabilities across a restaurant's reviews "
+                f"cancels out per-review noise — a restaurant with 30 reviews that individually get "
+                f"pulled toward the dominant class will correctly tip back when the vote is weighted."
+            )
+        else:
+            st.warning(
+                " Restaurant-level aggregation did not improve F1 on this test set. "
+                "This can happen when few restaurants have many reviews to aggregate over."
+            )
+
+        col_rl_l, col_rl_r = st.columns([1.2, 1])
+
+        with col_rl_l:
+            # Per-class comparison: review-level vs restaurant-level F1
+            df_compare = df_rest_vs_rev_f1.sort_values('f1_restaurant_level', ascending=True)
+
+            fig_rl = go.Figure()
+            fig_rl.add_trace(go.Bar(
+                name='Per-Review F1',
+                y=df_compare['cuisine'],
+                x=df_compare['f1_review_level'],
+                orientation='h',
+                marker_color='#95a5a6'
+            ))
+            fig_rl.add_trace(go.Bar(
+                name='Per-Restaurant F1',
+                y=df_compare['cuisine'],
+                x=df_compare['f1_restaurant_level'],
+                orientation='h',
+                marker_color='#27ae60'
+            ))
+            fig_rl.update_layout(
+                barmode='group',
+                title='Per-Cuisine F1: Review-Level vs Restaurant-Level',
+                xaxis=dict(title='F1 Score', range=[0, 1]),
+                yaxis_title='Cuisine',
+                legend=dict(orientation='h', yanchor='bottom', y=1.02),
+                height=600
+            )
+            st.plotly_chart(fig_rl, use_container_width=True)
+
+        with col_rl_r:
+            st.markdown("**Restaurant-Level Predictions (Unknown Restaurants)**")
+            display_rp = df_restaurant_preds.copy()
+            display_rp = display_rp[['cuisine_restaurant_level', 'restaurant_confidence',
+                                     'n_reviews_for_prediction', 'cuisine_majority_vote']]
+            display_rp.columns = ['Predicted Cuisine', 'Confidence', '# Reviews', 'Majority Vote']
+            display_rp = display_rp.sort_values('Confidence', ascending=False)
+            st.dataframe(
+                display_rp,
+                use_container_width=True,
+                height=600,
+                column_config={
+                    'Confidence': st.column_config.ProgressColumn(
+                        'Confidence', min_value=0.0, max_value=1.0, format="%.3f"
+                    )
+                }
+            )
+
+        st.write("---")
+
         # ── SECTION 8: PREDICTION OUTCOMES ───────────────────────────
+
         st.subheader(":material/auto_awesome: Prediction Outcomes on Unknown Reviews")
 
         col_m1, col_m2, col_m3 = st.columns(3)
@@ -1547,7 +2027,7 @@ elif selected_section == "ML Insights":
 
         st.write("---")
 
-        # ── SECTION 9: ENRICHED DATASET SUMMARY ──────────────────────
+        # ── SECTION 9: ENRICHED DATASET SUMMARY 
         st.subheader(":material/check_circle: Enriched Dataset")
         st.write("The classifier output was merged back into `master_reviews_enriched.csv`. A `cuisine_source` column tracks which labels are original vs ML-predicted.")
 
@@ -1566,10 +2046,11 @@ elif selected_section == "ML Insights":
         st.plotly_chart(fig_donut, use_container_width=True)
 
         st.caption(
-            "⚠️ ML-predicted labels should be interpreted with caution. "
-            "Low-confidence predictions (< 0.30) are still included but flagged via the `prediction_confidence` column."
+            "ML-predicted labels are **restaurant-level aggregates** — all reviews from the same "
+            "restaurant share one predicted cuisine, based on averaging probabilities across that "
+            "restaurant's reviews. Low-confidence predictions (< 0.30) are still included but flagged "
+            "via the `prediction_confidence` column."
         )
-
         st.write("---")
 
         # ── SECTION 10: ENRICHED REVIEWS TABLE ───────────────────────
@@ -1632,7 +2113,8 @@ elif selected_section == "ML Insights":
 
             display_cols = [
                 'restaurant_name', 'cuisine_primary', 'cuisine_source',
-                'prediction_confidence', 'area', 'price_category',
+                'prediction_confidence', 'cuisine_predicted_per_review',
+                'area', 'price_category',
                 'rating', 'sentiment_category', 'sentiment_score',
                 'review_source', 'review_text'
             ]
@@ -1645,11 +2127,19 @@ elif selected_section == "ML Insights":
                 column_config={
                     "cuisine_source": st.column_config.TextColumn(
                         "Label Source",
-                        help="'predicted' = filled in by ML classifier | 'original' = came from source data"
+                        help="'predicted' = filled in by ML classifier at restaurant level | 'original' = came from source data"
+                    ),
+                    "cuisine_primary": st.column_config.TextColumn(
+                        "Cuisine (Restaurant-Level)",
+                        help="For predicted rows, this is the aggregated restaurant-level label — all reviews of the same restaurant share this label"
+                    ),
+                    "cuisine_predicted_per_review": st.column_config.TextColumn(
+                        "Per-Review Prediction",
+                        help="What THIS individual review was predicted as (for transparency). May differ from the restaurant-level label."
                     ),
                     "prediction_confidence": st.column_config.ProgressColumn(
                         "Confidence",
-                        help="ML confidence score (only for predicted rows)",
+                        help="Restaurant-level confidence (averaged across this restaurant's reviews)",
                         min_value=0.0, max_value=1.0, format="%.3f"
                     ),
                     "sentiment_score": st.column_config.NumberColumn("Sentiment", format="%.3f"),
@@ -1658,7 +2148,7 @@ elif selected_section == "ML Insights":
             )
 
         except FileNotFoundError:
-            st.warning("⚠️ `master_reviews_enriched.csv` not found. Run `cuisine_classifier.py` first.")
+            st.warning(" `master_reviews_enriched.csv` not found. Run `cuisine_classifier.py` first.")
         
 # SECTION 5: NLP ANALYSIS
 

@@ -5,7 +5,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
+from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score, GroupShuffleSplit, StratifiedGroupKFold, GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.ensemble import RandomForestClassifier
@@ -14,6 +14,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline as ImbPipeline
+
 
 # LOAD DATA
 
@@ -31,31 +32,100 @@ print(f"Total reviews:          {len(reviews)}")
 print(f"Known cuisine reviews:  {len(known)}")
 print(f"Unknown cuisine reviews:{len(unknown)}")
 
-# COLLAPSE RARE CUISINES INTO "Other"
-MIN_REVIEWS_PER_CLASS = 50
+# NOTES:
+# COLLAPSE SPARSE AND OVERLAPPING CUISINES
+# The grouped split requires enough *restaurants* per class, not just reviews.
+# A class with 200 reviews from only 2 restaurants is untrainable under grouped CV
+# because one of those restaurants may end up entirely in train or entirely in test.
+MIN_RESTAURANTS_PER_CLASS = 8 
+MIN_REVIEWS_PER_CLASS = 200 
 
-cuisine_counts = known['cuisine_primary'].value_counts()
-rare_cuisines  = cuisine_counts[cuisine_counts < MIN_REVIEWS_PER_CLASS].index
+# Merge cuisines that genuinely overlap in Beirut's food scene.
+CUISINE_MERGES = {
+    'Lebanese': 'Levantine',
+    'Middle Eastern': 'Levantine',
+    'Turkish': 'Levantine',
+    'Mediterranean': 'Levantine',
+    'Armenian': 'Levantine',
+}
 
-known['cuisine_label'] = known['cuisine_primary'].apply(
-    lambda c: 'Other' if c in rare_cuisines else c
+#labels that aren't really cuisines drop to 'Other'.
+VENUE_TYPES = {'Wine bars', 'Cocktail bars', 'Delis'}
+
+known['cuisine_label'] = known['cuisine_primary'].replace(CUISINE_MERGES)
+known['cuisine_label'] = known['cuisine_label'].apply(
+    lambda c: 'Other' if c in VENUE_TYPES else c
 )
 
-print(f"\nRare cuisines collapsed into 'Other': {list(rare_cuisines)}")
-print(f"Final class count: {known['cuisine_label'].nunique()}")
-print(known['cuisine_label'].value_counts().to_string())
+#count BOTH reviews AND distinct restaurants per class
+class_stats = known.groupby('cuisine_label').agg(
+    n_reviews=('review_id', 'count'),
+    n_restaurants=('restaurant_id', 'nunique')
+).sort_values('n_reviews', ascending=False)
 
-# ENCODE LABELS AND SPLIT
+print("\nPre-collapse class stats:")
+print(class_stats.to_string())
+
+#keep only classes that meet BOTH thresholds
+keep_mask = (
+    (class_stats['n_reviews'] >= MIN_REVIEWS_PER_CLASS) &
+    (class_stats['n_restaurants'] >= MIN_RESTAURANTS_PER_CLASS)
+)
+classes_to_keep = set(class_stats[keep_mask].index)
+classes_to_drop = set(class_stats[~keep_mask].index)
+
+known['cuisine_label'] = known['cuisine_label'].apply(
+    lambda c: c if c in classes_to_keep else 'Other'
+)
+
+final_stats = known.groupby('cuisine_label').agg(
+    n_reviews=('review_id', 'count'),
+    n_restaurants=('restaurant_id', 'nunique')
+).sort_values('n_reviews', ascending=False)
+
+print(f"\nMerged cuisines: {CUISINE_MERGES}")
+print(f"Venue types dropped to 'Other': {VENUE_TYPES}")
+print(f"Collapsed into 'Other' (below threshold): {classes_to_drop}")
+print(f"\nFinal class count: {known['cuisine_label'].nunique()}")
+print(f"\nFinal class stats:")
+print(final_stats.to_string())
+
+assert final_stats['n_restaurants'].min() >= MIN_RESTAURANTS_PER_CLASS, \
+    "Some class still has too few restaurants — tighten merges or raise threshold"
+
+# ENCODE LABELS AND SPLIT (grouped by restaurant to prevent data leakage)
 le = LabelEncoder()
 y  = le.fit_transform(known['cuisine_label'])
 X  = known['review_text_cleaned'].values
+groups = known['restaurant_id'].values  
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
-)
+# GroupShuffleSplit: all reviews from one restaurant go entirely
+# to train OR test, never both. Prevents the model from memorizing
+# restaurant-specific vocab instead of learning cuisine vocab.
+gss = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+train_idx, test_idx = next(gss.split(X, y, groups=groups))
 
-print(f"\nTraining samples: {len(X_train)}")
-print(f"Test samples:     {len(X_test)}")
+X_train, X_test = X[train_idx], X[test_idx]
+y_train, y_test = y[train_idx], y[test_idx]
+groups_train = groups[train_idx]  
+
+# Sanity check: no restaurant in both splits
+overlap = set(groups[train_idx]) & set(groups[test_idx])
+assert len(overlap) == 0, f"Leakage! {len(overlap)} restaurants in both splits"
+
+#verify every class is present in both splits
+train_classes = set(y_train)
+test_classes = set(y_test)
+missing_in_test  = train_classes - test_classes
+missing_in_train = test_classes - train_classes
+if missing_in_test or missing_in_train:
+    print(f"WARNING: class imbalance after grouped split")
+    print(f"Classes missing in test:  {[le.classes_[c] for c in missing_in_test]}")
+    print(f"Classes missing in train: {[le.classes_[c] for c in missing_in_train]}")
+
+print(f"\nTraining: {len(X_train)} reviews from {len(set(groups[train_idx]))} restaurants")
+print(f"Test:{len(X_test)} reviews from {len(set(groups[test_idx]))} restaurants")
+print(f"Overlap:{len(overlap)} (must be 0)")
 
 # SHARED TFIDF PARAMS (used in all phases)
 tfidf_params = dict(
@@ -89,23 +159,32 @@ phase1_results = {}
 for model_name, pipeline in phase1_models.items():
     print(f"\n  Training {model_name}...")
     pipeline.fit(X_train, y_train)
+    y_train_pred = pipeline.predict(X_train)
     y_pred = pipeline.predict(X_test)
 
-    acc    = accuracy_score(y_test, y_pred)
+    train_acc = accuracy_score(y_train, y_train_pred)
+    test_acc = accuracy_score(y_test,  y_pred)
+    overfit_gap = train_acc - test_acc
+
     report = classification_report(
         y_test, y_pred,
+        labels=np.arange(len(le.classes_)),
         target_names=le.classes_,
         output_dict=True,
         zero_division=0
     )
 
     phase1_results[model_name] = {
-        'accuracy': acc,
-        'report':   report,
-        'y_pred':   y_pred
+        'accuracy': test_acc,
+        'train_acc': train_acc,
+        'overfit_gap': overfit_gap,
+        'report': report,
+        'y_pred': y_pred
     }
 
-    print(f"  Accuracy:    {acc:.4f}")
+    print(f"  Train acc:   {train_acc:.4f}")
+    print(f"  Test acc:    {test_acc:.4f}")
+    print(f"  Overfit gap: {overfit_gap:+.4f}  (large positive = overfitting)")
     print(f"  Weighted F1: {report['weighted avg']['f1-score']:.4f}")
 
 # Pick the best model by weighted F1
@@ -119,12 +198,14 @@ print(f"\n  Best model from Phase 1: {best_model_name}")
 # Save Phase 1 comparison CSV
 df_phase1 = pd.DataFrame([
     {
-        'model':               m,
-        'accuracy':            round(r['accuracy'], 4),
-        'weighted_f1':         round(r['report']['weighted avg']['f1-score'], 4),
-        'weighted_precision':  round(r['report']['weighted avg']['precision'], 4),
-        'weighted_recall':     round(r['report']['weighted avg']['recall'], 4),
-        'is_best':             m == best_model_name
+        'model':              m,
+        'train_accuracy':     round(r['train_acc'], 4),
+        'test_accuracy':      round(r['accuracy'], 4),
+        'overfit_gap':        round(r['overfit_gap'], 4),
+        'weighted_f1':        round(r['report']['weighted avg']['f1-score'], 4),
+        'weighted_precision': round(r['report']['weighted avg']['precision'], 4),
+        'weighted_recall':    round(r['report']['weighted avg']['recall'], 4),
+        'is_best':            m == best_model_name
     }
     for m, r in phase1_results.items()
 ])
@@ -135,7 +216,9 @@ print("  Saved: ml_model_comparison.csv")
 # Uses the best model from Phase 1 with 5-Fold Stratified CV
 print(f"PHASE 2 — Balancing Strategy Comparison (using {best_model_name})")
 
-skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+# StratifiedGroupKFold: keeps class balance across folds AND ensures
+# no restaurant appears in more than one fold (same leakage fix as the main split).
+sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
 
 # Logistic Regression is used here because it supports all 3 strategies cleanly.
 # (Naive Bayes doesn't support class_weight, so LR is the fair reference.)
@@ -156,15 +239,30 @@ balancing_pipelines = {
 }
 
 balancing_results = {}
+balancing_fold_scores = {} 
 
 for strategy_name, pipe in balancing_pipelines.items():
     print(f"\n  Testing: {strategy_name}...")
-    scores = cross_val_score(pipe, X, y, cv=skf, scoring='f1_weighted')
+    scores = cross_val_score(pipe, X, y, cv=sgkf, groups=groups, scoring='f1_weighted')
     balancing_results[strategy_name] = {
         'mean_f1': round(float(scores.mean()), 4),
         'std_f1':  round(float(scores.std()), 4)
     }
+    balancing_fold_scores[strategy_name] = [round(float(s), 4) for s in scores]
+    print(f"  Fold scores: {[f'{s:.4f}' for s in scores]}")
     print(f"  Mean F1: {scores.mean():.4f}  ±{scores.std():.4f}")
+
+# Save per-fold CV scores as a long-format CSV for the dashboard
+cv_rows = []
+for strategy_name, fold_scores in balancing_fold_scores.items():
+    for fold_idx, score in enumerate(fold_scores, start=1):
+        cv_rows.append({
+            'strategy': strategy_name,
+            'fold':     fold_idx,
+            'f1_score': score
+        })
+pd.DataFrame(cv_rows).to_csv('ml_cv_fold_scores.csv', index=False)
+print("\n  Saved: ml_cv_fold_scores.csv")
 
 best_strategy = max(balancing_results, key=lambda s: balancing_results[s]['mean_f1'])
 print(f"\n  Best balancing strategy: {best_strategy}")
@@ -188,8 +286,8 @@ print(f"PHASE 3 — All Models with Best Strategy ({best_strategy})")
 # class_weight='balanced' applies to LR and RF but not Naive Bayes
 cw = 'balanced' if best_strategy == 'Class Weights' else None
 
-def make_pipeline(clf, supports_class_weight=True):
-    #Wraps classifier in the right pipeline based on the winning strategy.
+def build_phase3_pipeline(clf):
+    """Wraps a classifier in the right pipeline based on the winning balancing strategy."""
     if best_strategy == 'SMOTE':
         return ImbPipeline([
             ('tfidf', TfidfVectorizer(**tfidf_params)),
@@ -203,17 +301,14 @@ def make_pipeline(clf, supports_class_weight=True):
         ])
 
 phase3_models = {
-    'Logistic Regression': make_pipeline(
-        LogisticRegression(max_iter=1000, random_state=42, class_weight=cw),
-        supports_class_weight=True
+    'Logistic Regression': build_phase3_pipeline(
+        LogisticRegression(max_iter=1000, random_state=42, class_weight=cw)
     ),
-    'Naive Bayes': make_pipeline(
-        MultinomialNB(alpha=0.1),
-        supports_class_weight=False  # NB doesn't support class_weight
+    'Naive Bayes': build_phase3_pipeline(
+        MultinomialNB(alpha=0.1)  
     ),
-    'Random Forest': make_pipeline(
-        RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1, class_weight=cw),
-        supports_class_weight=True
+    'Random Forest': build_phase3_pipeline(
+        RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1, class_weight=cw)
     )
 }
 
@@ -223,21 +318,34 @@ phase3_predictions = {}
 for model_name, pipeline in phase3_models.items():
     print(f"\n  Training {model_name}...")
     pipeline.fit(X_train, y_train)
+    y_train_pred = pipeline.predict(X_train)
     y_pred = pipeline.predict(X_test)
 
-    acc    = accuracy_score(y_test, y_pred)
+    train_acc = accuracy_score(y_train, y_train_pred)
+    test_acc = accuracy_score(y_test,  y_pred)
+    overfit_gap = train_acc - test_acc
+
     report = classification_report(
         y_test, y_pred,
+        labels=np.arange(len(le.classes_)),
         target_names=le.classes_,
         output_dict=True,
         zero_division=0
     )
 
-    phase3_results[model_name]     = {'accuracy': acc, 'report': report, 'y_pred': y_pred}
+    phase3_results[model_name] = {
+        'accuracy':    test_acc,
+        'train_acc':   train_acc,
+        'overfit_gap': overfit_gap,
+        'report':      report,
+        'y_pred':      y_pred
+    }
     phase3_predictions[model_name] = y_pred
 
-    print(f"  Accuracy:    {acc:.4f}")
-    print(f"  Weighted F1: {report['weighted avg']['f1-score']:.4f}")
+    print(f" Train acc:   {train_acc:.4f}")
+    print(f" Test acc:    {test_acc:.4f}")
+    print(f" Overfit gap: {overfit_gap:+.4f}")
+    print(f" Weighted F1: {report['weighted avg']['f1-score']:.4f}")
 
 # Pick the final best model (by weighted F1 after balancing)
 final_best_model_name = max(
@@ -251,18 +359,126 @@ print(f"\n  Final best model: {final_best_model_name}")
 # Save Phase 3 comparison CSV
 df_phase3 = pd.DataFrame([
     {
-        'model':              m,
-        'accuracy':           round(r['accuracy'], 4),
-        'weighted_f1':        round(r['report']['weighted avg']['f1-score'], 4),
+        'model': m,
+        'train_accuracy': round(r['train_acc'], 4),
+        'test_accuracy':  round(r['accuracy'], 4),
+        'overfit_gap': round(r['overfit_gap'], 4),
+        'weighted_f1': round(r['report']['weighted avg']['f1-score'], 4),
         'weighted_precision': round(r['report']['weighted avg']['precision'], 4),
-        'weighted_recall':    round(r['report']['weighted avg']['recall'], 4),
+        'weighted_recall': round(r['report']['weighted avg']['recall'], 4),
         'balancing_strategy': best_strategy,
-        'is_best':            m == final_best_model_name
+        'is_best': m == final_best_model_name
     }
     for m, r in phase3_results.items()
 ])
 df_phase3.to_csv('ml_final_comparison.csv', index=False)
-print("  Saved: ml_final_comparison.csv")
+print("Saved: ml_final_comparison.csv")
+
+# PHASE 3.5: HYPERPARAMETER TUNING (on final best model only)
+print(f"\nPHASE 3.5 — Hyperparameter Tuning ({final_best_model_name})")
+
+# Use 3-fold grouped CV for tuning (faster than 5-fold, still honest)
+tuning_cv = StratifiedGroupKFold(n_splits=3, shuffle=True, random_state=42)
+
+# Tailor the grid to whichever model won
+if final_best_model_name == 'Logistic Regression':
+    param_grid = {
+        'tfidf__max_features': [10000, 20000, 50000],
+        'tfidf__min_df': [2, 3, 5],
+        'clf__C': [0.1, 1.0, 10.0],
+    }
+elif final_best_model_name == 'Naive Bayes':
+    param_grid = {
+        'tfidf__max_features': [10000, 20000, 50000],
+        'tfidf__min_df': [2, 3, 5],
+        'clf__alpha': [0.01, 0.1, 0.5, 1.0],
+    }
+else:  # Random Forest
+    param_grid = {
+        'tfidf__max_features': [10000, 20000],
+        'clf__n_estimators': [100, 200],
+        'clf__max_depth': [None, 30],
+    }
+
+grid_size = int(np.prod([len(v) for v in param_grid.values()]))
+print(f"  Grid size: {grid_size} combinations × 3 folds = {grid_size * 3} fits")
+
+grid_search = GridSearchCV(
+    final_best_pipeline,
+    param_grid,
+    cv=tuning_cv,
+    scoring='f1_weighted',
+    n_jobs=-1,
+    verbose=1
+)
+grid_search.fit(X_train, y_train, groups=groups_train)
+
+print(f"\n Best params: {grid_search.best_params_}")
+print(f"  Best CV F1:  {grid_search.best_score_:.4f}")
+
+# Save the full GridSearchCV results 
+cv_results = pd.DataFrame(grid_search.cv_results_)
+fold_cols = [c for c in cv_results.columns if c.startswith('split') and c.endswith('_test_score')]
+keep_cols = ['params', 'mean_test_score', 'std_test_score', 'rank_test_score'] + fold_cols
+cv_results_slim = cv_results[keep_cols].copy()
+cv_results_slim['params'] = cv_results_slim['params'].astype(str)
+cv_results_slim = cv_results_slim.sort_values('rank_test_score')
+cv_results_slim.to_csv('ml_grid_search_results.csv', index=False)
+print(f"  Saved: ml_grid_search_results.csv ({len(cv_results_slim)} combinations × {len(fold_cols)} folds)")
+
+# Evaluate the tuned model on the held-out test set
+tuned_pipeline = grid_search.best_estimator_
+y_train_pred_tuned = tuned_pipeline.predict(X_train)
+y_pred_tuned = tuned_pipeline.predict(X_test)
+
+tuned_train_acc = accuracy_score(y_train, y_train_pred_tuned)
+tuned_test_acc  = accuracy_score(y_test,  y_pred_tuned)
+tuned_report    = classification_report(
+    y_test, y_pred_tuned,
+    labels=np.arange(len(le.classes_)),
+    target_names=le.classes_,
+    output_dict=True,
+    zero_division=0
+)
+tuned_f1   = tuned_report['weighted avg']['f1-score']
+untuned_f1 = phase3_results[final_best_model_name]['report']['weighted avg']['f1-score']
+
+print(f"\n  Tuned train acc:  {tuned_train_acc:.4f}")
+print(f"  Tuned test acc:   {tuned_test_acc:.4f}")
+print(f"  Tuned F1:         {tuned_f1:.4f}")
+print(f"  Improvement over untuned: {tuned_f1 - untuned_f1:+.4f}")
+
+# Save the untuned Phase 3 results BEFORE we potentially overwrite them,
+# so Phase can compare untuned vs tuned
+untuned_phase3_result = dict(phase3_results[final_best_model_name]) 
+
+# Build a tuned result object regardless of which one wins — we want both for the dashboard
+tuned_phase3_result = {
+    'accuracy': tuned_test_acc,
+    'train_acc': tuned_train_acc,
+    'overfit_gap': tuned_train_acc - tuned_test_acc,
+    'report': tuned_report,
+    'y_pred':  y_pred_tuned,
+}
+
+# Only use tuned model if it actually improved — GridSearchCV sometimes
+# finds params that win on CV but lose on held-out test
+if tuned_f1 > untuned_f1:
+    print(f"  -> Using TUNED model for final predictions")
+    final_best_pipeline = tuned_pipeline
+    phase3_results[final_best_model_name] = tuned_phase3_result
+    phase3_predictions[final_best_model_name] = y_pred_tuned
+    tuning_improved = True
+else:
+    print(f"  -> Keeping UNTUNED model (tuning did not improve held-out F1)")
+    tuning_improved = False
+
+
+pd.DataFrame({
+    'param':     list(grid_search.best_params_.keys()),
+    'best_value':list(grid_search.best_params_.values())
+}).to_csv('ml_tuning_best_params.csv', index=False)
+print("  Saved: ml_tuning_best_params.csv")
 
 # PHASE 4 — same model, with and without balancing comparison
 print(f"PHASE 4 — Before vs After Balancing ({final_best_model_name})")
@@ -293,16 +509,61 @@ before_after_rows = []
 for cls in le.classes_:
     b = before_per_class.get(cls, 0)
     a = after_per_class.get(cls, 0)
+    # Mark classes that had zero test examples — their F1 is meaningless
+    test_support = (y_test == np.where(le.classes_ == cls)[0][0]).sum() if cls in le.classes_ else 0
     before_after_rows.append({
         'cuisine':    cls,
         'f1_before':  b,
         'f1_after':   a,
-        'f1_change':  round(a - b, 3)
+        'f1_change':  round(a - b, 3),
+        'test_support': int(test_support),
+        'note': 'no test examples' if test_support == 0 else ''
     })
 
 df_before_after = pd.DataFrame(before_after_rows).sort_values('f1_change', ascending=False)
 df_before_after.to_csv('ml_before_after.csv', index=False)
 print("  Saved: ml_before_after.csv")
+
+#BEFORE vs AFTER HYPERPARAMETER TUNING
+print(f"\nBefore vs After Hyperparameter Tuning ({final_best_model_name})")
+
+untuned_f1_= untuned_phase3_result['report']['weighted avg']['f1-score']
+tuned_f1_ = tuned_phase3_result['report']['weighted avg']['f1-score']
+untuned_acc = untuned_phase3_result['accuracy']
+tuned_acc = tuned_phase3_result['accuracy']
+untuned_gap  = untuned_phase3_result['overfit_gap']
+tuned_gap  = tuned_phase3_result['overfit_gap']
+
+print(f"  {'Metric':<20} {'Untuned':>10} {'Tuned':>10} {'Change':>10}")
+print(f"  {'-'*50}")
+print(f"  {'Accuracy':<20} {untuned_acc:>10.4f} {tuned_acc:>10.4f} {tuned_acc - untuned_acc:>+10.4f}")
+print(f"  {'Weighted F1':<20} {untuned_f1_:>10.4f} {tuned_f1_:>10.4f} {tuned_f1_ - untuned_f1_:>+10.4f}")
+print(f"  {'Overfit Gap':<20} {untuned_gap:>10.4f} {tuned_gap:>10.4f} {tuned_gap - untuned_gap:>+10.4f}")
+
+# Per-class F1 comparison
+untuned_per_class = {
+    cls: round(untuned_phase3_result['report'][cls]['f1-score'], 3)
+    for cls in le.classes_ if cls in untuned_phase3_result['report']
+}
+tuned_per_class = {
+    cls: round(tuned_phase3_result['report'][cls]['f1-score'], 3)
+    for cls in le.classes_ if cls in tuned_phase3_result['report']
+}
+
+tuning_rows = []
+for cls in le.classes_:
+    u = untuned_per_class.get(cls, 0)
+    t = tuned_per_class.get(cls, 0)
+    tuning_rows.append({
+        'cuisine':     cls,
+        'f1_untuned':  u,
+        'f1_tuned':    t,
+        'f1_change':   round(t - u, 3)
+    })
+
+df_tuning_compare = pd.DataFrame(tuning_rows).sort_values('f1_change', ascending=False)
+df_tuning_compare.to_csv('ml_tuning_before_after.csv', index=False)
+print("  Saved: ml_tuning_before_after.csv")
 
 # PREDICT UNKNOWN CUISINES (using final best pipeline)
 print("PREDICTING CUISINE FOR UNKNOWN REVIEWS")
@@ -343,19 +604,140 @@ df_pred_dist = (
 df_pred_dist.to_csv('ml_predicted_distribution.csv', index=False)
 print("\nSaved: ml_predicted_distribution.csv")
 
+# AGGREGATE TO RESTAURANT-LEVEL PREDICTIONS
+# A cuisine is a property of a restaurant, not a review. Individual reviews
+# are noisy. Averaging probability vectors across all of a restaurant's reviews
+# gives a much more stable prediction than voting one review at a time.
+print("\n" + "=" * 60)
+print("AGGREGATING TO RESTAURANT-LEVEL PREDICTIONS")
+
+# Attach per-review probability vectors back to the unknown dataframe
+unknown_with_probs = unknown.copy()
+for i, class_name in enumerate(le.classes_):
+    unknown_with_probs[f'prob_{class_name}'] = predicted_proba[:, i]
+
+# Group by restaurant — average the probability for each cuisine across its reviews
+prob_cols = [f'prob_{c}' for c in le.classes_]
+restaurant_probs = unknown_with_probs.groupby('restaurant_id')[prob_cols].mean()
+
+# Argmax over the averaged probabilities → one cuisine per restaurant
+restaurant_probs['cuisine_restaurant_level']  = restaurant_probs[prob_cols].idxmax(axis=1).str.replace('prob_', '', regex=False)
+restaurant_probs['restaurant_confidence']     = restaurant_probs[prob_cols].max(axis=1).round(3)
+restaurant_probs['n_reviews_for_prediction']  = unknown_with_probs.groupby('restaurant_id').size()
+
+# How often does per-review voting disagree with probability-averaging?
+# Per-review majority vote, for comparison
+per_review_majority = (
+    unknown_with_probs.groupby('restaurant_id')['cuisine_predicted']
+    .agg(lambda s: s.mode().iloc[0])
+)
+restaurant_probs['cuisine_majority_vote'] = per_review_majority
+
+disagreements = (
+    restaurant_probs['cuisine_restaurant_level'] != restaurant_probs['cuisine_majority_vote']
+).sum()
+print(f"Restaurants classified: {len(restaurant_probs)}")
+print(f"Avg reviews per restaurant: {restaurant_probs['n_reviews_for_prediction'].mean():.1f}")
+print(f"Avg restaurant-level confidence: {restaurant_probs['restaurant_confidence'].mean():.3f}")
+print(f"Probability-averaging disagrees with majority vote on: {disagreements} restaurants "
+      f"({disagreements/len(restaurant_probs)*100:.1f}%)")
+
+# Confidence distribution at restaurant level vs review level
+high_conf_restaurants = (restaurant_probs['restaurant_confidence'] >= 0.5).sum()
+print(f"Restaurants with high-confidence (≥0.5) prediction: "
+      f"{high_conf_restaurants} ({high_conf_restaurants/len(restaurant_probs)*100:.1f}%)")
+
+# Save the restaurant-level output
+restaurant_output = restaurant_probs[[
+    'cuisine_restaurant_level', 'restaurant_confidence',
+    'n_reviews_for_prediction', 'cuisine_majority_vote'
+]].reset_index()
+restaurant_output.to_csv('ml_restaurant_level_predictions.csv', index=False)
+print("Saved: ml_restaurant_level_predictions.csv")
+
+# EVALUATE RESTAURANT-LEVEL F1 ON THE TEST SET
+# This is the KEY metric — how well does the model do at the task we actually care about?
+print("\n" + "=" * 60)
+print("RESTAURANT-LEVEL EVALUATION ON TEST SET")
+
+# Predict probabilities for the test set, aggregate the same way, evaluate
+test_proba = final_best_pipeline.predict_proba(X_test)
+test_df = pd.DataFrame({'restaurant_id': groups[test_idx], 'y_true': y_test})
+for i, class_name in enumerate(le.classes_):
+    test_df[f'prob_{class_name}'] = test_proba[:, i]
+
+# Each test restaurant has one true cuisine (all its reviews share the same label)
+test_restaurant = test_df.groupby('restaurant_id').agg(
+    **{col: (col, 'mean') for col in prob_cols},
+    y_true=('y_true', 'first')
+)
+test_restaurant['y_pred'] = test_restaurant[prob_cols].values.argmax(axis=1)
+
+restaurant_acc = accuracy_score(test_restaurant['y_true'], test_restaurant['y_pred'])
+restaurant_report = classification_report(
+    test_restaurant['y_true'], test_restaurant['y_pred'],
+    labels=np.arange(len(le.classes_)),
+    target_names=le.classes_,
+    output_dict=True,
+    zero_division=0
+)
+restaurant_f1 = restaurant_report['weighted avg']['f1-score']
+
+# Compare to review-level metrics
+review_acc = phase3_results[final_best_model_name]['accuracy']
+review_f1  = phase3_results[final_best_model_name]['report']['weighted avg']['f1-score']
+
+print(f"  {'Level':<20} {'Accuracy':>10} {'F1':>10}")
+print(f"  {'-'*42}")
+print(f"  {'Per-review':<20} {review_acc:>10.4f} {review_f1:>10.4f}")
+print(f"  {'Per-restaurant':<20} {restaurant_acc:>10.4f} {restaurant_f1:>10.4f}")
+print(f"  {'Improvement':<20} {restaurant_acc - review_acc:>+10.4f} {restaurant_f1 - review_f1:>+10.4f}")
+
+# Save restaurant-level per-class F1
+restaurant_per_class_f1 = {
+    cls: round(restaurant_report[cls]['f1-score'], 3)
+    for cls in le.classes_ if cls in restaurant_report
+}
+pd.DataFrame([
+    {
+        'cuisine':cls,
+        'f1_review_level':  round(phase3_results[final_best_model_name]['report'].get(cls, {}).get('f1-score', 0), 3),
+        'f1_restaurant_level': restaurant_per_class_f1.get(cls, 0),
+    }
+    for cls in le.classes_
+]).to_csv('ml_restaurant_vs_review_f1.csv', index=False)
+print("Saved: ml_restaurant_vs_review_f1.csv")
+
 # BUILD ENRICHED MASTER REVIEWS FILE
+# Use RESTAURANT-LEVEL predictions — all reviews of the same restaurant
+# get the same cuisine label, which is how cuisine actually works.
 known_out = known.copy()
 known_out['cuisine_source']        = 'original'
 known_out['prediction_confidence'] = np.nan
 
+# Map each unknown review to its restaurant's aggregated cuisine and confidence
+restaurant_lookup = restaurant_probs[['cuisine_restaurant_level', 'restaurant_confidence']].to_dict('index')
+
 unknown_out = unknown.copy()
-unknown_out['cuisine_primary']  = unknown_out['cuisine_predicted']
-unknown_out['cuisine_source']   = 'predicted'
-unknown_out = unknown_out.drop(columns=['cuisine_predicted'])
+unknown_out['cuisine_primary'] = unknown_out['restaurant_id'].map(
+    lambda rid: restaurant_lookup.get(rid, {}).get('cuisine_restaurant_level', 'Unknown')
+)
+unknown_out['prediction_confidence'] = unknown_out['restaurant_id'].map(
+    lambda rid: restaurant_lookup.get(rid, {}).get('restaurant_confidence', np.nan)
+)
+unknown_out['cuisine_source'] = 'predicted'
+# Keep the per-review prediction too, for transparency / debugging — different column
+unknown_out = unknown_out.rename(columns={'cuisine_predicted': 'cuisine_predicted_per_review'})
 
 master_enriched = pd.concat([known_out, unknown_out], ignore_index=True)
 master_enriched.to_csv('master_reviews_enriched.csv', index=False)
-print("Saved: master_reviews_enriched.csv")
+print(f"Saved: master_reviews_enriched.csv")
+print(f"  ({len(known_out)} original + {len(unknown_out)} predicted = {len(master_enriched)} total)")
+
+# Sanity check: every restaurant in the enriched file should have exactly ONE cuisine
+cuisines_per_restaurant = master_enriched.groupby('restaurant_id')['cuisine_primary'].nunique()
+multi_cuisine_restaurants = (cuisines_per_restaurant > 1).sum()
+print(f"Restaurants with multiple cuisine labels: {multi_cuisine_restaurants} (should be 0)")
 
 # SAVE SUMMARY JSON
 best_report = phase3_results[final_best_model_name]['report']
@@ -365,8 +747,17 @@ per_class_f1 = {
     for cls in le.classes_ if cls in best_report
 }
 
-cm_full      = confusion_matrix(y_test, phase3_predictions[final_best_model_name])
+cm_full = confusion_matrix(y_test, phase3_predictions[final_best_model_name])
 cm_full_norm = cm_full.astype(float) / cm_full.sum(axis=1, keepdims=True)
+
+# Save confusion matrix as CSV for dashboard rendering
+cm_df = pd.DataFrame(
+    cm_full_norm,
+    index=le.classes_,
+    columns=le.classes_
+).round(3)
+cm_df.to_csv('ml_confusion_matrix.csv')
+print("  Saved: ml_confusion_matrix.csv")
 
 confusion_pairs = []
 for i in range(len(le.classes_)):
@@ -409,13 +800,41 @@ summary = {
     },
     'phase3_best_model': final_best_model_name,
 
-    # Phase 4 — before vs after
+   # Phase 4 — before vs after balancing
     'before_after': {
         'model':            final_best_model_name,
         'accuracy_before':  round(before_acc, 4),
         'accuracy_after':   round(after_acc, 4),
         'f1_before':        round(before_f1, 4),
         'f1_after':         round(after_f1, 4),
+    },
+
+    #before vs after hyperparameter tuning
+    'tuning_before_after': {
+        'model': final_best_model_name,
+        'accuracy_untuned': round(untuned_acc, 4),
+        'accuracy_tuned': round(tuned_acc, 4),
+        'f1_untuned': round(untuned_f1_, 4),
+        'f1_tuned': round(tuned_f1_, 4),
+        'overfit_gap_untuned': round(untuned_gap, 4),
+        'overfit_gap_tuned': round(tuned_gap, 4),
+        'tuning_improved': bool(tuning_improved),
+        'best_params':   {k: (float(v) if isinstance(v, (int, float)) else str(v))
+                              for k, v in grid_search.best_params_.items()},
+    },
+    
+    # Restaurant-level evaluation — the metric that actually matters
+    'restaurant_level': {
+        'n_restaurants_in_test': int(len(test_restaurant)),
+        'n_restaurants_predicted':int(len(restaurant_probs)),
+        'accuracy_review_level':round(review_acc, 4),
+        'accuracy_restaurant_level':round(restaurant_acc, 4),
+        'f1_review_level': round(review_f1, 4),
+        'f1_restaurant_level':round(restaurant_f1, 4),
+        'improvement_f1': round(restaurant_f1 - review_f1, 4),
+        'avg_confidence':  round(float(restaurant_probs['restaurant_confidence'].mean()), 3),
+        'high_confidence_pct': round(high_conf_restaurants/len(restaurant_probs)*100, 1),
+        'per_class_f1':  restaurant_per_class_f1,
     },
 
     # Confusion matrix
