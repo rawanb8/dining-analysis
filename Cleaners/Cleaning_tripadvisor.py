@@ -11,7 +11,7 @@ except ImportError:
     SENTIMENT_AVAILABLE = False
     print("⚠️  TextBlob not installed. Run: pip install textblob")
 
-INPUT_FILE = '../restaurants_with_reviews.csv'
+INPUT_FILE = '../data/restaurants_with_reviews.csv'
 OUTPUT_RESTAURANTS = '../cleaned/Tripadvisor_restaurants_clean.csv'
 OUTPUT_REVIEWS = '../cleaned/Tripadvisor_reviews_clean.csv'
 

@@ -144,7 +144,7 @@ print(f"Collected details for {len(all_data)} restaurants")
 
 
 
-file_path = "restaurants_with_reviews.csv"
+file_path = "data/restaurants_with_reviews.csv"
 
 file_exists = os.path.isfile(file_path)
 
