@@ -1467,164 +1467,9 @@ elif selected_section == "ML Insights":
 
         st.write("---")
         
-        # ── SECTION 4.5: PIPELINE IMPROVEMENT BREAKDOWN ──────────────
-        st.subheader(":material/timeline: Pipeline Improvement Breakdown")
-        st.caption(
-            "This shows exactly where each F1 improvement came from. Each row builds on the previous one, "
-            "so you can see which pipeline step actually moved the needle on this dataset."
-        )
+        
 
-        # Pull the numbers from the summary
-        phase1_f1    = ml_summary['phase1_models'][ml_summary['phase1_best_model']]['weighted_f1']
-        phase1_acc   = ml_summary['phase1_models'][ml_summary['phase1_best_model']]['accuracy']
-        tba          = ml_summary['tuning_before_after']
-        rl           = ml_summary['restaurant_level']
-        untuned_f1   = tba['f1_untuned']
-        untuned_acc  = tba['accuracy_untuned']
-        tuned_f1     = tba['f1_tuned']
-        tuned_acc    = tba['accuracy_tuned']
-        rest_f1      = rl['f1_restaurant_level']
-        rest_acc     = rl['accuracy_restaurant_level']
-
-        # Did balancing help? (compare phase1 winner's F1 to phase3 winner's UNTUNED F1)
-        # Those numbers are the same model with and without the winning balancing strategy.
-        balancing_delta_f1  = untuned_f1 - phase1_f1
-        balancing_delta_acc = untuned_acc - phase1_acc
-        tuning_delta_f1     = tuned_f1 - untuned_f1
-        tuning_delta_acc    = tuned_acc - untuned_acc
-        aggregation_delta_f1  = rest_f1 - tuned_f1
-        aggregation_delta_acc = rest_acc - tuned_acc
-
-        # Build the stepwise table
-        steps_df = pd.DataFrame([
-            {
-                'Step':           '1. Phase 1 baseline',
-                'Description':    f"{ml_summary['phase1_best_model']}, default hyperparameters, no balancing",
-                'Accuracy':       f"{phase1_acc*100:.1f}%",
-                'Weighted F1':    f"{phase1_f1:.4f}",
-                'Δ F1':           '—',
-                'What Changed':   'Starting point'
-            },
-            {
-                'Step':           '2. + Balancing',
-                'Description':    f"Applied best strategy from Phase 2: {ml_summary['phase2_best_strategy']}",
-                'Accuracy':       f"{untuned_acc*100:.1f}%",
-                'Weighted F1':    f"{untuned_f1:.4f}",
-                'Δ F1':           f"{balancing_delta_f1:+.4f}",
-                'What Changed':   'No-op (baseline won)' if abs(balancing_delta_f1) < 0.001 else 'Balancing strategy'
-            },
-            {
-                'Step':           '3. + Hyperparameter Tuning',
-                'Description':    f"GridSearchCV picked: {', '.join(f'{k}={v}' for k,v in tba['best_params'].items())}",
-                'Accuracy':       f"{tuned_acc*100:.1f}%",
-                'Weighted F1':    f"{tuned_f1:.4f}",
-                'Δ F1':           f"{tuning_delta_f1:+.4f}",
-                'What Changed':   'Larger vocab, weaker regularization'
-            },
-            {
-                'Step':           '4. + Restaurant-Level Aggregation',
-                'Description':    "Average probability vectors across all reviews of each restaurant",
-                'Accuracy':       f"{rest_acc*100:.1f}%",
-                'Weighted F1':    f"{rest_f1:.4f}",
-                'Δ F1':           f"{aggregation_delta_f1:+.4f}",
-                'What Changed':   'Prediction unit (review → restaurant)'
-            },
-        ])
-
-        st.dataframe(steps_df, use_container_width=True, hide_index=True)
-
-        # Waterfall-style bar chart showing F1 at each step
-        fig_waterfall = go.Figure()
-        fig_waterfall.add_trace(go.Bar(
-            x=steps_df['Step'],
-            y=[phase1_f1, untuned_f1, tuned_f1, rest_f1],
-            marker_color=['#95a5a6', '#3498db', '#9b59b6', '#27ae60'],
-            text=[f'{phase1_f1:.4f}', f'{untuned_f1:.4f}', f'{tuned_f1:.4f}', f'{rest_f1:.4f}'],
-            textposition='outside',
-        ))
-        # Add delta annotations between bars
-        deltas = [None, balancing_delta_f1, tuning_delta_f1, aggregation_delta_f1]
-        for i, delta in enumerate(deltas):
-            if delta is not None:
-                color = '#27ae60' if delta > 0.001 else ('#95a5a6' if abs(delta) < 0.001 else '#e74c3c')
-                fig_waterfall.add_annotation(
-                    x=i, y=max(phase1_f1, untuned_f1, tuned_f1, rest_f1) * 1.08,
-                    text=f"{delta:+.4f}",
-                    showarrow=False,
-                    font=dict(color=color, size=14, weight='bold'),
-                )
-        fig_waterfall.update_layout(
-            title='Weighted F1 at Each Pipeline Step',
-            yaxis=dict(title='Weighted F1', range=[0, max(phase1_f1, untuned_f1, tuned_f1, rest_f1) * 1.2]),
-            height=450,
-            showlegend=False,
-        )
-        st.plotly_chart(fig_waterfall, use_container_width=True)
-
-        # Callout boxes highlighting what worked and what didn't
-        col_w1, col_w2, col_w3 = st.columns(3)
-
-        with col_w1:
-            if abs(balancing_delta_f1) < 0.001:
-                st.error(
-                    "**Balancing: no-op**\n\n"
-                    f"Δ F1 = {balancing_delta_f1:+.4f}\n\n"
-                    "On our collapsed 15-class dataset, balancing did not improve performance. "
-                    "Baseline beat SMOTE and Class Weights in cross-validation — the rebalancing cost "
-                    "exceeded its benefit."
-                )
-            else:
-                st.success(
-                    f"**Balancing: +{balancing_delta_f1:.4f} F1**\n\n"
-                    f"Strategy: {ml_summary['phase2_best_strategy']}"
-                )
-
-        with col_w2:
-            if tuning_delta_f1 > 0:
-                st.success(
-                    f"**Tuning: +{tuning_delta_f1:.4f} F1**\n\n"
-                    "GridSearchCV found that our data benefits from a larger TF-IDF vocabulary "
-                    "and weaker regularization than sklearn's defaults."
-                )
-            else:
-                st.warning(
-                    f"**Tuning: {tuning_delta_f1:+.4f} F1**\n\n"
-                    "Tuning did not improve held-out performance."
-                )
-
-        with col_w3:
-            if aggregation_delta_f1 > 0:
-                st.success(
-                    f"**Aggregation: +{aggregation_delta_f1:.4f} F1**\n\n"
-                    "Averaging probabilities across each restaurant's reviews eliminated per-review noise. "
-                    "This is the largest single gain in the pipeline."
-                )
-            else:
-                st.info(
-                    f"**Aggregation: {aggregation_delta_f1:+.4f} F1**\n\n"
-                    "Restaurant-level aggregation did not improve F1 on this test set."
-                )
-
-        with st.expander("Why this ordering matters"):
-            st.markdown(
-                "The pipeline improvements are **cumulative** — each step builds on the previous one. "
-                "This matters because it lets us attribute gains honestly:\n\n"
-                "- **Balancing** tries to correct class imbalance. On our dataset (15 collapsed classes, "
-                "moderate imbalance) it didn't help because the imbalance isn't severe enough to make "
-                "rebalancing worth its cost.\n"
-                "- **Hyperparameter tuning** searches a grid of model settings via cross-validation. "
-                "It found that our data rewards more vocabulary and more confident word weights.\n"
-                "- **Restaurant-level aggregation** changes *what we're predicting* — from noisy individual "
-                "reviews to stable restaurant-level labels. This isn't a model improvement; it's a task "
-                "redefinition that matches what 'cuisine' actually means.\n\n"
-                "The honest takeaway: most of the F1 improvement in this project came from the **final step** "
-                "(aggregation), not from any model-level trick. A simple TF-IDF + Logistic Regression, "
-                "evaluated at the right unit of analysis, does most of the work."
-            )
-
-        st.write("---")
-
-        # ── SECTION 5: PHASE 4 — BEFORE vs AFTER ─────────────────────
+        # ── SECTION 5: PHASE 4 — BEFORE vs AFTER 
         st.subheader(":material/compare_arrows: Phase 4 — Before vs After Balancing")
         st.caption(f"Same model ({ml_summary['before_after']['model']}), with and without the best balancing strategy.")
 
@@ -1814,6 +1659,163 @@ elif selected_section == "ML Insights":
             "the 3 folds. Combinations where the bar is tall are unstable (performance depends on "
             "which restaurants were held out). The leftmost dot is what the tuner picked."
         )
+
+        st.write("---")
+        
+        # ── SECTION 4.5: PIPELINE IMPROVEMENT BREAKDOWN ──────────────
+        st.subheader(":material/timeline: Pipeline Improvement Breakdown")
+        st.caption(
+            "This shows exactly where each F1 improvement came from. Each row builds on the previous one, "
+            "so you can see which pipeline step actually moved the needle on this dataset."
+        )
+
+        # Pull the numbers from the summary
+        phase1_f1    = ml_summary['phase1_models'][ml_summary['phase1_best_model']]['weighted_f1']
+        phase1_acc   = ml_summary['phase1_models'][ml_summary['phase1_best_model']]['accuracy']
+        tba          = ml_summary['tuning_before_after']
+        rl           = ml_summary['restaurant_level']
+        untuned_f1   = tba['f1_untuned']
+        untuned_acc  = tba['accuracy_untuned']
+        tuned_f1     = tba['f1_tuned']
+        tuned_acc    = tba['accuracy_tuned']
+        rest_f1      = rl['f1_restaurant_level']
+        rest_acc     = rl['accuracy_restaurant_level']
+
+        # Did balancing help? (compare phase1 winner's F1 to phase3 winner's UNTUNED F1)
+        # Those numbers are the same model with and without the winning balancing strategy.
+        balancing_delta_f1  = untuned_f1 - phase1_f1
+        balancing_delta_acc = untuned_acc - phase1_acc
+        tuning_delta_f1     = tuned_f1 - untuned_f1
+        tuning_delta_acc    = tuned_acc - untuned_acc
+        aggregation_delta_f1  = rest_f1 - tuned_f1
+        aggregation_delta_acc = rest_acc - tuned_acc
+
+        # Build the stepwise table
+        steps_df = pd.DataFrame([
+            {
+                'Step':           '1. Phase 1 baseline',
+                'Description':    f"{ml_summary['phase1_best_model']}, default hyperparameters, no balancing",
+                'Accuracy':       f"{phase1_acc*100:.1f}%",
+                'Weighted F1':    f"{phase1_f1:.4f}",
+                'Δ F1':           '—',
+                'What Changed':   'Starting point'
+            },
+            {
+                'Step':           '2. + Balancing',
+                'Description':    f"Applied best strategy from Phase 2: {ml_summary['phase2_best_strategy']}",
+                'Accuracy':       f"{untuned_acc*100:.1f}%",
+                'Weighted F1':    f"{untuned_f1:.4f}",
+                'Δ F1':           f"{balancing_delta_f1:+.4f}",
+                'What Changed':   'No-op (baseline won)' if abs(balancing_delta_f1) < 0.001 else 'Balancing strategy'
+            },
+            {
+                'Step':           '3. + Hyperparameter Tuning',
+                'Description':    f"GridSearchCV picked: {', '.join(f'{k}={v}' for k,v in tba['best_params'].items())}",
+                'Accuracy':       f"{tuned_acc*100:.1f}%",
+                'Weighted F1':    f"{tuned_f1:.4f}",
+                'Δ F1':           f"{tuning_delta_f1:+.4f}",
+                'What Changed':   'Larger vocab, weaker regularization'
+            },
+            {
+                'Step':           '4. + Restaurant-Level Aggregation',
+                'Description':    "Average probability vectors across all reviews of each restaurant",
+                'Accuracy':       f"{rest_acc*100:.1f}%",
+                'Weighted F1':    f"{rest_f1:.4f}",
+                'Δ F1':           f"{aggregation_delta_f1:+.4f}",
+                'What Changed':   'Prediction unit (review → restaurant)'
+            },
+        ])
+
+        st.dataframe(steps_df, use_container_width=True, hide_index=True)
+
+        # Waterfall-style bar chart showing F1 at each step
+        fig_waterfall = go.Figure()
+        fig_waterfall.add_trace(go.Bar(
+            x=steps_df['Step'],
+            y=[phase1_f1, untuned_f1, tuned_f1, rest_f1],
+            marker_color=['#95a5a6', '#3498db', '#9b59b6', '#27ae60'],
+            text=[f'{phase1_f1:.4f}', f'{untuned_f1:.4f}', f'{tuned_f1:.4f}', f'{rest_f1:.4f}'],
+            textposition='outside',
+        ))
+        # Add delta annotations between bars
+        deltas = [None, balancing_delta_f1, tuning_delta_f1, aggregation_delta_f1]
+        for i, delta in enumerate(deltas):
+            if delta is not None:
+                color = '#27ae60' if delta > 0.001 else ('#95a5a6' if abs(delta) < 0.001 else '#e74c3c')
+                fig_waterfall.add_annotation(
+                    x=i, y=max(phase1_f1, untuned_f1, tuned_f1, rest_f1) * 1.08,
+                    text=f"{delta:+.4f}",
+                    showarrow=False,
+                    font=dict(color=color, size=14, weight='bold'),
+                )
+        fig_waterfall.update_layout(
+            title='Weighted F1 at Each Pipeline Step',
+            yaxis=dict(title='Weighted F1', range=[0, max(phase1_f1, untuned_f1, tuned_f1, rest_f1) * 1.2]),
+            height=450,
+            showlegend=False,
+        )
+        st.plotly_chart(fig_waterfall, use_container_width=True)
+
+        # Callout boxes highlighting what worked and what didn't
+        col_w1, col_w2, col_w3 = st.columns(3)
+
+        with col_w1:
+            if abs(balancing_delta_f1) < 0.001:
+                st.error(
+                    "**Balancing: no-op**\n\n"
+                    f"Δ F1 = {balancing_delta_f1:+.4f}\n\n"
+                    "On our collapsed 15-class dataset, balancing did not improve performance. "
+                    "Baseline beat SMOTE and Class Weights in cross-validation — the rebalancing cost "
+                    "exceeded its benefit."
+                )
+            else:
+                st.success(
+                    f"**Balancing: +{balancing_delta_f1:.4f} F1**\n\n"
+                    f"Strategy: {ml_summary['phase2_best_strategy']}"
+                )
+
+        with col_w2:
+            if tuning_delta_f1 > 0:
+                st.success(
+                    f"**Tuning: +{tuning_delta_f1:.4f} F1**\n\n"
+                    "GridSearchCV found that our data benefits from a larger TF-IDF vocabulary "
+                    "and weaker regularization than sklearn's defaults."
+                )
+            else:
+                st.warning(
+                    f"**Tuning: {tuning_delta_f1:+.4f} F1**\n\n"
+                    "Tuning did not improve held-out performance."
+                )
+
+        with col_w3:
+            if aggregation_delta_f1 > 0:
+                st.success(
+                    f"**Aggregation: +{aggregation_delta_f1:.4f} F1**\n\n"
+                    "Averaging probabilities across each restaurant's reviews eliminated per-review noise. "
+                    "This is the largest single gain in the pipeline."
+                )
+            else:
+                st.info(
+                    f"**Aggregation: {aggregation_delta_f1:+.4f} F1**\n\n"
+                    "Restaurant-level aggregation did not improve F1 on this test set."
+                )
+
+        with st.expander("Why this ordering matters"):
+            st.markdown(
+                "The pipeline improvements are **cumulative** — each step builds on the previous one. "
+                "This matters because it lets us attribute gains honestly:\n\n"
+                "- **Balancing** tries to correct class imbalance. On our dataset (15 collapsed classes, "
+                "moderate imbalance) it didn't help because the imbalance isn't severe enough to make "
+                "rebalancing worth its cost.\n"
+                "- **Hyperparameter tuning** searches a grid of model settings via cross-validation. "
+                "It found that our data rewards more vocabulary and more confident word weights.\n"
+                "- **Restaurant-level aggregation** changes *what we're predicting* — from noisy individual "
+                "reviews to stable restaurant-level labels. This isn't a model improvement; it's a task "
+                "redefinition that matches what 'cuisine' actually means.\n\n"
+                "The honest takeaway: most of the F1 improvement in this project came from the **final step** "
+                "(aggregation), not from any model-level trick. A simple TF-IDF + Logistic Regression, "
+                "evaluated at the right unit of analysis, does most of the work."
+            )
 
         st.write("---")
 
