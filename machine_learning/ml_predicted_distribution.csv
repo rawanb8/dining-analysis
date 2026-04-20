@@ -1,11 +1,11 @@
 cuisine,predicted_count,avg_confidence,high_conf_count
-Levantine,13953,0.594,7998
-Other,3319,0.635,2308
-Dessert,1663,0.701,1260
-American,1009,0.562,600
-Fast food,389,0.563,231
-Pizza,389,0.605,255
-Italian,365,0.555,207
-French,192,0.542,101
-Seafood,169,0.635,113
-Jewish,152,0.699,100
+Levantine,7079,0.376,1041
+Dessert,3107,0.466,1027
+Other,2834,0.354,292
+Seafood,2645,0.23,132
+American,1162,0.357,189
+Pizza,1053,0.441,318
+Italian,672,0.381,137
+Fast food,644,0.392,113
+Jewish,412,0.526,192
+French,218,0.348,38
