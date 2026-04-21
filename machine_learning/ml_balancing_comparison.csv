@@ -1,4 +1,4 @@
 strategy,mean_f1,std_f1,is_best
-Baseline (No Balancing),0.4002,0.0216,False
-Class Weights,0.4901,0.0377,True
-SMOTE,0.4877,0.0215,False
+Baseline (No Balancing),0.3976,0.019,False
+Class Weights,0.4874,0.0278,False
+SMOTE,0.4933,0.0262,True
