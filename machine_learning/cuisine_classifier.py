@@ -12,14 +12,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, f1_score, make_scorer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
-from imblearn.over_sampling import SMOTE
-from imblearn.pipeline import Pipeline as ImbPipeline
 
 
 # LOAD DATA
-
-print("=" * 60)
-print("CUISINE CLASSIFIER — Metadata Imputation via NLP")
+print("CUISINE CLASSIFIER")
 
 reviews = pd.read_csv('../merged/master_reviews.csv')
 reviews = reviews[reviews['review_text_cleaned'].notna()]
@@ -93,74 +89,95 @@ print(final_stats.to_string())
 assert final_stats['n_restaurants'].min() >= MIN_RESTAURANTS_PER_CLASS, \
     "Some class still has too few restaurants — tighten merges or raise threshold"
 
-# ENCODE LABELS AND SPLIT (grouped by restaurant to prevent data leakage)
+# FOOD-WORD FILTER 
+# Keep only reviews that actually mention food.
+# This filter applies to TRAINING data only.
+FOOD_WORDS = {
+    # generic
+    'food','dish','dishes','menu','meal','eat','ate','ordered','order',
+    'flavor','flavour','taste','tasty','cook','cooked','chef',
+    'meat','vegetable','veggie','sauce','bread','salad','soup',
+    'dessert','appetizer','starter','drink','wine','cocktail',
+    'coffee','juice','cheese','chicken','beef','lamb','pork',
+    'rice','egg','fried','grilled','baked','roasted','spicy','sweet','sour','salty',
+    # Levantine
+    'hummus','tabbouleh','tabouleh','fattoush','kibbeh','kibbe','shawarma',
+    'manakish','manoushe','manakeesh','falafel','shish','mezze','mezza',
+    'labneh','halloumi','baba','pita','arak','kafta','kebab','tahini','sumac','zaatar',
+    # Italian / Pizza
+    'pizza','pasta','spaghetti','lasagna','lasagne','risotto','gnocchi',
+    'bruschetta','tiramisu','mozzarella','parmesan','carbonara','pesto',
+    'focaccia','prosciutto','margherita','pepperoni',
+    # French
+    'croissant','baguette','brie','camembert','foie','escargot','ratatouille',
+    'croque','quiche','crepe','macaron','macarons','eclair','confit',
+    # Dessert / bakery
+    'cake','pastry','pastries','chocolate','cream','gelato','bakery','cookie',
+    'cookies','brownie','knafeh','kunafa','baklava',
+    # Seafood
+    'fish','shrimp','lobster','crab','seafood','salmon','tuna','oyster',
+    'mussel','calamari','ceviche',
+    # American / Fast food / Burgers
+    'burger','fries','nuggets','hotdog','bbq','ribs','sandwich','wing','wings',
+    'taco','wrap','bun',
+}
+
+def has_food_word(text):
+    if not isinstance(text, str):
+        return False
+    tokens = set(text.lower().split())
+    return len(tokens & FOOD_WORDS) > 0
+
+before_filter = len(known)
+known['has_food'] = known['review_text_cleaned'].apply(has_food_word)
+known_foody = known[known['has_food']].copy()
+print(f"\nFood-word filter: kept {len(known_foody)}/{before_filter} "
+      f"reviews ({len(known_foody)/before_filter*100:.1f}%)")
+
+# RESTAURANT-LEVEL AGGREGATION
+restaurant_docs = (
+    known_foody.groupby('restaurant_id')
+    .agg(
+        review_text_cleaned=('review_text_cleaned', lambda s: ' '.join(s.astype(str))),
+        cuisine_label=('cuisine_label', 'first'), 
+        n_reviews_used=('review_id', 'count'),
+    )
+    .reset_index()
+)
+
+print(f"Restaurants with usable training docs: {len(restaurant_docs)}")
+print(f"Avg reviews per restaurant doc: {restaurant_docs['n_reviews_used'].mean():.1f}")
+print(f"\nRestaurant-level class stats:")
+print(restaurant_docs['cuisine_label'].value_counts().to_string())
+
+# Drop classes that lost too many restaurants after filtering
+rest_class_counts = restaurant_docs['cuisine_label'].value_counts()
+valid_classes = rest_class_counts[rest_class_counts >= 20].index.tolist()
+restaurant_docs = restaurant_docs[restaurant_docs['cuisine_label'].isin(valid_classes)].copy()
+print(f"\nClasses kept after re-check: {valid_classes}")
+print(f"Final training restaurants: {len(restaurant_docs)}")
+
+# ENCODE LABELS AND SPLIT
 le = LabelEncoder()
-y  = le.fit_transform(known['cuisine_label'])
-X  = known['review_text_cleaned'].values
-groups = known['restaurant_id'].values  
+y = le.fit_transform(restaurant_docs['cuisine_label'])
+X = restaurant_docs['review_text_cleaned'].values
 
-# GroupShuffleSplit: all reviews from one restaurant go entirely
-# to train OR test, never both. Prevents the model from memorizing
-# restaurant-specific vocab instead of learning cuisine vocab.
-gss = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
-train_idx, test_idx = next(gss.split(X, y, groups=groups))
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test, train_ids, test_ids = train_test_split(
+    X, y, restaurant_docs['restaurant_id'].values,
+    test_size=0.2, random_state=42, stratify=y
+)
 
-X_train, X_test = X[train_idx], X[test_idx]
-y_train, y_test = y[train_idx], y[test_idx]
-groups_train = groups[train_idx]  
-
-# Sanity check: no restaurant in both splits
-overlap = set(groups[train_idx]) & set(groups[test_idx])
-assert len(overlap) == 0, f"Leakage! {len(overlap)} restaurants in both splits"
-
-#verify every class is present in both splits
-train_classes = set(y_train)
-test_classes = set(y_test)
-missing_in_test  = train_classes - test_classes
-missing_in_train = test_classes - train_classes
-if missing_in_test or missing_in_train:
-    print(f"WARNING: class imbalance after grouped split")
-    print(f"Classes missing in test:  {[le.classes_[c] for c in missing_in_test]}")
-    print(f"Classes missing in train: {[le.classes_[c] for c in missing_in_train]}")
-
-print(f"\nTraining: {len(X_train)} reviews from {len(set(groups[train_idx]))} restaurants")
-print(f"Test:{len(X_test)} reviews from {len(set(groups[test_idx]))} restaurants")
-print(f"Overlap:{len(overlap)} (must be 0)")
+print(f"\nTraining: {len(X_train)} restaurants")
+print(f"Test: {len(X_test)} restaurants")
 
 #NOTES: restaurant-level weighted F1
-#phase 2 (balancing comparison) uses f1 per review but we need per rest. f1
-_GROUPS_ARRAY = groups  
-
-def restaurant_level_f1_scorer(estimator, X_fold, y_fold):
-    try:
-        proba = estimator.predict_proba(X_fold)
-    except AttributeError:
-        preds = estimator.predict(X_fold)
-        n_classes = len(np.unique(y))
-        proba = np.zeros((len(preds), n_classes))
-        proba[np.arange(len(preds)), preds] = 1.0
-
-    # group reviews by restaurant
-    text_to_group = dict(zip(X, _GROUPS_ARRAY))
-    fold_groups = np.array([text_to_group[x] for x in X_fold])
-
-    # Aggregate probabilities by restaurant
-    fold_df = pd.DataFrame(proba)
-    fold_df['group'] = fold_groups
-    fold_df['y_true'] = y_fold
-    agg_proba = fold_df.groupby('group').mean()
-    restaurant_y_true = agg_proba['y_true'].astype(int).values
-    restaurant_y_pred = agg_proba.drop(columns=['y_true']).values.argmax(axis=1)
-
-    return f1_score(restaurant_y_true, restaurant_y_pred, average='weighted', zero_division=0)
-    
 # SHARED TFIDF PARAMS (used in all phases)
 tfidf_params = dict(
     max_features=20000,
     ngram_range=(1, 2),
     sublinear_tf=True,
-    min_df=3,
-    stop_words='english'
+    min_df=2,
 )
 
 # PHASE 1 comapring ml models without balancing
@@ -243,12 +260,9 @@ print("  Saved: ml_model_comparison.csv")
 # Uses the best model from Phase 1 with 5-Fold Stratified CV
 print(f"PHASE 2 Balancing Strategy Comparison (using {best_model_name})")
 
-# StratifiedGroupKFold: keeps class balance across folds 
-# ensures no restaurant appears in more than one fold 
-sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
+# 5-fold Stratified CV 
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-# Logistic Regression is used here because it supports all 3 strategies cleanly.
-# Naive Bayes doesn't support class_weight
 balancing_pipelines = {
     'Baseline (No Balancing)': Pipeline([
         ('tfidf', TfidfVectorizer(**tfidf_params)),
@@ -258,27 +272,22 @@ balancing_pipelines = {
         ('tfidf', TfidfVectorizer(**tfidf_params)),
         ('clf', LogisticRegression(max_iter=1000, random_state=42, class_weight='balanced'))
     ]),
-    'SMOTE': ImbPipeline([
-        ('tfidf', TfidfVectorizer(**tfidf_params)),
-        ('smote', SMOTE(random_state=42)),
-        ('clf', LogisticRegression(max_iter=1000, random_state=42))
-    ])
 }
 
 balancing_results = {}
-balancing_fold_scores = {} 
+balancing_fold_scores = {}
 
 for strategy_name, pipe in balancing_pipelines.items():
     print(f"\n  Testing: {strategy_name}...")
-    scores = cross_val_score(pipe, X, y, cv=sgkf, groups=groups, scoring=restaurant_level_f1_scorer)
+    scores = cross_val_score(pipe, X, y, cv=skf, scoring='f1_weighted')
     balancing_results[strategy_name] = {
         'mean_f1': round(float(scores.mean()), 4),
         'std_f1':  round(float(scores.std()), 4)
     }
     balancing_fold_scores[strategy_name] = [round(float(s), 4) for s in scores]
-    print(f"  Fold scores (restaurant-level F1): {[f'{s:.4f}' for s in scores]}")
-    print(f"  Mean restaurant-level F1: {scores.mean():.4f}  ±{scores.std():.4f}")
-
+    print(f"  Fold scores: {[f'{s:.4f}' for s in scores]}")
+    print(f"  Mean weighted F1: {scores.mean():.4f}  ±{scores.std():.4f}")
+    
 # Save per-fold CV scores as a long-format CSV for the dashboard
 cv_rows = []
 for strategy_name, fold_scores in balancing_fold_scores.items():
@@ -313,18 +322,10 @@ print(f"PHASE 3 All Models with Best Strategy ({best_strategy})")
 cw = 'balanced' if best_strategy == 'Class Weights' else None
 
 def build_phase3_pipeline(clf):
-    if best_strategy == 'SMOTE':
-        return ImbPipeline([
-            ('tfidf', TfidfVectorizer(**tfidf_params)),
-            ('smote', SMOTE(random_state=42)),
-            ('clf', clf)
-        ])
-    else:
-        return Pipeline([
-            ('tfidf', TfidfVectorizer(**tfidf_params)),
-            ('clf', clf)
-        ])
-
+    return Pipeline([
+        ('tfidf', TfidfVectorizer(**tfidf_params)),
+        ('clf', clf)
+    ])
 phase3_models = {
     'Logistic Regression': build_phase3_pipeline(
         LogisticRegression(max_iter=1000, random_state=42, class_weight=cw)
@@ -402,14 +403,14 @@ print("Saved: ml_final_comparison.csv")
 # PHASE 3.5: HYPERPARAMETER TUNING (on final best model only)
 print(f"\nPHASE 3.5 Hyperparameter Tuning ({final_best_model_name})")
 
-# Use 3-fold grouped CV for tuning (do we increase to 5?)
-tuning_cv = StratifiedGroupKFold(n_splits=3, shuffle=True, random_state=42)
+# Use 3-fold CV for tuning (do we increase to 5?)
+tuning_cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
 
 # Tailor the grid to whichever model won
 if final_best_model_name == 'Logistic Regression':
     param_grid = {
         'tfidf__max_features': [10000, 20000, 30000],   
-        'tfidf__min_df': [3, 5, 10],
+        'tfidf__min_df': [2, 3, 5],
         'clf__C': [0.1, 0.3, 1.0, 3.0],
     }
 
@@ -433,11 +434,11 @@ grid_search = GridSearchCV(
     final_best_pipeline,
     param_grid,
     cv=tuning_cv,
-    scoring=restaurant_level_f1_scorer,
+    scoring='f1_weighted',
     n_jobs=1,
     verbose=1
 )
-grid_search.fit(X_train, y_train, groups=groups_train)
+grid_search.fit(X_train, y_train)
 
 print(f"\n Best params: {grid_search.best_params_}")
 print(f"  Best CV F1:  {grid_search.best_score_:.4f}")
@@ -590,89 +591,56 @@ df_tuning_compare = pd.DataFrame(tuning_rows).sort_values('f1_change', ascending
 df_tuning_compare.to_csv('ml_tuning_before_after.csv', index=False)
 print("  Saved: ml_tuning_before_after.csv")
 
-# PREDICT UNKNOWN CUISINES (using final best pipeline)
-print("PREDICTING CUISINE FOR UNKNOWN REVIEWS")
+# PREDICT UNKNOWN CUISINES at restaurant level, same as training
+print("PREDICTING CUISINE FOR UNKNOWN RESTAURANTS")
 
-X_unknown = unknown['review_text_cleaned'].values
+# Aggregate unknown reviews per restaurant. 
+unknown_docs = (
+    unknown.groupby('restaurant_id')
+    .agg(
+        review_text_cleaned=('review_text_cleaned', lambda s: ' '.join(s.astype(str))),
+        n_reviews_for_prediction=('review_id', 'count'),
+    )
+    .reset_index()
+)
 
-predicted_indices    = final_best_pipeline.predict(X_unknown)
-predicted_proba      = final_best_pipeline.predict_proba(X_unknown)
-predicted_cuisines   = le.inverse_transform(predicted_indices)
+
+
+X_unknown = unknown_docs['review_text_cleaned'].values
+predicted_indices = final_best_pipeline.predict(X_unknown)
+predicted_proba = final_best_pipeline.predict_proba(X_unknown)
+predicted_cuisines = le.inverse_transform(predicted_indices)
 predicted_confidences = predicted_proba.max(axis=1)
 
-unknown = unknown.copy()
-unknown['cuisine_predicted']    = predicted_cuisines
-unknown['prediction_confidence'] = predicted_confidences.round(3)
+unknown_docs['cuisine_restaurant_level'] = predicted_cuisines
+unknown_docs['restaurant_confidence'] = predicted_confidences.round(3)
+unknown_docs['cuisine_majority_vote'] = unknown_docs['cuisine_restaurant_level']
 
-LOW_CONFIDENCE_THRESHOLD = 0.30
-low_conf_count = (unknown['prediction_confidence'] < LOW_CONFIDENCE_THRESHOLD).sum()
-
-print(f"Predictions made: {len(unknown)}")
-print(f"Low-confidence (< {LOW_CONFIDENCE_THRESHOLD}): {low_conf_count} ({low_conf_count/len(unknown)*100:.1f}%)")
-print(f"Avg confidence: {predicted_confidences.mean():.3f}")
-print("\nPredicted cuisine distribution:")
-print(unknown['cuisine_predicted'].value_counts().to_string())
-
-# SAVE PREDICTED DISTRIBUTION
 df_pred_dist = (
-    unknown.groupby('cuisine_predicted')
+    unknown_docs.groupby('cuisine_restaurant_level')
     .agg(
-        predicted_count=('cuisine_predicted', 'count'),
-        avg_confidence=('prediction_confidence', 'mean'),
-        high_conf_count=('prediction_confidence', lambda x: (x >= 0.5).sum())
+        predicted_count=('restaurant_confidence', 'count'),
+        avg_confidence=('restaurant_confidence', 'mean'),
+        high_conf_count=('restaurant_confidence', lambda x: (x >= 0.5).sum())
     )
     .round(3)
     .sort_values('predicted_count', ascending=False)
     .reset_index()
-    .rename(columns={'cuisine_predicted': 'cuisine'})
+    .rename(columns={'cuisine_restaurant_level': 'cuisine'})
 )
 df_pred_dist.to_csv('ml_predicted_distribution.csv', index=False)
-print("\nSaved: ml_predicted_distribution.csv")
+print("Saved: ml_predicted_distribution.csv")
 
-# AGGREGATE TO RESTAURANT-LEVEL PREDICTIONS
-# A cuisine is a property of a restaurant, not a review. Individual reviews
-# are noisy. Averaging probability vectors across all of a restaurant's reviews
-# gives a much more stable prediction than voting one review at a time.
-print("\n" + "=" * 60)
-print("AGGREGATING TO RESTAURANT-LEVEL PREDICTIONS")
+restaurant_probs = unknown_docs.set_index('restaurant_id')
 
-# Attach per-review probability vectors back to the unknown dataframe
-unknown_with_probs = unknown.copy()
-for i, class_name in enumerate(le.classes_):
-    unknown_with_probs[f'prob_{class_name}'] = predicted_proba[:, i]
-
-# Group by restaurant,average the probability for each cuisine across its reviews
-prob_cols = [f'prob_{c}' for c in le.classes_]
-restaurant_probs = unknown_with_probs.groupby('restaurant_id')[prob_cols].mean()
-
-# Argmax over the averaged probabilities → one cuisine per restaurant
-restaurant_probs['cuisine_restaurant_level']  = restaurant_probs[prob_cols].idxmax(axis=1).str.replace('prob_', '', regex=False)
-restaurant_probs['restaurant_confidence']     = restaurant_probs[prob_cols].max(axis=1).round(3)
-restaurant_probs['n_reviews_for_prediction']  = unknown_with_probs.groupby('restaurant_id').size()
-
-# How often does per-review voting disagree with probability-averaging?
-# Per-review majority vote, for comparison
-per_review_majority = (
-    unknown_with_probs.groupby('restaurant_id')['cuisine_predicted']
-    .agg(lambda s: s.mode().iloc[0])
-)
-restaurant_probs['cuisine_majority_vote'] = per_review_majority
-
-disagreements = (
-    restaurant_probs['cuisine_restaurant_level'] != restaurant_probs['cuisine_majority_vote']
-).sum()
 print(f"Restaurants classified: {len(restaurant_probs)}")
 print(f"Avg reviews per restaurant: {restaurant_probs['n_reviews_for_prediction'].mean():.1f}")
 print(f"Avg restaurant-level confidence: {restaurant_probs['restaurant_confidence'].mean():.3f}")
-print(f"Probability-averaging disagrees with majority vote on: {disagreements} restaurants "
-      f"({disagreements/len(restaurant_probs)*100:.1f}%)")
 
-# Confidence distribution at restaurant level vs review level
 high_conf_restaurants = (restaurant_probs['restaurant_confidence'] >= 0.5).sum()
 print(f"Restaurants with high-confidence (≥0.5) prediction: "
       f"{high_conf_restaurants} ({high_conf_restaurants/len(restaurant_probs)*100:.1f}%)")
 
-# Save the restaurant-level output
 restaurant_output = restaurant_probs[[
     'cuisine_restaurant_level', 'restaurant_confidence',
     'n_reviews_for_prediction', 'cuisine_majority_vote'
@@ -680,25 +648,27 @@ restaurant_output = restaurant_probs[[
 restaurant_output.to_csv('ml_restaurant_level_predictions.csv', index=False)
 print("Saved: ml_restaurant_level_predictions.csv")
 
-# EVALUATE RESTAURANT-LEVEL F1 ON THE TEST SET
+# an unknown restaurant inherits its restaurant's predicted cuisine + confidence.
+rest_to_pred = dict(zip(unknown_docs['restaurant_id'], unknown_docs['cuisine_restaurant_level']))
+rest_to_conf = dict(zip(unknown_docs['restaurant_id'], unknown_docs['restaurant_confidence']))
+unknown = unknown.copy()
+unknown['cuisine_predicted'] = unknown['restaurant_id'].map(rest_to_pred)
+unknown['prediction_confidence']  = unknown['restaurant_id'].map(rest_to_conf)
+
+LOW_CONFIDENCE_THRESHOLD = 0.30
+low_conf_count = (unknown['prediction_confidence'] < LOW_CONFIDENCE_THRESHOLD).sum()
+print(f"\nPer-review predictions (inherited from restaurant): {len(unknown)}")
+print(f"Low-confidence (< {LOW_CONFIDENCE_THRESHOLD}): {low_conf_count} ({low_conf_count/len(unknown)*100:.1f}%)")
+
+#each test row IS a restaurant.
 print("RESTAURANT-LEVEL EVALUATION ON TEST SET")
 
-# Predict probabilities for the test set, aggregate the same way, evaluate
 test_proba = final_best_pipeline.predict_proba(X_test)
-test_df = pd.DataFrame({'restaurant_id': groups[test_idx], 'y_true': y_test})
-for i, class_name in enumerate(le.classes_):
-    test_df[f'prob_{class_name}'] = test_proba[:, i]
+test_pred = test_proba.argmax(axis=1)
 
-# Each test restaurant has one true cuisine (all its reviews share the same label)
-test_restaurant = test_df.groupby('restaurant_id').agg(
-    **{col: (col, 'mean') for col in prob_cols},
-    y_true=('y_true', 'first')
-)
-test_restaurant['y_pred'] = test_restaurant[prob_cols].values.argmax(axis=1)
-
-restaurant_acc = accuracy_score(test_restaurant['y_true'], test_restaurant['y_pred'])
+restaurant_acc = accuracy_score(y_test, test_pred)
 restaurant_report = classification_report(
-    test_restaurant['y_true'], test_restaurant['y_pred'],
+    y_test, test_pred,
     labels=np.arange(len(le.classes_)),
     target_names=le.classes_,
     output_dict=True,
@@ -706,15 +676,12 @@ restaurant_report = classification_report(
 )
 restaurant_f1 = restaurant_report['weighted avg']['f1-score']
 
-# Compare to review-level metrics
 review_acc = phase3_results[final_best_model_name]['accuracy']
-review_f1  = phase3_results[final_best_model_name]['report']['weighted avg']['f1-score']
+review_f1 = phase3_results[final_best_model_name]['report']['weighted avg']['f1-score']
 
-print(f"  {'Level':<20} {'Accuracy':>10} {'F1':>10}")
-print(f"  {'-'*42}")
-print(f"  {'Per-review':<20} {review_acc:>10.4f} {review_f1:>10.4f}")
-print(f"  {'Per-restaurant':<20} {restaurant_acc:>10.4f} {restaurant_f1:>10.4f}")
-print(f"  {'Improvement':<20} {restaurant_acc - review_acc:>+10.4f} {restaurant_f1 - review_f1:>+10.4f}")
+print(f"  Test accuracy (restaurant-level): {restaurant_acc:.4f}")
+print(f"  Test F1       (restaurant-level): {restaurant_f1:.4f}")
+print(f"  (review-level metrics are identical under this training scheme)")
 
 # Save restaurant-level per-class F1
 restaurant_per_class_f1 = {
@@ -731,9 +698,8 @@ pd.DataFrame([
 ]).to_csv('ml_restaurant_vs_review_f1.csv', index=False)
 print("Saved: ml_restaurant_vs_review_f1.csv")
 
-# BUILD ENRICHED MASTER REVIEWS FILE
-# Use RESTAURANT-LEVEL predictions — all reviews of the same restaurant
-# get the same cuisine label, which is how cuisine actually works.
+test_restaurant = pd.DataFrame({'y_true': y_test, 'y_pred': test_pred}, index=test_ids)
+
 known_out = known.copy()
 known_out['cuisine_source'] = 'original'
 known_out['prediction_confidence'] = np.nan
@@ -749,7 +715,6 @@ unknown_out['prediction_confidence'] = unknown_out['restaurant_id'].map(
     lambda rid: restaurant_lookup.get(rid, {}).get('restaurant_confidence', np.nan)
 )
 unknown_out['cuisine_source'] = 'predicted'
-# Keep the per-review prediction too, for transparency / debugging — different column
 unknown_out = unknown_out.rename(columns={'cuisine_predicted': 'cuisine_predicted_per_review'})
 
 master_enriched = pd.concat([known_out, unknown_out], ignore_index=True)
@@ -757,7 +722,27 @@ master_enriched.to_csv('master_reviews_enriched.csv', index=False)
 print(f"Saved: master_reviews_enriched.csv")
 print(f"  ({len(known_out)} original + {len(unknown_out)} predicted = {len(master_enriched)} total)")
 
-# Sanity check: every restaurant in the enriched file should have exactly ONE cuisine
+# RESTAURANT-LEVEL ENRICHED FILE: one row per restaurant
+restaurants_enriched = (
+    master_enriched
+    .groupby('restaurant_id')
+    .agg(
+        restaurant_name=('restaurant_name', 'first'),
+        area=('area', 'first'),
+        cuisine_primary=('cuisine_primary', 'first'),
+        price_category=('price_category', 'first'),
+        cuisine_source=('cuisine_source', 'first'),
+        prediction_confidence=('prediction_confidence', 'first'),
+        n_reviews=('review_id', 'count'),
+        avg_rating=('rating', 'mean'),
+    )
+    .reset_index()
+)
+restaurants_enriched['avg_rating'] = restaurants_enriched['avg_rating'].round(2)
+restaurants_enriched.to_csv('master_restaurants_enriched.csv', index=False)
+print(f"Saved: master_restaurants_enriched.csv ({len(restaurants_enriched)} restaurants)")
+
+#every restaurant in the enriched file should have exactly ONE cuisine
 cuisines_per_restaurant = master_enriched.groupby('restaurant_id')['cuisine_primary'].nunique()
 multi_cuisine_restaurants = (cuisines_per_restaurant > 1).sum()
 print(f"Restaurants with multiple cuisine labels: {multi_cuisine_restaurants} (should be 0)")
@@ -795,9 +780,9 @@ confusion_pairs = sorted(confusion_pairs, key=lambda x: x['rate'], reverse=True)
 
 summary = {
     # Data stats
-    'total_reviews_loaded':      int(len(reviews)),
-    'known_cuisine_reviews':     int(len(known)),
-    'unknown_cuisine_reviews':   int(len(unknown)),
+    'total_reviews_loaded': int(len(reviews)),
+    'known_cuisine_reviews': int(len(known)),
+    'unknown_cuisine_reviews': int(len(unknown)),
 
     # Phase 1 — model comparison (no balancing)
     'phase1_models': {
@@ -846,20 +831,17 @@ summary = {
                               for k, v in grid_search.best_params_.items()},
     },
     
-    # Restaurant-level evaluation — the metric that actually matters
     'restaurant_level': {
-        'n_restaurants_in_test': int(len(test_restaurant)),
-        'n_restaurants_predicted':int(len(restaurant_probs)),
-        'accuracy_review_level':round(review_acc, 4),
-        'accuracy_restaurant_level':round(restaurant_acc, 4),
-        'f1_review_level': round(review_f1, 4),
-        'f1_restaurant_level':round(restaurant_f1, 4),
-        'improvement_f1': round(restaurant_f1 - review_f1, 4),
-        'avg_confidence':  round(float(restaurant_probs['restaurant_confidence'].mean()), 3),
-        'high_confidence_pct': round(high_conf_restaurants/len(restaurant_probs)*100, 1),
-        'per_class_f1':  restaurant_per_class_f1,
-    },
-
+    'n_restaurants_in_test': int(len(test_restaurant)),
+    'n_restaurants_predicted': int(len(restaurant_probs)),
+    'accuracy_restaurant_level': round(restaurant_acc, 4),
+    'f1_restaurant_level': round(restaurant_f1, 4),
+    'avg_confidence': round(float(restaurant_probs['restaurant_confidence'].mean()), 3),
+    'high_confidence_pct': round(high_conf_restaurants/len(restaurant_probs)*100, 1),
+    'per_class_f1': restaurant_per_class_f1,
+    'training_scheme': 'restaurant-level',
+    'note': 'Training and evaluation are both done at the restaurant level — reviews of the same restaurant are concatenated into one document. Per-review metrics are not separately reported because they would be identical to restaurant-level metrics under this scheme.',
+},
     # Confusion matrix
     'confusion_matrix_note': f'Top 10 cuisines only (out of {len(le.classes_)} total classes)',
     'top_confusion_pairs': confusion_pairs,

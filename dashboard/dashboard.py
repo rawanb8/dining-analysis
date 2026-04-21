@@ -61,7 +61,7 @@ for col in feature_cols:
 
 # HEADER
 
-st.title("Lebasese Restaurant Analysis Dashboard")
+st.title("Lebanese Restaurant Analysis Dashboard")
 st.write("COSC 482 - Data Science Project | Interactive exploration of Lebanese restaurants")
 st.write("---")
 
@@ -75,7 +75,7 @@ selected_section = option_menu(
     default_index=0,
     styles={
         "container": {"padding": "0", "margin": "0 0 1rem 0"},
-        "nav-link-selected": {"background-color": "#3ad1e5"},
+        "nav-link-selected": {"background-color": "#3ecda6"},
     }
 )
 
@@ -93,11 +93,11 @@ if selected_section == "Search & Filter":
     search_name = st.sidebar.text_input(" Search by Name:").strip().lower()
     
     # Cuisine filter
-    cuisine_options = ["All Cuisines"] + sorted(df_restaurants['cuisine_primary'].unique().tolist())
+    cuisine_options = ["All Cuisines"] + sorted(df_restaurants['cuisine_primary'].dropna().astype(str).unique().tolist())
     selected_cuisine = st.sidebar.selectbox(" Cuisine Type:", cuisine_options)
     
     # Area filter
-    area_options = ["All Areas"] + sorted(df_restaurants['area'].unique().tolist())
+    area_options = ["All Areas"] + sorted(df_restaurants['area'].dropna().astype(str).unique().tolist())
     selected_area = st.sidebar.selectbox(" Area:", area_options)
     
     # Price filter
@@ -178,36 +178,6 @@ if selected_section == "Search & Filter":
         filtered_df = filtered_df[filtered_df['pet_friendly'] == '✓']
     if filter_kids:
         filtered_df = filtered_df[filtered_df['kids_friendly'] == '✓']
-    # Apply filters
-    filtered_df = df_display.copy()
-    
-    if search_name:
-        filtered_df = filtered_df[filtered_df['name'].str.lower().str.contains(search_name, na=False)]
-    
-    if selected_cuisine != "All Cuisines":
-        filtered_df = filtered_df[filtered_df['cuisine_primary'] == selected_cuisine]
-    
-    if selected_area != "All Areas":
-        filtered_df = filtered_df[filtered_df['area'] == selected_area]
-    
-    if selected_price != "All Prices":
-        filtered_df = filtered_df[filtered_df['price_category'] == selected_price]
-    
-    if min_rating > 0:
-        filtered_df = filtered_df[filtered_df['rating_overall'] >= min_rating]
-    
-    if filter_delivery:
-        filtered_df = filtered_df[filtered_df['delivery_available'] == '✓']
-    if filter_outdoor:
-        filtered_df = filtered_df[filtered_df['outdoor_seating'] == '✓']
-    if filter_parking:
-        filtered_df = filtered_df[filtered_df['parking_available'] == '✓']
-    if filter_wifi:
-        filtered_df = filtered_df[filtered_df['wifi_available'] == '✓']
-    if filter_music:
-        filtered_df = filtered_df[filtered_df['live_music'] == '✓']
-    if filter_kids:
-        filtered_df = filtered_df[filtered_df['kids_friendly'] == '✓']
     
     # Display results
     st.subheader(f":material/table_rows: Showing {len(filtered_df)} of {len(df_display)} restaurants")
@@ -244,7 +214,7 @@ if selected_section == "Search & Filter":
     st.dataframe(top_rated, use_container_width=True)
     
     # Expandable full dataset
-    with st.expander(f"📋 Click to view full filtered dataset ({len(filtered_df)} records)"):
+    with st.expander(f" Click to view full filtered dataset ({len(filtered_df)} records)"):
         st.dataframe(filtered_df, use_container_width=True)
 
 # SECTION 2: GENERAL ANALYSIS 
@@ -324,8 +294,8 @@ elif selected_section == "EDA":
     if df_eda.empty:
         st.warning("No restaurants match the selected filters.")
     else:
-        # 1️⃣ Cuisine Distribution
-        st.subheader("1️⃣ Cuisine Distribution (Top 10 — Excluding Unknown)")
+        #  Cuisine Distribution
+        st.subheader(" Cuisine Distribution (Top 10 — Excluding Unknown)")
 
         if eda_cuisine != "All Cuisines":
             st.info(f"Showing only **{eda_cuisine}** restaurants — cuisine distribution not applicable.")
@@ -353,8 +323,8 @@ elif selected_section == "EDA":
                 fig1.update_layout(xaxis_tickangle=-45)
                 st.plotly_chart(fig1, use_container_width=True)
 
-        # 2️⃣ Rating Distribution
-        st.subheader("2️⃣ Rating Distribution")
+        # Rating Distribution
+        st.subheader(" Rating Distribution")
         rating_series = pd.to_numeric(df_eda["rating_overall"], errors="coerce").dropna()
 
         if rating_series.empty:
@@ -370,8 +340,8 @@ elif selected_section == "EDA":
             )
             st.plotly_chart(fig2, use_container_width=True)
 
-        # 3️⃣ Price Category
-        st.subheader("3️⃣ Price Category Breakdown (Excluding Unknown)")
+        # Price Category
+        st.subheader(" Price Category Breakdown (Excluding Unknown)")
         price_counts = df_eda[df_eda["price_category"] != "Unknown"]["price_category"].value_counts()
         unknown_price_count = (df_eda["price_category"] == "Unknown").sum()
 
@@ -387,7 +357,7 @@ elif selected_section == "EDA":
 
         st.write("---")
 
-        st.subheader("💰 Price vs Rating")
+        st.subheader(" Price vs Rating")
 
         price_rating_df = df_eda.copy()
         price_rating_df["rating_overall"] = pd.to_numeric(price_rating_df["rating_overall"], errors="coerce")
@@ -412,7 +382,7 @@ elif selected_section == "EDA":
             st.plotly_chart(fig, use_container_width=True)
 
         st.write("---")
-        st.subheader("🏆 Top Rated Restaurants")
+        st.subheader(" Top Rated Restaurants")
 
         top_rated_clean = df_eda.copy()
         top_rated_clean["rating_overall"] = pd.to_numeric(top_rated_clean["rating_overall"], errors="coerce")
@@ -429,7 +399,7 @@ elif selected_section == "EDA":
 
         st.write("---")
 
-        st.subheader("⚠️ Lowest Rated Restaurants")
+        st.subheader(" Lowest Rated Restaurants")
 
         worst_rated_clean = df_eda.copy()
         worst_rated_clean["rating_overall"] = pd.to_numeric(worst_rated_clean["rating_overall"], errors="coerce")
@@ -445,8 +415,8 @@ elif selected_section == "EDA":
             st.dataframe(worst_rated, use_container_width=True)
 
         st.write("---")
-        # 4️⃣ Restaurants by Area
-        st.subheader("4️⃣ Restaurants by Area (Top 10 — Excluding Unknown)")
+        #  Restaurants by Area
+        st.subheader(" Restaurants by Area (Top 10 — Excluding Unknown)")
         area_counts = df_eda[df_eda["area"] != "Unknown"]["area"].value_counts().head(10)
         unknown_area_count = (df_eda["area"] == "Unknown").sum()
 
@@ -463,8 +433,8 @@ elif selected_section == "EDA":
 
         st.write("---")
 
-        # 5️⃣ Review Count Distribution
-        st.subheader("5️⃣ Review Count Distribution")
+        # Review Count Distribution
+        st.subheader(" Review Count Distribution")
         if len(df_eda):
             fig5 = px.histogram(df_eda, x="review_count_total", nbins=30,
                                 title="Distribution of Review Counts",
@@ -474,8 +444,8 @@ elif selected_section == "EDA":
 
         st.write("---")
 
-        # 6️⃣ Top 10 Most Reviewed
-        st.subheader("6️⃣ Top 10 Most Reviewed Restaurants")
+        # Top 10 Most Reviewed
+        st.subheader(" Top 10 Most Reviewed Restaurants")
         if len(df_eda):
             top_reviewed = df_eda.nlargest(10, "review_count_total")[
                 ["name", "review_count_total", "rating_overall", "area", "cuisine_primary", "price_category"]
@@ -485,8 +455,8 @@ elif selected_section == "EDA":
 
         st.write("---")
 
-        # 7️⃣ Rating vs Review Count
-        st.subheader("📈 Rating vs Review Count")
+        # Rating vs Review Count
+        st.subheader(" Rating vs Review Count")
 
         # Clean data
         scatter_df = df_eda.copy()
@@ -516,7 +486,7 @@ elif selected_section == "EDA":
             fig.update_xaxes(type="log")  # optional but nice
             st.plotly_chart(fig, use_container_width=True)
 
-        # 8️⃣ Hidden Gems
+        #  Hidden Gems
         st.subheader(":material/diamond: Hidden Gems (Rating ≥ 4.5, Reviews < 50)")
         hidden = df_eda[
             (df_eda["rating_overall"] >= 4.5) & (df_eda["review_count_total"] < 50)
@@ -528,7 +498,7 @@ elif selected_section == "EDA":
 
         st.write("---")
 
-        # 9️⃣ Density vs Quality by Area
+        # Density vs Quality by Area
         st.subheader(":material/bubble_chart: Density vs Quality by Area")
 
         df_geo_eda = df_eda[df_eda["area"] != "Unknown"].copy()
@@ -568,7 +538,7 @@ elif selected_section == "EDA":
                 fig_bubble.update_traces(textposition="top center")
                 st.plotly_chart(fig_bubble, use_container_width=True)
 
-        # 🏆 Best Areas Combined Score
+        # Best Areas Combined Score
         st.subheader(":material/emoji_events: Best Areas Overall (Combined Score)")
         if area_stats.empty:
             st.info("No area data available for the selected filters.")
@@ -597,8 +567,6 @@ elif selected_section == "EDA":
 
 # SECTION 3: FEATURE ANALYSIS
 
-# SECTION 3: FEATURE ANALYSIS
-
 elif selected_section == "Feature Analysis":
     st.header(":material/auto_awesome: Feature Analysis")
     st.write("Analysis of 12 features extracted from restaurant descriptions and reviews")
@@ -607,8 +575,8 @@ elif selected_section == "Feature Analysis":
     st.sidebar.subheader("Feature Analysis Filters")
     
     # Get unique values for filters
-    all_cuisines = sorted([c for c in df_restaurants['cuisine_primary'].unique() if c != 'Unknown'])
-    all_areas = sorted([a for a in df_restaurants['area'].unique() if a != 'Unknown'])
+    all_cuisines = sorted([str(c) for c in df_restaurants['cuisine_primary'].dropna().unique() if c != 'Unknown'])
+    all_areas = sorted([str(a) for a in df_restaurants['area'].dropna().unique() if a != 'Unknown'])
     all_prices = ['Budget', 'Mid-Range', 'High-End']
     
     filter_cuisine = st.sidebar.multiselect("Filter by Cuisine:", all_cuisines, key="feat_cuisine")
@@ -667,7 +635,7 @@ elif selected_section == "Feature Analysis":
     
     st.write("---")
     
-    # ── RATING HISTOGRAM ─────────────────────────────────────────
+    # RATING HISTOGRAM 
     st.subheader(":material/bar_chart: Rating Distribution")
     
     if len(df_feat) > 0:
@@ -727,7 +695,7 @@ elif selected_section == "Feature Analysis":
     st.write("---")
     
     # Chart 1: Feature Availability
-    st.subheader("1️⃣ Feature Availability Overview")
+    st.subheader("1. Feature Availability Overview")
     
     feature_names = list(feature_stats.keys())
     feature_counts = [feature_stats[f]['count'] for f in feature_names]
@@ -750,7 +718,7 @@ elif selected_section == "Feature Analysis":
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("2️⃣ Features by Top Areas")
+        st.subheader("2. Features by Top Areas")
         
         # Get top 10 areas
         top_areas = df_feat['area'].value_counts().head(10).index.tolist()
@@ -784,7 +752,7 @@ elif selected_section == "Feature Analysis":
         st.plotly_chart(fig2, use_container_width=True)
         
     with col2:
-        st.subheader("3️⃣ Features by Cuisine")
+        st.subheader("3. Features by Cuisine")
         
         # Get top 8 cuisines (excluding Unknown)
         top_cuisines = df_feat[df_feat['cuisine_primary'] != 'Unknown']['cuisine_primary'].value_counts().head(8).index.tolist()
@@ -820,7 +788,7 @@ elif selected_section == "Feature Analysis":
     st.write("---")
     
     # Chart 4: Features by Price
-    st.subheader("4️⃣ Features by Price Category")
+    st.subheader("4. Features by Price Category")
     
     price_categories = ['Budget', 'Mid-Range', 'High-End']
     price_feature_data = []
@@ -862,7 +830,7 @@ elif selected_section == "Feature Analysis":
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("5️⃣ Average Star Distribution")
+        st.subheader("5. Average Star Distribution")
         
         star_averages = [
             df_feat['star_5_percent'].mean(),
@@ -892,7 +860,7 @@ elif selected_section == "Feature Analysis":
         st.plotly_chart(fig5, use_container_width=True)
     
     with col2:
-        st.subheader("6️⃣ Star Distribution by Price")
+        st.subheader("6️. Star Distribution by Price")
         
         # Calculate star distribution by price
         price_star_data = []
@@ -934,7 +902,7 @@ elif selected_section == "Feature Analysis":
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("7️⃣ Data Completeness by Source")
+        st.subheader("7️. Data Completeness by Source")
         
         # Calculate completeness for each source
         sources = ['source1', 'source2', 'source3']
@@ -988,7 +956,7 @@ elif selected_section == "Feature Analysis":
         st.plotly_chart(fig7, use_container_width=True)
         
     with col2:
-        st.subheader("8️⃣ Feature Detection by Source")
+        st.subheader("8️. Feature Detection by Source")
         
         # Calculate feature detection for each source
         source_feature_data = []
@@ -1026,7 +994,7 @@ elif selected_section == "Feature Analysis":
     st.write("---")
     
     # Chart 9: Feature Correlation Heatmap
-    st.subheader("9️⃣ Feature Correlation Heatmap")
+    st.subheader("9️. Feature Correlation Heatmap")
     
     # Create binary matrix for features
     feature_matrix = df_feat[feature_cols].map(lambda x: 1 if x == 'TRUE' else 0)
@@ -1173,7 +1141,7 @@ elif selected_section == "Feature Analysis":
             map_density.update_layout(mapbox_style="open-street-map")
             st.plotly_chart(map_density, use_container_width=True)
             
-            st.info(f"📊 {len(geocoded_restaurants)} of {len(df_feat)} restaurants geocoded")
+            st.info(f" {len(geocoded_restaurants)} of {len(df_feat)} restaurants geocoded")
         st.write("---")
     
     # Feature Insights
@@ -1207,6 +1175,7 @@ elif selected_section == "Feature Analysis":
                 completeness = (source_df['phone'].notna().sum() + 
                               (source_df['cuisine_primary'] != 'Unknown').sum()) / (2 * len(source_df)) * 100
                 st.write(f"- {source_labels[i]}: {completeness:.0f}% complete")
+                
 # SECTION 4: ML INSIGHTS 
 
 elif selected_section == "ML Insights":
@@ -1262,8 +1231,12 @@ elif selected_section == "ML Insights":
         st.caption(f" Current dataset: {current_total:,} reviews | ML model trained on: {ml_summary['total_reviews_loaded']:,} reviews")
 
         # ── SECTION 2: PHASE 1 — MODEL COMPARISON (NO BALANCING) ─────
-        st.subheader(":material/emoji_events: Phase 1 — Model Comparison (No Balancing)")
-        st.caption("All three models trained on a 80/20 split with no balancing. Best model selected by weighted F1.")
+        st.subheader(":material/emoji_events: Phase 1 Model Comparison (No Balancing)")
+        st.caption(
+            "All three models trained on an 80/20 split with no balancing. Best model selected by weighted F1. "
+            "Note: Phase 1 rewards models that exploit class imbalance, the winner here is not necessarily "
+            "the winner after balancing is applied."
+            )
 
         col_left, col_right = st.columns([1, 1])
 
@@ -1297,22 +1270,27 @@ elif selected_section == "ML Insights":
 
         with col_right:
             display_p1 = df_model_comparison[['model', 'test_accuracy', 'weighted_f1', 'weighted_precision', 'weighted_recall', 'overfit_gap', 'is_best']].copy()
-            display_p1.columns = ['Model', 'Accuracy', 'Weighted F1', 'Precision', 'Recall', 'Overfit Gap', 'Best']
-            display_p1['Accuracy'] = (display_p1['Accuracy'] * 100).round(1).astype(str) + '%'
-            display_p1['Weighted F1']= (display_p1['Weighted F1'] * 100).round(1).astype(str) + '%'
-            display_p1['Precision'] = (display_p1['Precision'] * 100).round(1).astype(str) + '%'
-            display_p1['Recall'] = (display_p1['Recall'] * 100).round(1).astype(str) + '%'
-            display_p1['Overfit Gap'] = display_p1['Overfit Gap'].apply(lambda x: f"{x:+.3f}")
-            display_p1['Best'] = display_p1['Best'].apply(lambda x: '✅' if x else '')
-            st.dataframe(display_p1, use_container_width=True, hide_index=True)
+            display_p1['test_accuracy'] = (display_p1['test_accuracy'] * 100).round(1).astype(str) + '%'
+            display_p1['weighted_f1'] = (display_p1['weighted_f1'] * 100).round(1).astype(str) + '%'
+            display_p1['weighted_precision'] = (display_p1['weighted_precision'] * 100).round(1).astype(str) + '%'
+            display_p1['weighted_recall'] = (display_p1['weighted_recall'] * 100).round(1).astype(str) + '%'
+            display_p1['overfit_gap'] = display_p1['overfit_gap'].apply(lambda x: f"{x:+.3f}")
+            best_mask = display_p1['is_best']
+            display_p1 = display_p1.drop(columns=['is_best'])
+            display_p1.columns = ['Model', 'Accuracy', 'Weighted F1', 'Precision', 'Recall', 'Overfit Gap']
+            styled_p1 = display_p1.style.apply(
+                lambda row: ['background-color: #1a3a1a; font-weight: bold; color: #2ecc71' if best_mask.iloc[row.name] else '' for _ in row],
+                axis=1
+            )
+            st.dataframe(styled_p1, use_container_width=True, hide_index=True)
             st.caption("**Overfit Gap** = train accuracy − test accuracy. Values near 0 mean the model generalises well; large positive values mean it memorised training data.")
             st.info(f"**Phase 1 winner: {ml_summary['phase1_best_model']}** — carried forward to balancing comparison.")
 
         st.write("---")
 
         # ── SECTION 3: PHASE 2 — BALANCING STRATEGY COMPARISON ───────
-        st.subheader(":material/balance: Phase 2 — Balancing Strategy Comparison")
-        st.caption(f"The Phase 1 winner ({ml_summary['phase1_best_model']}) was tested with 3 balancing strategies using 5-Fold Stratified Cross-Validation.")
+        st.subheader(":material/balance: Phase 2 Balancing Strategy Comparison")
+        st.caption(f"The Phase 1 winner ({ml_summary['phase1_best_model']}) was tested with 2 balancing strategies using 5-Fold Stratified Cross-Validation.")
 
         col_bal_l, col_bal_r = st.columns([1, 1])
 
@@ -1337,11 +1315,16 @@ elif selected_section == "ML Insights":
 
         with col_bal_r:
             display_bal = df_balancing.copy()
-            display_bal.columns = ['Strategy', 'Mean F1', 'Std F1', 'Best']
-            display_bal['Mean F1'] = (display_bal['Mean F1'] * 100).round(2).astype(str) + '%'
-            display_bal['Std F1']  = (display_bal['Std F1'] * 100).round(2).astype(str) + '%'
-            display_bal['Best']    = display_bal['Best'].apply(lambda x: '✅' if x else '')
-            st.dataframe(display_bal, use_container_width=True, hide_index=True)
+            best_mask_bal = display_bal['is_best']
+            display_bal['mean_f1'] = (display_bal['mean_f1'] * 100).round(2).astype(str) + '%'
+            display_bal['std_f1']  = (display_bal['std_f1'] * 100).round(2).astype(str) + '%'
+            display_bal = display_bal.drop(columns=['is_best'])
+            display_bal.columns = ['Strategy', 'Mean F1', 'Std F1']
+            styled_bal = display_bal.style.apply(
+                lambda row: ['background-color: #1a3a1a; font-weight: bold; color: #2ecc71' if best_mask_bal.iloc[row.name] else '' for _ in row],
+                axis=1
+            )
+            st.dataframe(styled_bal, use_container_width=True, hide_index=True)
 
             st.success(f"**Best strategy: {ml_summary['phase2_best_strategy']}** — applied to all 3 models in Phase 3.")
 
@@ -1349,16 +1332,15 @@ elif selected_section == "ML Insights":
             st.markdown(
                 "- **Baseline** — no balancing, model is biased toward Lebanese (dominant class)\n"
                 "- **Class Weights** — penalises mistakes on minority classes more during training\n"
-                "- **SMOTE** — generates synthetic samples for minority classes to even out the distribution"
             )
 
         # Per-fold breakdown — the actual StratifiedGroupKFold output
         st.markdown("##### Per-Fold Cross-Validation Scores")
         st.caption(
-            "Each strategy is evaluated on 5 different train/test splits (folds). StratifiedGroupKFold "
-            "keeps class balance across folds AND ensures no restaurant appears in more than one fold. "
-            "Tight clusters mean the strategy is stable; wide spreads mean it's sensitive to which "
-            "restaurants end up where."
+            "Each strategy is evaluated on 5 different train/test splits (folds). StratifiedKFold "
+            "preserves the class distribution in each fold. Because each row is already one restaurant, "
+            "there's no risk of review-level leakage. Tight clusters mean the strategy is stable; wide "
+            "spreads mean it's sensitive to which restaurants end up where."
         )
 
         col_cv_l, col_cv_r = st.columns([1.4, 1])
@@ -1371,7 +1353,7 @@ elif selected_section == "ML Insights":
                 fig_cv.add_trace(go.Box(
                     y=strategy_scores,
                     name=strategy,
-                    boxpoints='all',       # show every fold as a dot
+                    boxpoints='all', # show every fold as a dot
                     jitter=0.3,
                     pointpos=0,
                     marker=dict(size=10, opacity=0.8),
@@ -1382,8 +1364,7 @@ elif selected_section == "ML Insights":
                 yaxis=dict(title='Weighted F1', range=[0, max(df_cv_folds['f1_score']) * 1.15]),
                 xaxis_title='Balancing Strategy',
                 showlegend=False,
-                height=420
-            )
+                height=420)
             st.plotly_chart(fig_cv, use_container_width=True)
 
         with col_cv_r:
@@ -1395,32 +1376,32 @@ elif selected_section == "ML Insights":
 
             # Quick reading
             best_strat = ml_summary['phase2_best_strategy']
-            best_mean  = ml_summary['phase2_balancing_strategies'][best_strat]['mean_f1']
-            best_std   = ml_summary['phase2_balancing_strategies'][best_strat]['std_f1']
+            best_mean = ml_summary['phase2_balancing_strategies'][best_strat]['mean_f1']
+            best_std = ml_summary['phase2_balancing_strategies'][best_strat]['std_f1']
             st.info(
                 f"**{best_strat}** had the best mean F1 ({best_mean:.4f}) "
                 f"with a std of {best_std:.4f} across the 5 folds — "
                 f"this is the variance you'd expect on new unseen restaurants."
             )
 
-        with st.expander("What is StratifiedGroupKFold and why 5 folds?"):
+        with st.expander("What is StratifiedKFold and why 5 folds?"):
             st.markdown(
                 "**Cross-validation** trains and tests a model on several different train/test splits "
                 "so you're not trusting a single lucky or unlucky split. You get N scores and take their mean.\n\n"
                 "**Stratified** means each fold preserves the same class distribution as the full dataset — "
-                "if 40% of reviews are Levantine, each fold is also ~40% Levantine. Without stratification, "
-                "a rare class could land entirely in one fold and be untestable in the others.\n\n"
-                "**Group** means reviews from the same restaurant stay in the same fold. Without this, "
-                "the same restaurant's reviews could appear in both train and test, which leaks information "
-                "and inflates scores.\n\n"
+                "if 35% of restaurants are Levantine, each fold is also ~35% Levantine. Without stratification, "
+                "a rare class like Jewish (38 restaurants) could land entirely in one fold and be untestable in the others.\n\n"
+                "We don't need **grouped** splits here because our training unit is already the restaurant — "
+                "each row in X is one restaurant's concatenated reviews. Review-level leakage across folds "
+                "is impossible by construction.\n\n"
                 "**5 folds** is the standard tradeoff — more folds give tighter mean estimates but take "
                 "5× longer to run. With 5 folds, each restaurant is used for training 4 times and testing once."
-            )
+    )
 
         st.write("---")
 
-        # ── SECTION 4: PHASE 3 — FINAL MODEL COMPARISON (WITH BALANCING) ──
-        st.subheader(":material/military_tech: Phase 3 — Final Model Comparison (With Balancing)")
+        # SECTION 4: PHASE 3 FINAL MODEL COMPARISON (WITH BALANCING) 
+        st.subheader(":material/military_tech: Phase 3 Final Model Comparison (With Balancing)")
         st.caption(f"All 3 models retrained using the best balancing strategy: **{ml_summary['phase2_best_strategy']}**")
 
         col_fin_l, col_fin_r = st.columns([1, 1])
@@ -1431,7 +1412,7 @@ elif selected_section == "ML Insights":
                 name='Accuracy',
                 x=df_final_comparison['model'],
                 y=(df_final_comparison['test_accuracy'] * 100).round(1),
-                marker_color='#9b59b6',
+                marker_color='#3498db',
                 text=(df_final_comparison['test_accuracy'] * 100).round(1).astype(str) + '%',
                 textposition='outside'
             ))
@@ -1439,30 +1420,32 @@ elif selected_section == "ML Insights":
                 name='Weighted F1',
                 x=df_final_comparison['model'],
                 y=(df_final_comparison['weighted_f1'] * 100).round(1),
-                marker_color='#e67e22',
+                marker_color='#2ecc71',
                 text=(df_final_comparison['weighted_f1'] * 100).round(1).astype(str) + '%',
-                textposition='outside'
-            ))
+                textposition='outside'))
             fig_final.update_layout(
                 barmode='group',
                 title=f'Accuracy vs Weighted F1 — With {ml_summary["phase2_best_strategy"]}',
                 yaxis=dict(title='Score (%)', range=[0, 100]),
                 xaxis_title='Model',
                 legend=dict(orientation='h', yanchor='bottom', y=1.02),
-                height=400
-            )
+                height=400)
             st.plotly_chart(fig_final, use_container_width=True)
 
         with col_fin_r:
             display_fin = df_final_comparison[['model', 'test_accuracy', 'weighted_f1', 'weighted_precision', 'weighted_recall', 'overfit_gap', 'is_best']].copy()
-            display_fin.columns = ['Model', 'Accuracy', 'Weighted F1', 'Precision', 'Recall', 'Overfit Gap', 'Best']
-            display_fin['Accuracy'] = (display_fin['Accuracy'] * 100).round(1).astype(str) + '%'
-            display_fin['Weighted F1'] = (display_fin['Weighted F1'] * 100).round(1).astype(str) + '%'
-            display_fin['Precision'] = (display_fin['Precision'] * 100).round(1).astype(str) + '%'
-            display_fin['Recall']  = (display_fin['Recall'] * 100).round(1).astype(str) + '%'
-            display_fin['Overfit Gap'] = display_fin['Overfit Gap'].apply(lambda x: f"{x:+.3f}")
-            display_fin['Best'] = display_fin['Best'].apply(lambda x: '✅' if x else '')
-            st.dataframe(display_fin, use_container_width=True, hide_index=True)
+            best_mask_fin = display_fin['is_best']
+            display_fin['test_accuracy'] = (display_fin['test_accuracy'] * 100).round(1).astype(str) + '%'
+            display_fin['weighted_f1'] = (display_fin['weighted_f1'] * 100).round(1).astype(str) + '%'
+            display_fin['weighted_precision'] = (display_fin['weighted_precision'] * 100).round(1).astype(str) + '%'
+            display_fin['weighted_recall'] = (display_fin['weighted_recall'] * 100).round(1).astype(str) + '%'
+            display_fin['overfit_gap'] = display_fin['overfit_gap'].apply(lambda x: f"{x:+.3f}")
+            display_fin = display_fin.drop(columns=['is_best'])
+            display_fin.columns = ['Model', 'Accuracy', 'Weighted F1', 'Precision', 'Recall', 'Overfit Gap']
+            styled_fin = display_fin.style.apply(
+                lambda row: ['background-color: #1a3a1a; font-weight: bold; color: #2ecc71' if best_mask_fin.iloc[row.name] else '' for _ in row],
+                axis=1)
+            st.dataframe(styled_fin, use_container_width=True, hide_index=True)
             st.success(f"**Final best model: {ml_summary['phase3_best_model']}** — used for all predictions.")
 
         st.write("---")
@@ -1470,7 +1453,7 @@ elif selected_section == "ML Insights":
         
 
         # ── SECTION 5: PHASE 4 — BEFORE vs AFTER 
-        st.subheader(":material/compare_arrows: Phase 4 — Before vs After Balancing")
+        st.subheader(":material/compare_arrows: Phase 4 Before vs After Balancing")
         st.caption(f"Same model ({ml_summary['before_after']['model']}), with and without the best balancing strategy.")
 
         # Per-class before vs after bar chart
@@ -1554,7 +1537,7 @@ elif selected_section == "ML Insights":
 
         if tba['tuning_improved']:
             st.success(
-                f"✅ Tuning improved held-out F1 by {tba['f1_tuned']-tba['f1_untuned']:+.4f}. "
+                f"Tuning improved held-out F1 by {tba['f1_tuned']-tba['f1_untuned']:+.4f}. "
                 "The tuned model was kept as final."
             )
         else:
@@ -1572,14 +1555,14 @@ elif selected_section == "ML Insights":
             y=df_t_sorted['cuisine'],
             x=df_t_sorted['f1_untuned'],
             orientation='h',
-            marker_color='#95a5a6'
+            marker_color='#e74c3c'
         ))
         fig_tuning.add_trace(go.Bar(
             name='Tuned',
             y=df_t_sorted['cuisine'],
             x=df_t_sorted['f1_tuned'],
             orientation='h',
-            marker_color='#8e44ad'
+            marker_color='#2ecc71'
         ))
         fig_tuning.update_layout(
             barmode='group',
@@ -1662,162 +1645,123 @@ elif selected_section == "ML Insights":
 
         st.write("---")
         
-        # ── SECTION 4.5: PIPELINE IMPROVEMENT BREAKDOWN ──────────────
+        # SECTION 4.5: PIPELINE IMPROVEMENT BREAKDOWN 
         st.subheader(":material/timeline: Pipeline Improvement Breakdown")
-        st.caption(
-            "This shows exactly where each F1 improvement came from. Each row builds on the previous one, "
-            "so you can see which pipeline step actually moved the needle on this dataset."
-        )
 
-        # Pull the numbers from the summary
-        phase1_f1    = ml_summary['phase1_models'][ml_summary['phase1_best_model']]['weighted_f1']
-        phase1_acc   = ml_summary['phase1_models'][ml_summary['phase1_best_model']]['accuracy']
-        tba          = ml_summary['tuning_before_after']
-        rl           = ml_summary['restaurant_level']
-        untuned_f1   = tba['f1_untuned']
-        untuned_acc  = tba['accuracy_untuned']
-        tuned_f1     = tba['f1_tuned']
-        tuned_acc    = tba['accuracy_tuned']
-        rest_f1      = rl['f1_restaurant_level']
-        rest_acc     = rl['accuracy_restaurant_level']
+        phase1_f1 = ml_summary['phase1_models'][ml_summary['phase1_best_model']]['weighted_f1']
+        phase1_acc = ml_summary['phase1_models'][ml_summary['phase1_best_model']]['accuracy']
+        tba = ml_summary['tuning_before_after']
+        untuned_f1 = tba['f1_untuned']
+        untuned_acc = tba['accuracy_untuned']
+        tuned_f1 = tba['f1_tuned']
+        tuned_acc = tba['accuracy_tuned']
 
-        # Did balancing help? (compare phase1 winner's F1 to phase3 winner's UNTUNED F1)
-        # Those numbers are the same model with and without the winning balancing strategy.
-        balancing_delta_f1  = untuned_f1 - phase1_f1
+        balancing_delta_f1 = untuned_f1 - phase1_f1
         balancing_delta_acc = untuned_acc - phase1_acc
-        tuning_delta_f1     = tuned_f1 - untuned_f1
-        tuning_delta_acc    = tuned_acc - untuned_acc
-        aggregation_delta_f1  = rest_f1 - tuned_f1
-        aggregation_delta_acc = rest_acc - tuned_acc
+        tuning_delta_f1 = tuned_f1 - untuned_f1
+        tuning_delta_acc = tuned_acc - untuned_acc
 
-        # Build the stepwise table
+        phase1_model = ml_summary['phase1_best_model']
+        phase3_model = ml_summary['phase3_best_model']
+        model_swapped = phase1_model != phase3_model
+
         steps_df = pd.DataFrame([
             {
-                'Step':           '1. Phase 1 baseline',
-                'Description':    f"{ml_summary['phase1_best_model']}, default hyperparameters, no balancing",
-                'Accuracy':       f"{phase1_acc*100:.1f}%",
-                'Weighted F1':    f"{phase1_f1:.4f}",
-                'Δ F1':           '—',
-                'What Changed':   'Starting point'
+                'Step': '1. Phase 1 baseline',
+                'Model': phase1_model,
+                'Description': 'Default hyperparameters, no balancing. Rewards whichever model best exploits class imbalance.',
+                'Accuracy': f"{phase1_acc*100:.1f}%",
+                'Weighted F1': f"{phase1_f1:.4f}",
+                'Δ F1': '—',
             },
             {
-                'Step':           '2. + Balancing',
-                'Description':    f"Applied best strategy from Phase 2: {ml_summary['phase2_best_strategy']}",
-                'Accuracy':       f"{untuned_acc*100:.1f}%",
-                'Weighted F1':    f"{untuned_f1:.4f}",
-                'Δ F1':           f"{balancing_delta_f1:+.4f}",
-                'What Changed':   'No-op (baseline won)' if abs(balancing_delta_f1) < 0.001 else 'Balancing strategy'
+                'Step': '2. + Balancing',
+                'Model': phase3_model,
+                'Description': f"Best strategy from Phase 2: {ml_summary['phase2_best_strategy']}. "
+                                f"{'Model changed — RF could not capitalize on class weights the way LogReg does.' if model_swapped else ''}",
+                'Accuracy': f"{untuned_acc*100:.1f}%",
+                'Weighted F1': f"{untuned_f1:.4f}",
+                'Δ F1': f"{balancing_delta_f1:+.4f}",
             },
             {
-                'Step':           '3. + Hyperparameter Tuning',
-                'Description':    f"GridSearchCV picked: {', '.join(f'{k}={v}' for k,v in tba['best_params'].items())}",
-                'Accuracy':       f"{tuned_acc*100:.1f}%",
-                'Weighted F1':    f"{tuned_f1:.4f}",
-                'Δ F1':           f"{tuning_delta_f1:+.4f}",
-                'What Changed':   'Larger vocab, weaker regularization'
-            },
-            {
-                'Step':           '4. + Restaurant-Level Aggregation',
-                'Description':    "Average probability vectors across all reviews of each restaurant",
-                'Accuracy':       f"{rest_acc*100:.1f}%",
-                'Weighted F1':    f"{rest_f1:.4f}",
-                'Δ F1':           f"{aggregation_delta_f1:+.4f}",
-                'What Changed':   'Prediction unit (review → restaurant)'
+                'Step':'3. + Hyperparameter Tuning',
+                'Model': phase3_model,
+                'Description': f"GridSearchCV picked: {', '.join(f'{k}={v}' for k,v in tba['best_params'].items())}",
+                'Accuracy': f"{tuned_acc*100:.1f}%",
+                'Weighted F1': f"{tuned_f1:.4f}",
+                'Δ F1': f"{tuning_delta_f1:+.4f}",
             },
         ])
 
         st.dataframe(steps_df, use_container_width=True, hide_index=True)
 
-        # Waterfall-style bar chart showing F1 at each step
+        # Waterfall-style chart
         fig_waterfall = go.Figure()
         fig_waterfall.add_trace(go.Bar(
-            x=steps_df['Step'],
-            y=[phase1_f1, untuned_f1, tuned_f1, rest_f1],
-            marker_color=['#95a5a6', '#3498db', '#9b59b6', '#27ae60'],
-            text=[f'{phase1_f1:.4f}', f'{untuned_f1:.4f}', f'{tuned_f1:.4f}', f'{rest_f1:.4f}'],
+            x=[s for s in steps_df['Step']],
+            y=[phase1_f1, untuned_f1, tuned_f1],
+            marker_color=['#95a5a6', '#3498db', '#27ae60'],
+            text=[f'{phase1_f1:.4f}', f'{untuned_f1:.4f}', f'{tuned_f1:.4f}'],
             textposition='outside',
         ))
-        # Add delta annotations between bars
-        deltas = [None, balancing_delta_f1, tuning_delta_f1, aggregation_delta_f1]
+        deltas = [None, balancing_delta_f1, tuning_delta_f1]
         for i, delta in enumerate(deltas):
             if delta is not None:
                 color = '#27ae60' if delta > 0.001 else ('#95a5a6' if abs(delta) < 0.001 else '#e74c3c')
                 fig_waterfall.add_annotation(
-                    x=i, y=max(phase1_f1, untuned_f1, tuned_f1, rest_f1) * 1.08,
+                    x=i, y=max(phase1_f1, untuned_f1, tuned_f1) * 1.08,
                     text=f"{delta:+.4f}",
                     showarrow=False,
-                    font=dict(color=color, size=14, weight='bold'),
+                    font=dict(color=color, size=14),
                 )
         fig_waterfall.update_layout(
             title='Weighted F1 at Each Pipeline Step',
-            yaxis=dict(title='Weighted F1', range=[0, max(phase1_f1, untuned_f1, tuned_f1, rest_f1) * 1.2]),
+            yaxis=dict(title='Weighted F1', range=[0, max(phase1_f1, untuned_f1, tuned_f1) * 1.2]),
             height=450,
             showlegend=False,
         )
         st.plotly_chart(fig_waterfall, use_container_width=True)
 
-        # Callout boxes highlighting what worked and what didn't
-        col_w1, col_w2, col_w3 = st.columns(3)
+        # Callouts
+        col_w1, col_w2 = st.columns(2)
 
         with col_w1:
-            if abs(balancing_delta_f1) < 0.001:
-                st.error(
-                    "**Balancing: no-op**\n\n"
-                    f"Δ F1 = {balancing_delta_f1:+.4f}\n\n"
-                    "On our collapsed 15-class dataset, balancing did not improve performance. "
-                    "Baseline beat SMOTE and Class Weights in cross-validation — the rebalancing cost "
-                    "exceeded its benefit."
-                )
-            else:
+            if balancing_delta_f1 > 0.05:
                 st.success(
                     f"**Balancing: +{balancing_delta_f1:.4f} F1**\n\n"
-                    f"Strategy: {ml_summary['phase2_best_strategy']}"
+                    f"Applying *{ml_summary['phase2_best_strategy']}* to the training loss pushed the model "
+                    "away from collapsing everything into the dominant class. "
+                    f"{'This also changed which model won — ' + phase1_model + ' could exploit imbalance but ' + phase3_model + ' benefits more from correcting it.' if model_swapped else ''}"
                 )
+            elif balancing_delta_f1 > 0:
+                st.info(f"**Balancing: +{balancing_delta_f1:.4f} F1**\n\nModest improvement from {ml_summary['phase2_best_strategy']}.")
+            else:
+                st.warning(f"**Balancing: {balancing_delta_f1:+.4f} F1**\n\nBalancing did not help on this dataset.")
 
         with col_w2:
             if tuning_delta_f1 > 0:
                 st.success(
                     f"**Tuning: +{tuning_delta_f1:.4f} F1**\n\n"
-                    "GridSearchCV found that our data benefits from a larger TF-IDF vocabulary "
-                    "and weaker regularization than sklearn's defaults."
+                    "GridSearchCV found hyperparameters that modestly outperform sklearn's defaults. "
+                    "The gain is smaller than balancing because the defaults were already reasonable."
                 )
             else:
-                st.warning(
-                    f"**Tuning: {tuning_delta_f1:+.4f} F1**\n\n"
-                    "Tuning did not improve held-out performance."
-                )
-
-        with col_w3:
-            if aggregation_delta_f1 > 0:
-                st.success(
-                    f"**Aggregation: +{aggregation_delta_f1:.4f} F1**\n\n"
-                    "Averaging probabilities across each restaurant's reviews eliminated per-review noise. "
-                    "This is the largest single gain in the pipeline."
-                )
-            else:
-                st.info(
-                    f"**Aggregation: {aggregation_delta_f1:+.4f} F1**\n\n"
-                    "Restaurant-level aggregation did not improve F1 on this test set."
-                )
+                st.warning(f"**Tuning: {tuning_delta_f1:+.4f} F1**\n\nTuning did not improve held-out performance.")
 
         with st.expander("Why this ordering matters"):
             st.markdown(
                 "The pipeline improvements are **cumulative** — each step builds on the previous one. "
                 "This matters because it lets us attribute gains honestly:\n\n"
-                "- **Balancing** tries to correct class imbalance. On our dataset (15 collapsed classes, "
-                "moderate imbalance) it didn't help because the imbalance isn't severe enough to make "
-                "rebalancing worth its cost.\n"
-                "- **Hyperparameter tuning** searches a grid of model settings via cross-validation. "
-                "It found that our data rewards more vocabulary and more confident word weights.\n"
-                "- **Restaurant-level aggregation** changes *what we're predicting* — from noisy individual "
-                "reviews to stable restaurant-level labels. This isn't a model improvement; it's a task "
-                "redefinition that matches what 'cuisine' actually means.\n\n"
-                "The honest takeaway: most of the F1 improvement in this project came from the **final step** "
-                "(aggregation), not from any model-level trick. A simple TF-IDF + Logistic Regression, "
-                "evaluated at the right unit of analysis, does most of the work."
+                f"- **Baseline (Phase 1)** selects the model that does best *before* we address class imbalance. "
+                f"Here that was **{phase1_model}**, which overfit hard (train accuracy near 1.0) but got decent F1 "
+                "by predicting the dominant class often.\n"
+                f"- **Balancing** forces the model to actually distinguish minority cuisines. "
+                f"{'This step changed the winning model — ' + phase3_model + ' responds much better to class weights than tree-based models do.' if model_swapped else ''}\n"
+                "- **Hyperparameter tuning** fine-tunes the winning model's regularization and vocabulary size.\n\n"
+                "Note: **restaurant-level aggregation** isn't a step in this pipeline because it's the *default* — "
+                "we train on one document per restaurant (concatenated reviews). This is why per-review "
+                "and per-restaurant F1 are the same number in this project."
             )
-
-        st.write("---")
 
         # ── SECTION 6: CONFUSION ANALYSIS ────────────────────────────
         st.subheader(":material/shuffle: Where the Model Gets Confused")
@@ -1911,81 +1855,18 @@ elif selected_section == "ML Insights":
 
         st.write("---")
 
-        # SECTION 7.5: RESTAURANT-LEVEL EVALUATION 
+
+        # SECTION 7.5: RESTAURANT-LEVEL EVALUATION
         st.subheader(":material/store: Restaurant-Level Evaluation")
 
         rl = ml_summary['restaurant_level']
 
         col_r1, col_r2, col_r3, col_r4 = st.columns(4)
-        col_r1.metric("F1 — Per Review",     f"{rl['f1_review_level']:.4f}")
-        col_r2.metric("F1 — Per Restaurant", f"{rl['f1_restaurant_level']:.4f}",
-                      delta=f"{rl['improvement_f1']:+.4f}")
+        col_r1.metric("Test F1 (Restaurant-Level)", f"{rl['f1_restaurant_level']:.4f}")
+        col_r2.metric("Test Accuracy", f"{rl['accuracy_restaurant_level']:.4f}")
         col_r3.metric("Restaurants Predicted", f"{rl['n_restaurants_predicted']:,}")
         col_r4.metric("High-Confidence (≥0.5)", f"{rl['high_confidence_pct']}%")
 
-        if rl['improvement_f1'] > 0:
-            st.success(
-                f"Aggregating to restaurant level improved weighted F1 by "
-                f"{rl['improvement_f1']:+.4f}. Averaging probabilities across a restaurant's reviews "
-                f"cancels out per-review noise — a restaurant with 30 reviews that individually get "
-                f"pulled toward the dominant class will correctly tip back when the vote is weighted."
-            )
-        else:
-            st.warning(
-                " Restaurant-level aggregation did not improve F1 on this test set. "
-                "This can happen when few restaurants have many reviews to aggregate over."
-            )
-
-        col_rl_l, col_rl_r = st.columns([1.2, 1])
-
-        with col_rl_l:
-            # Per-class comparison: review-level vs restaurant-level F1
-            df_compare = df_rest_vs_rev_f1.sort_values('f1_restaurant_level', ascending=True)
-
-            fig_rl = go.Figure()
-            fig_rl.add_trace(go.Bar(
-                name='Per-Review F1',
-                y=df_compare['cuisine'],
-                x=df_compare['f1_review_level'],
-                orientation='h',
-                marker_color='#95a5a6'
-            ))
-            fig_rl.add_trace(go.Bar(
-                name='Per-Restaurant F1',
-                y=df_compare['cuisine'],
-                x=df_compare['f1_restaurant_level'],
-                orientation='h',
-                marker_color='#27ae60'
-            ))
-            fig_rl.update_layout(
-                barmode='group',
-                title='Per-Cuisine F1: Review-Level vs Restaurant-Level',
-                xaxis=dict(title='F1 Score', range=[0, 1]),
-                yaxis_title='Cuisine',
-                legend=dict(orientation='h', yanchor='bottom', y=1.02),
-                height=600
-            )
-            st.plotly_chart(fig_rl, use_container_width=True)
-
-        with col_rl_r:
-            st.markdown("**Restaurant-Level Predictions (Unknown Restaurants)**")
-            display_rp = df_restaurant_preds.copy()
-            display_rp = display_rp[['cuisine_restaurant_level', 'restaurant_confidence',
-                                     'n_reviews_for_prediction', 'cuisine_majority_vote']]
-            display_rp.columns = ['Predicted Cuisine', 'Confidence', '# Reviews', 'Majority Vote']
-            display_rp = display_rp.sort_values('Confidence', ascending=False)
-            st.dataframe(
-                display_rp,
-                use_container_width=True,
-                height=600,
-                column_config={
-                    'Confidence': st.column_config.ProgressColumn(
-                        'Confidence', min_value=0.0, max_value=1.0, format="%.3f"
-                    )
-                }
-            )
-
-        st.write("---")
 
         # ── SECTION 8: PREDICTION OUTCOMES ───────────────────────────
 
@@ -2011,19 +1892,18 @@ elif selected_section == "ML Insights":
                 color_continuous_scale='RdYlGn',
                 range_color=[0, 1],
                 labels={
-                    'predicted_count': 'Reviews Predicted',
+                    'predicted_count': 'Restaurants Predicted',
                     'cuisine': 'Cuisine',
                     'avg_confidence': 'Avg Confidence'
                 },
-                title='Predicted Cuisine Distribution (Recovered Reviews)'
-            )
+                title='Predicted Cuisine Distribution (Recovered Restaurants)')
             fig_dist.update_layout(height=550, yaxis={'categoryorder': 'total ascending'})
             st.plotly_chart(fig_dist, use_container_width=True)
 
         with col_pred_r:
-            st.markdown("**Recovered Reviews by Cuisine**")
+            st.markdown("**Recovered Restaurants by Cuisine**")
             display_pred = df_pred_dist[['cuisine', 'predicted_count', 'avg_confidence', 'high_conf_count']].copy()
-            display_pred.columns = ['Cuisine', 'Predicted', 'Avg Conf', 'High Conf (≥0.5)']
+            display_pred.columns = ['Cuisine', 'Restaurants Predicted', 'Avg Conf', 'High Conf (≥0.5)']
             display_pred['Avg Conf'] = display_pred['Avg Conf'].round(3)
             st.dataframe(display_pred, use_container_width=True, hide_index=True, height=500)
 
@@ -2048,11 +1928,77 @@ elif selected_section == "ML Insights":
         st.plotly_chart(fig_donut, use_container_width=True)
 
         st.caption(
-            "ML-predicted labels are **restaurant-level aggregates** — all reviews from the same "
-            "restaurant share one predicted cuisine, based on averaging probabilities across that "
-            "restaurant's reviews. Low-confidence predictions (< 0.30) are still included but flagged "
-            "via the `prediction_confidence` column."
-        )
+            "ML-predicted labels are **restaurant-level** — all of a restaurant's reviews are "
+            "concatenated into one document and classified once, so every review of the same "
+            "restaurant inherits the same predicted cuisine. Low-confidence predictions (< 0.30) "
+            "are still included but flagged via the `prediction_confidence` column.")
+        st.write("---")
+        
+        # SECTION 9.5: ENRICHED RESTAURANTS TABLE
+        st.subheader(":material/restaurant: Enriched Restaurants Table")
+        st.write("One row per restaurant — cleaner for filtering by cuisine/area at the restaurant level instead of the review level.")
+
+        @st.cache_data
+        def load_enriched_restaurants():
+            return pd.read_csv(os.path.join(ML_DIR, 'master_restaurants_enriched.csv'))
+
+        try:
+            df_rest_enr = load_enriched_restaurants()
+
+            col_rf1, col_rf2, col_rf3, col_rf4 = st.columns(4)
+            with col_rf1:
+                rsource_filter = st.radio(
+                    "Label Source:",
+                    options=["All", "ML-Predicted Only", "Original Only"],
+                    horizontal=True,
+                    key="rest_source_filter"
+                )
+            with col_rf2:
+                rcuisine_opts = ["All"] + sorted(df_rest_enr['cuisine_primary'].dropna().unique().tolist())
+                rcuisine_filter = st.selectbox("Cuisine:", rcuisine_opts, key="rest_cuisine_filter")
+            with col_rf3:
+                rarea_opts = ["All"] + sorted(df_rest_enr['area'].dropna().unique().tolist())
+                rarea_filter = st.selectbox("Area:", rarea_opts, key="rest_area_filter")
+            with col_rf4:
+                rmin_conf = st.slider("Min Confidence (ML rows only):", 0.0, 1.0, 0.0, 0.05, key="rest_conf_slider")
+
+            rf = df_rest_enr.copy()
+            if rsource_filter == "ML-Predicted Only":
+                rf = rf[rf['cuisine_source'] == 'predicted']
+            elif rsource_filter == "Original Only":
+                rf = rf[rf['cuisine_source'] == 'original']
+            if rcuisine_filter != "All":
+                rf = rf[rf['cuisine_primary'] == rcuisine_filter]
+            if rarea_filter != "All":
+                rf = rf[rf['area'] == rarea_filter]
+            if rmin_conf > 0.0:
+                ml_mask = rf['cuisine_source'] == 'predicted'
+                orig_mask = rf['cuisine_source'] == 'original'
+                rf = pd.concat([
+                    rf[ml_mask & (rf['prediction_confidence'] >= rmin_conf)],
+                    rf[orig_mask]
+                ]).sort_index()
+
+            col_rm1, col_rm2, col_rm3, col_rm4 = st.columns(4)
+            col_rm1.metric("Showing",         f"{len(rf):,} restaurants")
+            col_rm2.metric("ML-Predicted",    f"{(rf['cuisine_source'] == 'predicted').sum():,}")
+            col_rm3.metric("Original Labels", f"{(rf['cuisine_source'] == 'original').sum():,}")
+            ml_conf = rf[rf['cuisine_source'] == 'predicted']['prediction_confidence'].mean()
+            col_rm4.metric("Avg Confidence (ML)", f"{ml_conf:.3f}" if not pd.isna(ml_conf) else "—")
+
+            st.dataframe(
+                rf.reset_index(drop=True),
+                use_container_width=True,
+                height=500,
+                column_config={
+                    'prediction_confidence': st.column_config.ProgressColumn(
+                        'Confidence', min_value=0.0, max_value=1.0, format="%.3f"
+                    )
+                }
+            )
+        except FileNotFoundError:
+            st.warning("⚠️ `master_restaurants_enriched.csv` not found. Re-run `cuisine_classifier.py`.")
+
         st.write("---")
 
         # ── SECTION 10: ENRICHED REVIEWS TABLE ───────────────────────
@@ -2194,8 +2140,8 @@ elif selected_section == "NLP Analysis":
      sentiment_area_enr, sentiment_cuisine_enr, sentiment_price_enr, area_keywords_enr, cuisine_keywords_enr, nlp_summary_enr,
      enriched_loaded) = load_nlp_data()
 
-    # ── TABS ────────────────────────────────────────────────────────
-    tab_before, tab_after = st.tabs([" Before ML — Original Reviews", " After ML — Enriched Reviews"])
+    # TABS 
+    tab_before, tab_after = st.tabs(["Before ML — Original Reviews", "After ML — Enriched Reviews"])
 
     # ── HELPER: renders all NLP charts for a given dataset ──────────
     def render_nlp_tab(s_area, s_cuisine, s_price, a_kw, c_kw, summary, tag):
@@ -2223,7 +2169,7 @@ elif selected_section == "NLP Analysis":
             col3.metric("% Neutral",           f"{summary['pct_neutral']}%")
             col4.metric("% Negative",          f"{summary['pct_negative']}%")
 
-            with st.expander("📊 Reviews by Source"):
+            with st.expander(" Reviews by Source"):
                 source_df = pd.DataFrame(
                     list(summary['source_breakdown'].items()),
                     columns=["Source", "Review Count"]
@@ -2262,7 +2208,7 @@ elif selected_section == "NLP Analysis":
         )
         st.plotly_chart(fig_area, use_container_width=True, key=f"area_{tag}")
 
-        with st.expander("📄 View full sentiment-by-area data"):
+        with st.expander(" View full sentiment-by-area data"):
             st.dataframe(s_area, use_container_width=True)
 
         st.write("---")
@@ -2295,14 +2241,18 @@ elif selected_section == "NLP Analysis":
         )
         st.plotly_chart(fig_cuisine, use_container_width=True, key=f"cuisine_{tag}")
 
-        with st.expander("📄 View full sentiment-by-cuisine data"):
+        with st.expander(" View full sentiment-by-cuisine data"):
             st.dataframe(s_cuisine, use_container_width=True)
 
         st.write("---")
 
         # SENTIMENT BY PRICE
         st.subheader(":material/payments: Sentiment by Price Tier")
-        color_price = ['#2ecc71' if x > 0 else '#e74c3c' for x in s_price['avg_sentiment']]
+        price_color_map = {'Budget': '#2ecc71', 'Mid-Range': '#3498db', 'High-End': '#9b59b6'}
+        color_price = [
+            price_color_map.get(p, '#3498db') if x > 0 else '#e74c3c'
+            for p, x in zip(s_price['price_category'], s_price['avg_sentiment'])
+]
         fig_price = go.Figure(go.Bar(
             x=s_price['price_category'],
             y=s_price['avg_sentiment'],
@@ -2327,12 +2277,10 @@ elif selected_section == "NLP Analysis":
         )
         st.plotly_chart(fig_price, use_container_width=True, key=f"price_{tag}")
 
-        with st.expander("📄 View full sentiment-by-price data"):
+        with st.expander(" View full sentiment-by-price data"):
             st.dataframe(s_price, use_container_width=True)
 
         st.write("---")
-
-        # TF-IDF KEYWORDS
         # TF-IDF KEYWORDS
         st.subheader(":material/key: Top Keywords by Neighborhood (TF-IDF)")
         st.write("Words that uniquely characterize each neighborhood's reviews compared to all others.")
@@ -2368,9 +2316,9 @@ elif selected_section == "NLP Analysis":
             with col_tbl:
                 st.write("**Ranked Keywords**")
                 kw_df = pd.DataFrame({
-                    "Rank":    range(1, n + 1),
+                    "Rank": range(1, n + 1),
                     "Keyword": keywords,
-                    "Weight":  [round((n - i) / n, 2) for i in range(n)]
+                    "Weight":[round((n - i) / n, 2) for i in range(n)]
                 })
                 st.dataframe(kw_df, use_container_width=True, hide_index=True)
 

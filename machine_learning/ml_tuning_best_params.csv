@@ -1,4 +1,4 @@
 param,best_value
-clf__C,1.0
-tfidf__max_features,20000.0
+clf__C,3.0
+tfidf__max_features,10000.0
 tfidf__min_df,3.0
