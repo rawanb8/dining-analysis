@@ -393,15 +393,35 @@ elif selected_section == "EDA":
 
         # 5️⃣ Review Count Distribution
         st.subheader("5️⃣ Review Count Distribution")
-        if len(df_eda):
-            fig5 = px.histogram(df_eda, x="review_count_total", nbins=30,
-                                title="Distribution of Review Counts",
-                                labels={"review_count_total": "Number of Reviews"})
+
+        review_hist_df = df_eda.copy()
+        review_hist_df["review_count_total"] = pd.to_numeric(
+            review_hist_df["review_count_total"], errors="coerce"
+        )
+        review_hist_df = review_hist_df.dropna(subset=["review_count_total"])
+        #review_hist_df = review_hist_df[review_hist_df["review_count_total"] > 0]
+
+        if review_hist_df.empty:
+            st.info("No valid review count data to display for the selected filters.")
+        else:
+            review_hist_df["log_review_count"] = np.log10(review_hist_df["review_count_total"])
+
+            fig5 = px.histogram(
+                review_hist_df,
+                x="log_review_count",
+                nbins=30,
+                title="Distribution of Review Counts (Log Scale)",
+                labels={"log_review_count": "log10(Number of Reviews)"}
+            )
+
             fig5.update_layout(yaxis_title="Number of Restaurants")
+
+            fig5.update_xaxes(
+                tickvals=[0, 1, 2, 3, 4],
+                ticktext=["1", "10", "100", "1k", "10k"]
+            )
+
             st.plotly_chart(fig5, use_container_width=True)
-
-        st.write("---")
-
         # 6️⃣ Top 10 Most Reviewed
         st.subheader("6️⃣ Top 10 Most Reviewed Restaurants")
         if len(df_eda):
