@@ -729,6 +729,7 @@ elif selected_section == "ML Insights":
             st.markdown(
                 "- **Baseline** — no balancing, model is biased toward Lebanese (dominant class)\n"
                 "- **Class Weights** — penalises mistakes on minority classes more during training\n"
+                "  *(Note: LightGBM uses its own `class_weight` parameter — it handles this natively)*\n"
             )
 
         # Per-fold breakdown — the actual StratifiedGroupKFold output
@@ -926,8 +927,12 @@ elif selected_section == "ML Insights":
                       delta_color="inverse")
         with col_o3:
             st.markdown("**Winning Hyperparameters**")
+            def clean_param_name(k):
+                k = k.replace('tfidf__word__', 'tfidf__').replace('tfidf__char__', 'char_tfidf__')
+                return k
+
             params_df = pd.DataFrame(
-                list(tba['best_params'].items()),
+                [(clean_param_name(k), v) for k, v in tba['best_params'].items()],
                 columns=['Hyperparameter', 'Value']
             )
             st.dataframe(params_df, use_container_width=True, hide_index=True)
@@ -991,7 +996,7 @@ elif selected_section == "ML Insights":
         st.markdown("##### Hyperparameter Search — All Combinations")
         st.caption(
             f"GridSearchCV tried {len(df_grid)} hyperparameter combinations, each scored by 3-fold "
-            "StratifiedGroupKFold cross-validation. Each point below is one combination. "
+            "StratifiedKFold cross-validation."
             "The chosen combination is the one with the highest mean CV F1."
         )
 
@@ -1063,32 +1068,32 @@ elif selected_section == "ML Insights":
         model_swapped = phase1_model != phase3_model
 
         steps_df = pd.DataFrame([
-            {
-                'Step': '1. Phase 1 baseline',
-                'Model': phase1_model,
-                'Description': 'Default hyperparameters, no balancing. Rewards whichever model best exploits class imbalance.',
-                'Accuracy': f"{phase1_acc*100:.1f}%",
-                'Weighted F1': f"{phase1_f1:.4f}",
-                'Δ F1': '—',
-            },
-            {
-                'Step': '2. + Balancing',
-                'Model': phase3_model,
-                'Description': f"Best strategy from Phase 2: {ml_summary['phase2_best_strategy']}. "
-                                f"{'Model changed — RF could not capitalize on class weights the way LogReg does.' if model_swapped else ''}",
-                'Accuracy': f"{untuned_acc*100:.1f}%",
-                'Weighted F1': f"{untuned_f1:.4f}",
-                'Δ F1': f"{balancing_delta_f1:+.4f}",
-            },
-            {
-                'Step':'3. + Hyperparameter Tuning',
-                'Model': phase3_model,
-                'Description': f"GridSearchCV picked: {', '.join(f'{k}={v}' for k,v in tba['best_params'].items())}",
-                'Accuracy': f"{tuned_acc*100:.1f}%",
-                'Weighted F1': f"{tuned_f1:.4f}",
-                'Δ F1': f"{tuning_delta_f1:+.4f}",
-            },
-        ])
+        {
+            'Step': '1. Phase 1 baseline',
+            'Model': phase1_model,
+            'Description': 'Default hyperparameters, no balancing. Rewards whichever model best exploits class imbalance.',
+            'Accuracy': f"{phase1_acc*100:.1f}%",
+            'Weighted F1': f"{phase1_f1:.4f}",
+            'Δ F1': '—',
+        },
+        {
+            'Step': '2. + Balancing',
+            'Model': phase3_model,
+            'Description': f"Best strategy from Phase 2: {ml_summary['phase2_best_strategy']}. "
+                        f"{'Model changed — RF could not capitalize on class weights the way LogReg does.' if model_swapped else ''}",
+            'Accuracy': f"{untuned_acc*100:.1f}%",
+            'Weighted F1': f"{untuned_f1:.4f}",
+            'Δ F1': f"{balancing_delta_f1:+.4f}",
+        },
+        {
+            'Step': '3. + Hyperparameter Tuning',
+            'Model': phase3_model,
+            'Description': f"GridSearchCV picked: {', '.join(f'{k.replace('tfidf__word__', 'tfidf__')}={v}' for k,v in tba['best_params'].items())}",
+            'Accuracy': f"{tuned_acc*100:.1f}%",
+            'Weighted F1': f"{tuned_f1:.4f}",
+            'Δ F1': f"{tuning_delta_f1:+.4f}",
+        },
+    ])
 
         st.dataframe(steps_df, use_container_width=True, hide_index=True)
 

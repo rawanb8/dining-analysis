@@ -12,6 +12,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, f1_score, make_scorer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+import re
+from sklearn.pipeline import FeatureUnion
+from lightgbm import LGBMClassifier 
 
 
 # LOAD DATA
@@ -33,8 +37,8 @@ print(f"Unknown cuisine reviews:{len(unknown)}")
 # The grouped split requires enough *restaurants* per class, not just reviews.
 # A class with 200 reviews from only 2 restaurants is untrainable under grouped CV
 # because one of those restaurants may end up entirely in train or entirely in test.
-MIN_RESTAURANTS_PER_CLASS =  15
-MIN_REVIEWS_PER_CLASS = 400 
+MIN_RESTAURANTS_PER_CLASS =  20
+MIN_REVIEWS_PER_CLASS = 500
 
 # Merge cuisines that genuinely overlap in Beirut's food scene.
 CUISINE_MERGES = {
@@ -49,6 +53,7 @@ CUISINE_MERGES = {
 VENUE_TYPES = {'Wine bars', 'Cocktail bars', 'Delis'}
 
 known['cuisine_label'] = known['cuisine_primary'].replace(CUISINE_MERGES)
+
 known['cuisine_label'] = known['cuisine_label'].apply(
     lambda c: 'Other' if c in VENUE_TYPES else c
 )
@@ -71,8 +76,9 @@ classes_to_keep = set(class_stats[keep_mask].index)
 classes_to_drop = set(class_stats[~keep_mask].index)
 
 known['cuisine_label'] = known['cuisine_label'].apply(
-    lambda c: c if c in classes_to_keep else 'Other'
+    lambda c: c if c in classes_to_keep else None
 )
+known = known[known['cuisine_label'].notna()].copy()
 
 final_stats = known.groupby('cuisine_label').agg(
     n_reviews=('review_id', 'count'),
@@ -128,6 +134,13 @@ def has_food_word(text):
     tokens = set(text.lower().split())
     return len(tokens & FOOD_WORDS) > 0
 
+def extract_food_sentences(text):
+    if not isinstance(text, str):
+        return ''
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    food_sentences = [s for s in sentences if has_food_word(s)]
+    return ' '.join(food_sentences) if food_sentences else text 
+
 before_filter = len(known)
 known['has_food'] = known['review_text_cleaned'].apply(has_food_word)
 known_foody = known[known['has_food']].copy()
@@ -138,13 +151,18 @@ print(f"\nFood-word filter: kept {len(known_foody)}/{before_filter} "
 restaurant_docs = (
     known_foody.groupby('restaurant_id')
     .agg(
-        review_text_cleaned=('review_text_cleaned', lambda s: ' '.join(s.astype(str))),
-        cuisine_label=('cuisine_label', 'first'), 
+        review_text_cleaned=('review_text_cleaned', lambda s: ' '.join(
+            extract_food_sentences(t) for t in s.astype(str)
+        )),
+        cuisine_label=('cuisine_label', 'first'),
         n_reviews_used=('review_id', 'count'),
     )
     .reset_index()
 )
-
+avg_len_before = known_foody['review_text_cleaned'].str.split().str.len().mean()
+avg_len_after = pd.Series([doc for doc in restaurant_docs['review_text_cleaned']]).str.split().str.len().mean()
+print(f"Avg words per review before sentence filter: {avg_len_before:.0f}")
+print(f"Avg words per restaurant doc after: {avg_len_after:.0f}")
 print(f"Restaurants with usable training docs: {len(restaurant_docs)}")
 print(f"Avg reviews per restaurant doc: {restaurant_docs['n_reviews_used'].mean():.1f}")
 print(f"\nRestaurant-level class stats:")
@@ -171,31 +189,59 @@ X_train, X_test, y_train, y_test, train_ids, test_ids = train_test_split(
 print(f"\nTraining: {len(X_train)} restaurants")
 print(f"Test: {len(X_test)} restaurants")
 
+# FOOD_SAFE_WORDS = {
+#     'good', 'great', 'place', 'nice', 'like', 'really', 'just', 'place',
+#     'best', 'menu', 'service', 'staff', 'experience', 'time',
+#     'food', 'order', 'ordered', 'table', 'came', 'got',
+# }
+
+SAFE_STOP_WORDS = list(ENGLISH_STOP_WORDS)
 #NOTES: restaurant-level weighted F1
 # SHARED TFIDF PARAMS (used in all phases)
 tfidf_params = dict(
-    max_features=20000,
+    max_features=12000,
     ngram_range=(1, 2),
     sublinear_tf=True,
-    min_df=2,
+    min_df=4,
+    stop_words=SAFE_STOP_WORDS
 )
+
+def build_combined_tfidf():
+    word_tfidf = TfidfVectorizer(
+        **tfidf_params
+    )
+    char_tfidf = TfidfVectorizer(
+        analyzer='char_wb',
+        ngram_range=(3, 5), 
+        max_features=10000,
+        sublinear_tf=True,
+        min_df=2,
+    )
+    return FeatureUnion([
+        ('word', word_tfidf),
+        ('char', char_tfidf),
+    ])
 
 # PHASE 1 comapring ml models without balancing
 print("PHASE 1 — Model Comparison (No Balancing)")
 
 phase1_models = {
     'Logistic Regression': Pipeline([
-        ('tfidf', TfidfVectorizer(**tfidf_params)),
+        ('tfidf', build_combined_tfidf()),
         ('clf', LogisticRegression(max_iter=1000, random_state=42))
     ]),
     'Naive Bayes': Pipeline([
-        ('tfidf', TfidfVectorizer(**tfidf_params)),
+        ('tfidf', build_combined_tfidf()),
         ('clf', MultinomialNB(alpha=0.1))
     ]),
     'Random Forest': Pipeline([
-        ('tfidf', TfidfVectorizer(**tfidf_params)),
+        ('tfidf', build_combined_tfidf()),
         ('clf', RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1))
-    ])
+    ]),
+    'LightGBM': Pipeline([
+        ('tfidf', build_combined_tfidf()),
+        ('clf', LGBMClassifier(n_estimators=300, learning_rate=0.1, num_leaves=63, random_state=42, class_weight=None, n_jobs=-1, verbose=-1))
+    ]),
 }
 
 phase1_results = {}
@@ -261,15 +307,15 @@ print("  Saved: ml_model_comparison.csv")
 print(f"PHASE 2 Balancing Strategy Comparison (using {best_model_name})")
 
 # 5-fold Stratified CV 
-skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
 
 balancing_pipelines = {
     'Baseline (No Balancing)': Pipeline([
-        ('tfidf', TfidfVectorizer(**tfidf_params)),
+        ('tfidf', build_combined_tfidf()),
         ('clf', LogisticRegression(max_iter=1000, random_state=42))
     ]),
     'Class Weights': Pipeline([
-        ('tfidf', TfidfVectorizer(**tfidf_params)),
+        ('tfidf', build_combined_tfidf()),
         ('clf', LogisticRegression(max_iter=1000, random_state=42, class_weight='balanced'))
     ]),
 }
@@ -279,7 +325,7 @@ balancing_fold_scores = {}
 
 for strategy_name, pipe in balancing_pipelines.items():
     print(f"\n  Testing: {strategy_name}...")
-    scores = cross_val_score(pipe, X, y, cv=skf, scoring='f1_weighted')
+    scores = cross_val_score(pipe, X_train, y_train, cv=sgkf, groups=train_ids, scoring='f1_weighted')
     balancing_results[strategy_name] = {
         'mean_f1': round(float(scores.mean()), 4),
         'std_f1':  round(float(scores.std()), 4)
@@ -323,7 +369,7 @@ cw = 'balanced' if best_strategy == 'Class Weights' else None
 
 def build_phase3_pipeline(clf):
     return Pipeline([
-        ('tfidf', TfidfVectorizer(**tfidf_params)),
+        ('tfidf', build_combined_tfidf()), 
         ('clf', clf)
     ])
 phase3_models = {
@@ -335,7 +381,10 @@ phase3_models = {
     ),
     'Random Forest': build_phase3_pipeline(
         RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1, class_weight=cw)
-    )
+    ),
+    'LightGBM': build_phase3_pipeline(
+        LGBMClassifier(n_estimators=300, learning_rate=0.1, num_leaves=63, random_state=42, class_weight=cw, n_jobs=-1, verbose=-1)
+    ),
 }
 
 phase3_results  = {}
@@ -404,28 +453,36 @@ print("Saved: ml_final_comparison.csv")
 print(f"\nPHASE 3.5 Hyperparameter Tuning ({final_best_model_name})")
 
 # Use 3-fold CV for tuning (do we increase to 5?)
-tuning_cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+tuning_cv = StratifiedGroupKFold(n_splits=3, shuffle=True, random_state=42)
 
 # Tailor the grid to whichever model won
 if final_best_model_name == 'Logistic Regression':
     param_grid = {
-        'tfidf__max_features': [10000, 20000, 30000],   
-        'tfidf__min_df': [2, 3, 5],
-        'clf__C': [0.1, 0.3, 1.0, 3.0],
+        'tfidf__word__max_features': [8000, 10000, 12000],
+        'tfidf__word__min_df': [4, 5, 6],
+        'clf__C': [1.0, 3.0, 5.0, 10.0],
     }
 
 elif final_best_model_name == 'Naive Bayes':
     param_grid = {
-        'tfidf__max_features': [10000, 20000, 50000],
-        'tfidf__min_df': [2, 3, 5],
-        'clf__alpha': [0.01, 0.1, 0.5, 1.0],
+    'tfidf__word__max_features': [10000, 20000, 50000],
+    'tfidf__word__min_df': [2, 3, 5],
+    'clf__alpha': [0.01, 0.1, 0.5, 1.0],
+    }
+elif final_best_model_name == 'LightGBM':
+    param_grid = {
+        'tfidf__word__max_features': [15000, 30000],
+        'clf__num_leaves': [31, 63, 127],
+        'clf__learning_rate': [0.05, 0.1],
+        'clf__n_estimators': [200, 400],
     }
 else:  # Random Forest
     param_grid = {
-        'tfidf__max_features': [10000, 20000],
-        'clf__n_estimators': [100, 200],
-        'clf__max_depth': [None, 30],
+    'tfidf__word__max_features': [10000, 20000],
+    'clf__n_estimators': [100, 200],
+    'clf__max_depth': [None, 30],
     }
+
 
 grid_size = int(np.prod([len(v) for v in param_grid.values()]))
 print(f"  Grid size: {grid_size} combinations × 3 folds = {grid_size * 3} fits")
@@ -438,7 +495,7 @@ grid_search = GridSearchCV(
     n_jobs=1,
     verbose=1
 )
-grid_search.fit(X_train, y_train)
+grid_search.fit(X_train, y_train, groups=train_ids)
 
 print(f"\n Best params: {grid_search.best_params_}")
 print(f"  Best CV F1:  {grid_search.best_score_:.4f}")
@@ -598,12 +655,13 @@ print("PREDICTING CUISINE FOR UNKNOWN RESTAURANTS")
 unknown_docs = (
     unknown.groupby('restaurant_id')
     .agg(
-        review_text_cleaned=('review_text_cleaned', lambda s: ' '.join(s.astype(str))),
-        n_reviews_for_prediction=('review_id', 'count'),
+        review_text_cleaned=('review_text_cleaned', lambda s: ' '.join(
+            extract_food_sentences(t) for t in s.astype(str)
+        )),
+        n_reviews=('review_id', 'count'),
     )
     .reset_index()
 )
-
 
 
 X_unknown = unknown_docs['review_text_cleaned'].values
@@ -634,7 +692,7 @@ print("Saved: ml_predicted_distribution.csv")
 restaurant_probs = unknown_docs.set_index('restaurant_id')
 
 print(f"Restaurants classified: {len(restaurant_probs)}")
-print(f"Avg reviews per restaurant: {restaurant_probs['n_reviews_for_prediction'].mean():.1f}")
+print(f"Avg reviews per restaurant: {restaurant_probs['n_reviews'].mean():.1f}")
 print(f"Avg restaurant-level confidence: {restaurant_probs['restaurant_confidence'].mean():.3f}")
 
 high_conf_restaurants = (restaurant_probs['restaurant_confidence'] >= 0.5).sum()
@@ -643,7 +701,7 @@ print(f"Restaurants with high-confidence (≥0.5) prediction: "
 
 restaurant_output = restaurant_probs[[
     'cuisine_restaurant_level', 'restaurant_confidence',
-    'n_reviews_for_prediction', 'cuisine_majority_vote'
+    'n_reviews', 'cuisine_majority_vote'
 ]].reset_index()
 restaurant_output.to_csv('ml_restaurant_level_predictions.csv', index=False)
 print("Saved: ml_restaurant_level_predictions.csv")
