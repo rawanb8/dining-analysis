@@ -1,11 +1,11 @@
 cuisine,f1_untuned,f1_tuned,f1_change
-Pizza,0.545,0.667,0.122
-American,0.379,0.48,0.101
-Levantine,0.586,0.651,0.065
-Seafood,0.571,0.6,0.029
-Fast food,0.222,0.25,0.028
-Other,0.571,0.581,0.01
-Italian,0.545,0.545,0.0
-French,0.632,0.632,0.0
-Dessert,0.8,0.794,-0.006
-Jewish,0.941,0.933,-0.008
+Seafood,0.667,0.737,0.07
+Other,0.476,0.526,0.05
+Levantine,0.679,0.727,0.048
+French,0.5,0.538,0.038
+Italian,0.381,0.381,0.0
+Dessert,0.776,0.776,0.0
+Jewish,1.0,1.0,0.0
+Pizza,0.312,0.296,-0.016
+American,0.48,0.44,-0.04
+Fast food,0.385,0.261,-0.124

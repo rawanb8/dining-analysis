@@ -1,88 +1,96 @@
 {
   "total_reviews_loaded": 48992,
-  "known_cuisine_reviews": 26303,
+  "known_cuisine_reviews": 22828,
   "unknown_cuisine_reviews": 22689,
   "phase1_models": {
     "Logistic Regression": {
-      "accuracy": 0.4606,
-      "weighted_f1": 0.3483
+      "accuracy": 0.6081,
+      "weighted_f1": 0.5482
     },
     "Naive Bayes": {
-      "accuracy": 0.4882,
-      "weighted_f1": 0.3877
+      "accuracy": 0.5676,
+      "weighted_f1": 0.5338
     },
     "Random Forest": {
-      "accuracy": 0.5,
-      "weighted_f1": 0.4178
+      "accuracy": 0.6036,
+      "weighted_f1": 0.545
+    },
+    "LightGBM": {
+      "accuracy": 0.6081,
+      "weighted_f1": 0.5841
     }
   },
-  "phase1_best_model": "Random Forest",
+  "phase1_best_model": "LightGBM",
   "phase2_balancing_strategies": {
     "Baseline (No Balancing)": {
-      "mean_f1": 0.3769,
-      "std_f1": 0.0139
+      "mean_f1": 0.5434,
+      "std_f1": 0.0257
     },
     "Class Weights": {
-      "mean_f1": 0.5883,
-      "std_f1": 0.0309
+      "mean_f1": 0.6486,
+      "std_f1": 0.0302
     }
   },
   "phase2_best_strategy": "Class Weights",
   "phase3_models": {
     "Logistic Regression": {
-      "accuracy": 0.622,
-      "weighted_f1": 0.6187
+      "accuracy": 0.6261,
+      "weighted_f1": 0.6196
     },
     "Naive Bayes": {
-      "accuracy": 0.4882,
-      "weighted_f1": 0.3877
+      "accuracy": 0.5676,
+      "weighted_f1": 0.5338
     },
     "Random Forest": {
-      "accuracy": 0.4803,
-      "weighted_f1": 0.3805
+      "accuracy": 0.5856,
+      "weighted_f1": 0.5097
+    },
+    "LightGBM": {
+      "accuracy": 0.6081,
+      "weighted_f1": 0.5926
     }
   },
   "phase3_best_model": "Logistic Regression",
   "before_after": {
     "model": "Logistic Regression",
-    "accuracy_before": 0.4606,
-    "accuracy_after": 0.622,
-    "f1_before": 0.3483,
-    "f1_after": 0.6187
+    "accuracy_before": 0.6081,
+    "accuracy_after": 0.6261,
+    "f1_before": 0.5482,
+    "f1_after": 0.6196
   },
   "tuning_before_after": {
     "model": "Logistic Regression",
-    "accuracy_untuned": 0.5787,
-    "accuracy_tuned": 0.622,
-    "f1_untuned": 0.5759,
-    "f1_tuned": 0.6187,
-    "overfit_gap_untuned": 0.3237,
-    "overfit_gap_tuned": 0.3297,
+    "accuracy_untuned": 0.6036,
+    "accuracy_tuned": 0.6261,
+    "f1_untuned": 0.6069,
+    "f1_tuned": 0.6196,
+    "overfit_gap_untuned": 0.3036,
+    "overfit_gap_tuned": 0.3298,
     "tuning_improved": true,
     "best_params": {
       "clf__C": 3.0,
-      "tfidf__max_features": 10000.0,
-      "tfidf__min_df": 3.0
+      "tfidf__word__max_features": 8000.0,
+      "tfidf__word__min_df": 4.0
     }
   },
   "restaurant_level": {
-    "n_restaurants_in_test": 254,
+    "n_restaurants_in_test": 222,
     "n_restaurants_predicted": 1885,
-    "accuracy_restaurant_level": 0.622,
-    "f1_restaurant_level": 0.6187,
-    "avg_confidence": 0.277,
-    "high_confidence_pct": 4.4,
+    "accuracy_restaurant_level": 0.6261,
+    "f1_restaurant_level": 0.6196,
+    "avg_confidence": 0.36,
+    "high_confidence_pct": 18.9,
     "per_class_f1": {
-      "American": 0.48,
-      "Dessert": 0.794,
-      "Fast food": 0.25,
-      "French": 0.632,
-      "Italian": 0.545,
-      "Jewish": 0.933,
-      "Levantine": 0.651,
-      "Other": 0.581,
-      "Pizza": 0.667,
-      "Seafood": 0.6
+      "American": 0.44,
+      "Dessert": 0.776,
+      "Fast food": 0.261,
+      "French": 0.538,
+      "Italian": 0.381,
+      "Jewish": 1.0,
+      "Levantine": 0.727,
+      "Other": 0.526,
+      "Pizza": 0.296,
+      "Seafood": 0.737
     },
     "training_scheme": "restaurant-level",
     "note": "Training and evaluation are both done at the restaurant level \u2014 reviews of the same restaurant are concatenated into one document. Per-review metrics are not separately reported because they would be identical to restaurant-level metrics under this scheme."
@@ -92,47 +100,47 @@
     {
       "actual": "Fast food",
       "predicted": "Levantine",
-      "rate": 0.462
-    },
-    {
-      "actual": "Italian",
-      "predicted": "Levantine",
-      "rate": 0.286
+      "rate": 0.385
     },
     {
       "actual": "American",
       "predicted": "Levantine",
-      "rate": 0.214
-    },
-    {
-      "actual": "French",
-      "predicted": "Other",
-      "rate": 0.2
+      "rate": 0.25
     },
     {
       "actual": "Other",
+      "predicted": "French",
+      "rate": 0.25
+    },
+    {
+      "actual": "Pizza",
       "predicted": "Levantine",
-      "rate": 0.195
+      "rate": 0.25
+    },
+    {
+      "actual": "Fast food",
+      "predicted": "American",
+      "rate": 0.231
     }
   ],
   "predictions_made": 22689,
-  "low_confidence_count": 12751,
-  "low_confidence_pct": 56.2,
+  "low_confidence_count": 8115,
+  "low_confidence_pct": 35.8,
   "low_confidence_threshold": 0.3,
-  "avg_prediction_confidence": 0.277,
+  "avg_prediction_confidence": 0.36,
   "per_class_f1": {
-    "American": 0.48,
-    "Dessert": 0.794,
-    "Fast food": 0.25,
-    "French": 0.632,
-    "Italian": 0.545,
-    "Jewish": 0.933,
-    "Levantine": 0.651,
-    "Other": 0.581,
-    "Pizza": 0.667,
-    "Seafood": 0.6
+    "American": 0.44,
+    "Dessert": 0.776,
+    "Fast food": 0.261,
+    "French": 0.538,
+    "Italian": 0.381,
+    "Jewish": 1.0,
+    "Levantine": 0.727,
+    "Other": 0.526,
+    "Pizza": 0.296,
+    "Seafood": 0.737
   },
-  "enriched_reviews_total": 48992,
-  "enriched_original_labels": 26303,
+  "enriched_reviews_total": 45517,
+  "enriched_original_labels": 22828,
   "enriched_predicted_labels": 22689
 }
