@@ -1,27 +1,28 @@
 area,avg_sentiment,review_count,pct_positive,pct_negative
 Mar Mikhael,0.432,10,100.0,0.0
-Halat,0.385,257,76.654,4.28
+Halat,0.383,287,77.352,4.878
 Gouraud,0.371,10,100.0,0.0
 Beqaa Governorate,0.369,64,76.562,4.688
-Tyre,0.345,816,70.711,6.127
 Pasteur,0.339,10,90.0,0.0
-Mount Lebanon Governorate,0.321,588,71.429,8.673
-Beirut Governorate,0.32,700,75.571,8.286
+Tyre,0.339,911,70.582,5.818
+Beirut Governorate,0.326,756,76.058,7.804
 Aamchit,0.319,30,63.333,6.667
-Sidon,0.316,1403,65.788,6.842
-Beirut,0.298,8142,69.111,8.61
+Mount Lebanon Governorate,0.315,621,71.176,9.179
+Forn El Chebbak,0.313,346,71.965,7.225
+Sidon,0.312,1452,65.083,7.094
+Zahlé,0.303,1116,63.889,7.348
+Beirut,0.299,8769,69.324,8.484
 North Governorate,0.296,86,51.163,3.488
 Fanar,0.295,90,66.667,14.444
-Zahlé,0.294,1056,63.068,7.576
-Byblos,0.294,1768,67.76,8.371
-Forn El Chebbak,0.293,316,70.253,7.911
 Palladium Building,0.291,10,70.0,0.0
-Tripoli,0.275,1333,60.315,5.851
-Bourj Hammoud,0.271,4751,70.596,10.65
+Byblos,0.289,1852,67.225,8.585
 Bar Elias,0.27,84,65.476,3.571
-Hazmiyeh,0.25,1375,64.218,10.691
+Bourj Hammoud,0.269,5144,70.179,10.809
+Tripoli,0.267,1403,59.373,6.771
+Dekwaneh,0.255,30,63.333,10.0
+Hazmiyeh,0.251,1418,64.739,10.508
 Borj El Brajneh,0.236,77,51.948,7.792
-Khalde,0.226,817,57.405,12.24
+Khalde,0.224,827,57.557,12.334
 South Governorate,0.215,129,55.039,20.93
 Jounieh,0.075,30,40.0,26.667
 Mansourieh,-0.016,30,40.0,30.0
