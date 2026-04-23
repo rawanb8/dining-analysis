@@ -751,70 +751,6 @@ elif selected_section == "ML Insights":
                 "  *(Note: LightGBM uses its own `class_weight` parameter — it handles this natively)*\n"
             )
 
-        # Per-fold breakdown — the actual StratifiedGroupKFold output
-        st.markdown("##### Per-Fold Cross-Validation Scores")
-        st.caption(
-            "Each strategy is evaluated on 5 different train/test splits (folds). StratifiedKFold "
-            "preserves the class distribution in each fold. Because each row is already one restaurant, "
-            "there's no risk of review-level leakage. Tight clusters mean the strategy is stable; wide "
-            "spreads mean it's sensitive to which restaurants end up where."
-        )
-
-        col_cv_l, col_cv_r = st.columns([1.4, 1])
-
-        with col_cv_l:
-            # Box plot with individual fold points overlaid
-            fig_cv = go.Figure()
-            for strategy in df_cv_folds['strategy'].unique():
-                strategy_scores = df_cv_folds[df_cv_folds['strategy'] == strategy]['f1_score']
-                fig_cv.add_trace(go.Box(
-                    y=strategy_scores,
-                    name=strategy,
-                    boxpoints='all', # show every fold as a dot
-                    jitter=0.3,
-                    pointpos=0,
-                    marker=dict(size=10, opacity=0.8),
-                    line=dict(width=2),
-                ))
-            fig_cv.update_layout(
-                title='Distribution of F1 Scores Across 5 Folds',
-                yaxis=dict(title='Weighted F1', range=[0, max(df_cv_folds['f1_score']) * 1.15]),
-                xaxis_title='Balancing Strategy',
-                showlegend=False,
-                height=420)
-            st.plotly_chart(fig_cv, use_container_width=True)
-
-        with col_cv_r:
-            st.markdown("**Raw fold scores**")
-            pivot = df_cv_folds.pivot(index='fold', columns='strategy', values='f1_score')
-            pivot.index = [f"Fold {i}" for i in pivot.index]
-            pivot_display = pivot.map(lambda x: f"{x:.4f}")
-            st.dataframe(pivot_display, use_container_width=True)
-
-            # Quick reading
-            best_strat = ml_summary['phase2_best_strategy']
-            best_mean = ml_summary['phase2_balancing_strategies'][best_strat]['mean_f1']
-            best_std = ml_summary['phase2_balancing_strategies'][best_strat]['std_f1']
-            st.info(
-                f"**{best_strat}** had the best mean F1 ({best_mean:.4f}) "
-                f"with a std of {best_std:.4f} across the 5 folds — "
-                f"this is the variance you'd expect on new unseen restaurants."
-            )
-
-        with st.expander("What is StratifiedKFold and why 5 folds?"):
-            st.markdown(
-                "**Cross-validation** trains and tests a model on several different train/test splits "
-                "so you're not trusting a single lucky or unlucky split. You get N scores and take their mean.\n\n"
-                "**Stratified** means each fold preserves the same class distribution as the full dataset — "
-                "if 35% of restaurants are Levantine, each fold is also ~35% Levantine. Without stratification, "
-                "a rare class like Jewish (38 restaurants) could land entirely in one fold and be untestable in the others.\n\n"
-                "We don't need **grouped** splits here because our training unit is already the restaurant — "
-                "each row in X is one restaurant's concatenated reviews. Review-level leakage across folds "
-                "is impossible by construction.\n\n"
-                "**5 folds** is the standard tradeoff — more folds give tighter mean estimates but take "
-                "5× longer to run. With 5 folds, each restaurant is used for training 4 times and testing once."
-    )
-
         st.write("---")
 
         # SECTION 4: PHASE 3 FINAL MODEL COMPARISON (WITH BALANCING) 
@@ -1179,9 +1115,6 @@ elif selected_section == "ML Insights":
                 f"- **Balancing** forces the model to actually distinguish minority cuisines. "
                 f"{'This step changed the winning model — ' + phase3_model + ' responds much better to class weights than tree-based models do.' if model_swapped else ''}\n"
                 "- **Hyperparameter tuning** fine-tunes the winning model's regularization and vocabulary size.\n\n"
-                "Note: **restaurant-level aggregation** isn't a step in this pipeline because it's the *default* — "
-                "we train on one document per restaurant (concatenated reviews). This is why per-review "
-                "and per-restaurant F1 are the same number in this project."
             )
 
         # ── SECTION 6: CONFUSION ANALYSIS ────────────────────────────
@@ -1241,8 +1174,6 @@ elif selected_section == "ML Insights":
             "bleed rightward into the Levantine column — minority cuisines get pulled "
             "toward the dominant class when the model is uncertain."
         )
-
-        st.write("---")
 
         st.write("---")
 
@@ -1784,7 +1715,7 @@ elif selected_section == "NLP Analysis":
                 })
                 st.dataframe(kw_df2, use_container_width=True, hide_index=True)
 
-    # ── RENDER EACH TAB ─────────────────────────────────────────────
+    # ── RENDER EACH TAB 
     with tab_before:
         st.caption("Analysis based on **master_reviews.csv** — reviews with Unknown cuisine are excluded from cuisine-level charts.")
         render_nlp_tab(sentiment_area, sentiment_cuisine, sentiment_price,
