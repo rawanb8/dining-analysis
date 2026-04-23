@@ -7,7 +7,6 @@ seaborn
 scikit-learn
 textblob
 nltk
-spacy==3.7.4
 lightgbm
 imbalanced-learn
 requests
