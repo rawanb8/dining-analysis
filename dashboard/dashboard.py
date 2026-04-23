@@ -8,7 +8,6 @@ import json, os
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from feature_analysis import render_feature_analysis
-from price_predictor import render_price_predictor
 from best_for_tags import render_best_for_tags
 # PAGE CONFIGURATION
 
@@ -72,7 +71,7 @@ st.write("---")
 
 selected_section = option_menu(
     menu_title=None,
-    options=["Search & Filter", "EDA", "Feature Analysis", "ML Insights", "NLP Analysis", "Price Predictor"],
+    options=["Search & Filter", "EDA", "Feature Analysis", "ML Insights", "NLP Analysis", "Curated Smart Picks"],
     icons=["search", "bar-chart-line", "toggles", "chat-left-text", "cpu", "lightbulb"],
     orientation="horizontal",
     default_index=0,
@@ -1781,20 +1780,14 @@ elif selected_section == "NLP Analysis":
             st.info("Expected files: `sentiment_by_area_enriched.csv`, `sentiment_by_cuisine_enriched.csv`, `sentiment_by_price_enriched.csv`, `area_keywords_enriched.json`, `cuisine_keywords_enriched.json`, `nlp_summary_enriched.json`")
 
 
-# SECTION 6: (PRICE PREDICTOR + BEST FOR TAGS)
+# SECTION 6: 
 
-elif selected_section == "Price Predictor":
-    st.header(":material/lightbulb: Price Predictor & Best For Tags")
-    st.write("ML-powered price prediction and automatic restaurant tagging.")
+elif selected_section == "Curated Smart Picks":
+    st.header(":material/lightbulb: Top Performance Highlights")
+    st.write("Separating the gold from the Sand with Best For Tags")
     st.write("---")
 
-    tab_price, tab_tags = st.tabs(["Price Predictor", "Best For Tags"])
-
-    with tab_price:
-        render_price_predictor(df_restaurants)
-
-    with tab_tags:
-        render_best_for_tags(df_restaurants)
+    render_best_for_tags(df_restaurants)
 
 # FOOTER
 
