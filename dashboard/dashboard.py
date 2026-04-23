@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 from feature_analysis import render_feature_analysis
 from best_for_tags import render_best_for_tags
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 styles={
     "container": {"padding": "0", "margin": "0 0 1rem 0", "background-color": "#f0faf7"},
     "nav-link": {"color": "#1a6b52"},
@@ -62,11 +64,11 @@ def reset_filters():
 @st.cache_data
 def load_data():
     # Always load master_restaurants.csv as primary data source
-    restaurants = pd.read_csv(r"../merged/master_restaurants.csv")
+    restaurants = pd.read_csv(os.path.join(BASE_DIR, "../merged/master_restaurants.csv"))
     print("✓ Loaded master restaurant data")
     
     try:
-        restaurants_geocoded = pd.read_csv(r"../merged/master_restaurants_geocoded.csv")
+        restaurants_geocoded = pd.read_csv(os.path.join(BASE_DIR, "../merged/master_restaurants_geocoded.csv"))
         print("✓ Loaded geocoded data for maps")
         
         # Merge lat/long from geocoded file into main restaurants dataframe
@@ -81,7 +83,7 @@ def load_data():
     except FileNotFoundError:
         print("⚠️ Geocoded file not found, maps will not display")
     
-    reviews = pd.read_csv(r"../merged/master_reviews.csv")
+    reviews = pd.read_csv(os.path.join(BASE_DIR, "../merged/master_reviews.csv"))
     return restaurants, reviews
 
 df_restaurants, df_reviews = load_data()
@@ -1490,24 +1492,24 @@ elif selected_section == "NLP Analysis":
     @st.cache_data
     def load_nlp_data():
         # Original (pre-ML)
-        sa_orig  = pd.read_csv("../nlp/sentiment_by_area.csv")
-        sc_orig  = pd.read_csv("../nlp/sentiment_by_cuisine.csv")
-        sp_orig  = pd.read_csv("../nlp/sentiment_by_price.csv")
-        with open("../nlp/area_keywords.json")    as f: ak_orig = json.load(f)
-        with open("../nlp/cuisine_keywords.json") as f: ck_orig = json.load(f)
+        sa_orig  = pd.read_csv(os.path.join(BASE_DIR, "../nlp/sentiment_by_area.csv"))
+        sc_orig  = pd.read_csv(os.path.join(BASE_DIR, "../nlp/sentiment_by_cuisine.csv"))
+        sp_orig  = pd.read_csv(os.path.join(BASE_DIR, "../nlp/sentiment_by_price.csv"))
+        with open(os.path.join(BASE_DIR, "../nlp/area_keywords.json"))    as f: ak_orig = json.load(f)
+        with open(os.path.join(BASE_DIR, "../nlp/cuisine_keywords.json")) as f: ck_orig = json.load(f)
         try:
-            with open("../nlp/nlp_summary.json")  as f: sum_orig = json.load(f)
+            with open(os.path.join(BASE_DIR, "../nlp/nlp_summary.json"))  as f: sum_orig = json.load(f)
         except FileNotFoundError:
             sum_orig = None
 
         # Enriched (post-ML)
         try:
-            sa_enr  = pd.read_csv("../nlp/sentiment_by_area_enriched.csv")
-            sc_enr  = pd.read_csv("../nlp/sentiment_by_cuisine_enriched.csv")
-            sp_enr  = pd.read_csv("../nlp/sentiment_by_price_enriched.csv")
-            with open("../nlp/area_keywords_enriched.json")    as f: ak_enr = json.load(f)
-            with open("../nlp/cuisine_keywords_enriched.json") as f: ck_enr = json.load(f)
-            with open("../nlp/nlp_summary_enriched.json")      as f: sum_enr = json.load(f)
+            sa_enr  = pd.read_csv(os.path.join(BASE_DIR, "../nlp/sentiment_by_area_enriched.csv"))
+            sc_enr  = pd.read_csv(os.path.join(BASE_DIR, "../nlp/sentiment_by_cuisine_enriched.csv"))
+            sp_enr  = pd.read_csv(os.path.join(BASE_DIR, "../nlp/sentiment_by_price_enriched.csv"))
+            with open(os.path.join(BASE_DIR, "../nlp/area_keywords_enriched.json"))    as f: ak_enr = json.load(f)
+            with open(os.path.join(BASE_DIR, "../nlp/cuisine_keywords_enriched.json")) as f: ck_enr = json.load(f)
+            with open(os.path.join(BASE_DIR, "../nlp/nlp_summary_enriched.json"))      as f: sum_enr = json.load(f)
             enriched_loaded = True
         except FileNotFoundError:
             sa_enr = sc_enr = sp_enr = ak_enr = ck_enr = sum_enr = None
