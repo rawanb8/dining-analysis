@@ -1,4 +1,5 @@
 streamlit
+streamlit-option-menu
 plotly
 pandas
 numpy
@@ -10,4 +11,4 @@ nltk
 lightgbm
 imbalanced-learn
 requests
-streamlit-option-menu
+wordcloud
