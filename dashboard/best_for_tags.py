@@ -205,9 +205,18 @@ def render_best_for_tags(df_restaurants):
 
     ins_col1, ins_col2 = st.columns(2)
     with ins_col1:
-        st.info(f"**Tag Exclusivity: Hidden Gems**\nHidden Gems show a very high exclusivity rate (~{hidden_rate:.1f}%). This confirms they are specialized, niche spots that rarely overlap with broad categories.")
+        st.markdown(f"""
+    <div style='background:#e8f8f3;border-left:4px solid #9b59b6;padding:12px;border-radius:6px;color:#1a6b52;'>
+        <b> Tag Exclusivity: Hidden Gems</b><br>
+        Hidden Gems show a very high exclusivity rate (~{hidden_rate:.1f}%). This confirms they are specialized, niche spots that rarely overlap with broad categories.
+    </div>""", unsafe_allow_html=True)
+
     with ins_col2:
-        st.success("**Versatile Spots: Best for Dates**\n'Best for Dates' has the lowest exclusivity. A romantic atmosphere frequently overlaps with premium features like Outdoor Dining or Live Music.")
+        st.markdown("""
+             <div style='background:#e8f8f3;border-left:4px solid #e74c3c;padding:12px;border-radius:6px;color:#1a6b52;'>
+        <b> Versatile Spots: Best for Dates</b><br>
+        'Best for Dates' has the lowest exclusivity. A romantic atmosphere frequently overlaps with premium features like Outdoor Dining or Live Music.
+    <     /div>""", unsafe_allow_html=True)
 
     st.write("---")
 

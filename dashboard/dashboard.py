@@ -9,13 +9,39 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from feature_analysis import render_feature_analysis
 from best_for_tags import render_best_for_tags
-# PAGE CONFIGURATION
 
+styles={
+    "container": {"padding": "0", "margin": "0 0 1rem 0", "background-color": "#f0faf7"},
+    "nav-link": {"color": "#1a6b52"},
+    "nav-link-selected": {"background-color": "#3ecda6", "color": "white"},
+}
+
+# PAGE CONFIGURATION
 st.set_page_config(
     page_title="Lebanon Restaurant Analysis",
     page_icon=":material/restaurant:",
     layout="wide"
 )
+
+st.markdown("""
+<style>
+    /* Sidebar background */
+    [data-testid="stSidebar"] {
+        background-color: #f0faf7;
+    }
+    /* Main metric cards */
+    [data-testid="stMetric"] {
+        background-color: #f0faf7;
+        border-left: 3px solid #3ecda6;
+        padding: 8px 12px;
+        border-radius: 6px;
+    }
+    /* Headers */
+    h1, h2, h3 { color: #1a6b52; }
+    /* Divider color tweak */
+    hr { border-color: #b2ead9; }
+</style>
+""", unsafe_allow_html=True)
 
 def reset_filters():
     st.session_state["search_name"] = ""
@@ -76,10 +102,13 @@ for col in feature_cols:
 
 # HEADER
 
-st.title("Lebanese Restaurant Analysis Dashboard")
-st.write("COSC 482 - Data Science Project | Interactive exploration of Lebanese restaurants")
-st.write("---")
-
+st.markdown("""
+<div style='padding: 12px 0 4px 0;'>
+    <h1 style='color: #1a6b52; margin-bottom: 2px;'> Lebanese Restaurant Analysis Dashboard</h1>
+    <p style='color: #5a9e85; font-size: 0.95rem;'>COSC 482 · Data Science Project · Interactive exploration of Lebanese restaurants</p>
+</div>
+<hr style='border-color: #b2ead9; margin-top: 0;'>
+""", unsafe_allow_html=True)
 # TOP NAVIGATION
 
 selected_section = option_menu(
@@ -1153,7 +1182,7 @@ elif selected_section == "ML Insights":
             df_confusion.values,
             x=df_confusion.columns,
             y=df_confusion.index,
-            color_continuous_scale='Blues',
+            color_continuous_scale='Greens',
             aspect='auto',
             labels=dict(x='Predicted', y='Actual', color='Rate'),
             text_auto='.2f',
