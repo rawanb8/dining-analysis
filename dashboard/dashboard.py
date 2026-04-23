@@ -8,7 +8,6 @@ import json, os
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from feature_analysis import render_feature_analysis
-from price_predictor import render_price_predictor
 from best_for_tags import render_best_for_tags
 # PAGE CONFIGURATION
 
@@ -18,9 +17,22 @@ st.set_page_config(
     layout="wide"
 )
 
+def reset_filters():
+    st.session_state["search_name"] = ""
+    st.session_state["selected_cuisine"] = "All Cuisines"
+    st.session_state["selected_area"] = "All Areas"
+    st.session_state["selected_price"] = "All Prices"
+    st.session_state["min_rating"] = 0.0
+
+    for key in [
+        "s1_delivery", "s1_takeaway", "s1_outdoor", "s1_parking",
+        "s1_wifi", "s1_music", "s1_reservation", "s1_credit",
+        "s1_cash", "s1_wheelchair", "s1_pet", "s1_kids"
+    ]:
+        st.session_state[key] = False
+
 # LOAD DATA
 
-@st.cache_data
 @st.cache_data
 def load_data():
     # Always load master_restaurants.csv as primary data source
@@ -72,7 +84,7 @@ st.write("---")
 
 selected_section = option_menu(
     menu_title=None,
-    options=["Search & Filter", "EDA", "Feature Analysis", "ML Insights", "NLP Analysis", "Price Predictor"],
+    options=["Search & Filter", "EDA", "Feature Analysis", "ML Insights", "NLP Analysis", "Curated Smart Picks"],
     icons=["search", "bar-chart-line", "toggles", "chat-left-text", "cpu", "lightbulb"],
     orientation="horizontal",
     default_index=0,
@@ -92,34 +104,33 @@ if selected_section == "Search & Filter":
     # Filters in sidebar
     st.sidebar.subheader("Filters")
     
-    # Text search
-    search_name = st.sidebar.text_input(" Search by Name:").strip().lower()
-    
+    # Text search - tied to session state via 'key'
+    search_name = st.sidebar.text_input("Search by Name:", key="search_name").strip().lower()
+
     # Cuisine filter
     cuisine_options = ["All Cuisines"] + sorted(df_restaurants['cuisine_primary'].dropna().astype(str).unique().tolist())
-    selected_cuisine = st.sidebar.selectbox(" Cuisine Type:", cuisine_options)
+    selected_cuisine = st.sidebar.selectbox("Cuisine Type:", cuisine_options, key="selected_cuisine")
     
     # Area filter
     area_options = ["All Areas"] + sorted(df_restaurants['area'].dropna().astype(str).unique().tolist())
-    selected_area = st.sidebar.selectbox(" Area:", area_options)
+    selected_area = st.sidebar.selectbox("Area:", area_options, key="selected_area")
     
     # Price filter
     price_options = ["All Prices", "Budget", "Mid-Range", "High-End"]
-    selected_price = st.sidebar.selectbox(" Price Category:", price_options)
+    selected_price = st.sidebar.selectbox("Price Category:", price_options, key="selected_price")
     
     # Rating filter
     min_rating = st.sidebar.slider(
-        " Minimum Rating:",
+        "Minimum Rating:",
         min_value=0.0,
         max_value=5.0,
         value=0.0,
-        step=0.5
+        step=0.5,
+        key="min_rating"
     )
     
     # Feature filters
     st.sidebar.subheader("Features")
-
-    # Organize in 2 columns for better layout
     col1, col2 = st.sidebar.columns(2)
 
     with col1:
@@ -137,6 +148,12 @@ if selected_section == "Search & Filter":
         filter_wheelchair = st.checkbox("Wheelchair", key="s1_wheelchair")
         filter_pet = st.checkbox("Pet Friendly", key="s1_pet")
         filter_kids = st.checkbox("Kids Friendly", key="s1_kids")
+
+    st.sidebar.markdown("---")
+    
+    res_col1, res_col2, res_col3 = st.sidebar.columns([1, 2, 1])
+    with res_col2:
+        st.button("Reset All Filters", on_click=reset_filters)
 
     # Apply filters
     filtered_df = df_display.copy()
@@ -436,19 +453,21 @@ elif selected_section == "EDA":
 
         st.write("---")
 
-        # Review Count Distribution
-        st.subheader(" Review Count Distribution")
+        # 5️⃣ Review Count Distribution
+        st.subheader("5️⃣ Review Count Distribution")
         if len(df_eda):
             fig5 = px.histogram(df_eda, x="review_count_total", nbins=30,
                                 title="Distribution of Review Counts",
                                 labels={"review_count_total": "Number of Reviews"})
             fig5.update_layout(yaxis_title="Number of Restaurants")
-            st.plotly_chart(fig5, use_container_width=True)
 
-        st.write("---")
+            fig5.update_xaxes(
+                tickvals=[0, 1, 2, 3, 4],
+                ticktext=["1", "10", "100", "1k", "10k"]
+            )
 
-        # Top 10 Most Reviewed
-        st.subheader(" Top 10 Most Reviewed Restaurants")
+        # 6️⃣ Top 10 Most Reviewed
+        st.subheader("6️⃣ Top 10 Most Reviewed Restaurants")
         if len(df_eda):
             top_reviewed = df_eda.nlargest(10, "review_count_total")[
                 ["name", "review_count_total", "rating_overall", "area", "cuisine_primary", "price_category"]
@@ -1781,20 +1800,14 @@ elif selected_section == "NLP Analysis":
             st.info("Expected files: `sentiment_by_area_enriched.csv`, `sentiment_by_cuisine_enriched.csv`, `sentiment_by_price_enriched.csv`, `area_keywords_enriched.json`, `cuisine_keywords_enriched.json`, `nlp_summary_enriched.json`")
 
 
-# SECTION 6: (PRICE PREDICTOR + BEST FOR TAGS)
+# SECTION 6: 
 
-elif selected_section == "Price Predictor":
-    st.header(":material/lightbulb: Price Predictor & Best For Tags")
-    st.write("ML-powered price prediction and automatic restaurant tagging.")
+elif selected_section == "Curated Smart Picks":
+    st.header(":material/lightbulb: Top Performance Highlights")
+    st.write("Separating the gold from the Sand with Best For Tags")
     st.write("---")
 
-    tab_price, tab_tags = st.tabs(["Price Predictor", "Best For Tags"])
-
-    with tab_price:
-        render_price_predictor(df_restaurants)
-
-    with tab_tags:
-        render_best_for_tags(df_restaurants)
+    render_best_for_tags(df_restaurants)
 
 # FOOTER
 
