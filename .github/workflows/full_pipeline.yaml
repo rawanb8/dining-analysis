@@ -1,0 +1,66 @@
+name: Full Cleaning and Analysis Pipeline
+
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  clean-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4  
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pandas numpy textblob nltk scikit-learn matplotlib seaborn spacy imbalanced-learn lightgbm
+          python -m spacy download en_core_web_sm
+          python -c "import nltk; nltk.download('brown'); nltk.download('punkt'); nltk.download('averaged_perceptron_tagger')"
+
+      - name: Run Wandorlog cleaning
+        working-directory: Cleaners
+        run: python Cleaning_wandorlog.py
+
+      - name: Run Guru cleaning
+        working-directory: Cleaners
+        run: python Cleaning_guru.py
+
+      - name: Run TripAdvisor cleaning
+        working-directory: Cleaners
+        run: python Cleaning_tripadvisor.py
+
+      - name: Run merge
+        working-directory: merged
+        run: python MERGE_SOURCES.py
+
+      - name: Run incremental geocoding
+        working-directory: dashboard
+        run: python geocode.py
+        continue-on-error: true
+
+      - name: Run sentiment analysis
+        working-directory: sentiment
+        run: python sentiment_analysis.py
+
+      - name: Run ML cuisine classifier
+        working-directory: machine_learning
+        run: python cuisine_classifier.py
+
+      - name: Run NLP
+        working-directory: nlp
+        run: python nlp.py
+
+      - name: Commit outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add cleaned/ merged/ machine_learning/ nlp/
+          git diff --staged --quiet || git commit -m "Auto-pipeline run $(date +'%Y-%m-%d')"
+          git push

@@ -1,0 +1,4 @@
+param,best_value
+clf__C,3.0
+tfidf__word__max_features,8000.0
+tfidf__word__min_df,4.0

@@ -1,89 +1,146 @@
 {
-  "total_reviews_loaded": 41428,
-  "known_cuisine_reviews": 21003,
-  "unknown_cuisine_reviews": 20425,
-  "models_evaluated": {
+  "total_reviews_loaded": 48992,
+  "known_cuisine_reviews": 22828,
+  "unknown_cuisine_reviews": 22689,
+  "phase1_models": {
     "Logistic Regression": {
-      "accuracy": 0.4475,
-      "weighted_f1": 0.3672
+      "accuracy": 0.6081,
+      "weighted_f1": 0.5482
     },
     "Naive Bayes": {
-      "accuracy": 0.442,
-      "weighted_f1": 0.3675
+      "accuracy": 0.5676,
+      "weighted_f1": 0.5338
     },
     "Random Forest": {
-      "accuracy": 0.4275,
-      "weighted_f1": 0.3535
+      "accuracy": 0.6036,
+      "weighted_f1": 0.545
+    },
+    "LightGBM": {
+      "accuracy": 0.6081,
+      "weighted_f1": 0.5841
     }
   },
-  "best_model": "Naive Bayes",
-  "best_model_accuracy": 0.442,
-  "best_model_f1": 0.3675,
-  "confusion_matrix_note": "Confusion matrix shown for top 10 cuisines only (out of 29 total classes)",
+  "phase1_best_model": "LightGBM",
+  "phase2_balancing_strategies": {
+    "Baseline (No Balancing)": {
+      "mean_f1": 0.5434,
+      "std_f1": 0.0257
+    },
+    "Class Weights": {
+      "mean_f1": 0.6486,
+      "std_f1": 0.0302
+    }
+  },
+  "phase2_best_strategy": "Class Weights",
+  "phase3_models": {
+    "Logistic Regression": {
+      "accuracy": 0.6261,
+      "weighted_f1": 0.6196
+    },
+    "Naive Bayes": {
+      "accuracy": 0.5676,
+      "weighted_f1": 0.5338
+    },
+    "Random Forest": {
+      "accuracy": 0.5856,
+      "weighted_f1": 0.5097
+    },
+    "LightGBM": {
+      "accuracy": 0.6081,
+      "weighted_f1": 0.5926
+    }
+  },
+  "phase3_best_model": "Logistic Regression",
+  "before_after": {
+    "model": "Logistic Regression",
+    "accuracy_before": 0.6081,
+    "accuracy_after": 0.6261,
+    "f1_before": 0.5482,
+    "f1_after": 0.6196
+  },
+  "tuning_before_after": {
+    "model": "Logistic Regression",
+    "accuracy_untuned": 0.6036,
+    "accuracy_tuned": 0.6261,
+    "f1_untuned": 0.6069,
+    "f1_tuned": 0.6196,
+    "overfit_gap_untuned": 0.3036,
+    "overfit_gap_tuned": 0.3298,
+    "tuning_improved": true,
+    "best_params": {
+      "clf__C": 3.0,
+      "tfidf__word__max_features": 8000.0,
+      "tfidf__word__min_df": 4.0
+    }
+  },
+  "restaurant_level": {
+    "n_restaurants_in_test": 222,
+    "n_restaurants_predicted": 1885,
+    "accuracy_restaurant_level": 0.6261,
+    "f1_restaurant_level": 0.6196,
+    "avg_confidence": 0.36,
+    "high_confidence_pct": 18.9,
+    "per_class_f1": {
+      "American": 0.44,
+      "Dessert": 0.776,
+      "Fast food": 0.261,
+      "French": 0.538,
+      "Italian": 0.381,
+      "Jewish": 1.0,
+      "Levantine": 0.727,
+      "Other": 0.526,
+      "Pizza": 0.296,
+      "Seafood": 0.737
+    },
+    "training_scheme": "restaurant-level",
+    "note": "Training and evaluation are both done at the restaurant level \u2014 reviews of the same restaurant are concatenated into one document. Per-review metrics are not separately reported because they would be identical to restaurant-level metrics under this scheme."
+  },
+  "confusion_matrix_note": "Top 10 cuisines only (out of 10 total classes)",
   "top_confusion_pairs": [
     {
-      "actual": "Armenian",
-      "predicted": "Lebanese",
-      "rate": 0.972
+      "actual": "Fast food",
+      "predicted": "Levantine",
+      "rate": 0.385
     },
     {
-      "actual": "Barbecue",
-      "predicted": "Lebanese",
-      "rate": 0.864
+      "actual": "American",
+      "predicted": "Levantine",
+      "rate": 0.25
     },
     {
-      "actual": "Indian",
-      "predicted": "Lebanese",
-      "rate": 0.857
+      "actual": "Other",
+      "predicted": "French",
+      "rate": 0.25
     },
     {
-      "actual": "Middle Eastern",
-      "predicted": "Lebanese",
-      "rate": 0.849
+      "actual": "Pizza",
+      "predicted": "Levantine",
+      "rate": 0.25
     },
     {
-      "actual": "Seafood",
-      "predicted": "Lebanese",
-      "rate": 0.84
+      "actual": "Fast food",
+      "predicted": "American",
+      "rate": 0.231
     }
   ],
-  "predictions_made": 20425,
-  "low_confidence_count": 1554,
-  "low_confidence_pct": 7.6,
+  "predictions_made": 22689,
+  "low_confidence_count": 8115,
+  "low_confidence_pct": 35.8,
   "low_confidence_threshold": 0.3,
-  "avg_prediction_confidence": 0.534,
+  "avg_prediction_confidence": 0.36,
   "per_class_f1": {
-    "American": 0.341,
-    "Armenian": 0.0,
-    "Asian": 0.0,
-    "Barbecue": 0.0,
-    "Chinese": 0.327,
-    "Cocktail bars": 0.275,
-    "Delis": 0.0,
-    "Dessert": 0.639,
-    "European": 0.0,
-    "Fast food": 0.202,
-    "French": 0.184,
-    "Fusion": 0.069,
-    "Healthy food": 0.083,
-    "Indian": 0.0,
-    "International": 0.033,
-    "Italian": 0.251,
-    "Japanese": 0.0,
-    "Jewish": 0.612,
-    "Lebanese": 0.555,
-    "Mediterranean": 0.0,
-    "Mexican": 0.148,
-    "Middle Eastern": 0.021,
-    "Other": 0.186,
-    "Pizza": 0.133,
-    "Salads": 0.0,
-    "Seafood": 0.199,
-    "Sushi": 0.0,
-    "Turkish": 0.08,
-    "Wine bars": 0.0
+    "American": 0.44,
+    "Dessert": 0.776,
+    "Fast food": 0.261,
+    "French": 0.538,
+    "Italian": 0.381,
+    "Jewish": 1.0,
+    "Levantine": 0.727,
+    "Other": 0.526,
+    "Pizza": 0.296,
+    "Seafood": 0.737
   },
-  "enriched_reviews_total": 41428,
-  "enriched_original_labels": 21003,
-  "enriched_predicted_labels": 20425
+  "enriched_reviews_total": 45517,
+  "enriched_original_labels": 22828,
+  "enriched_predicted_labels": 22689
 }

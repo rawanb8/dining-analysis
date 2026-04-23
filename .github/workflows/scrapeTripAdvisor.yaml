@@ -38,11 +38,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: data-${{ env.CITY_NAME }}
-          path: restaurants_with_reviews.csv
+          path: data/restaurants_with_reviews.csv
       - name: Commit and push CSV
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add restaurants_with_reviews.csv
+          git add data/restaurants_with_reviews.csv
           git commit -m "Update CSV for $CITY_NAME" || echo "No changes"
           git push origin main
