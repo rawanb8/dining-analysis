@@ -17,9 +17,22 @@ st.set_page_config(
     layout="wide"
 )
 
+def reset_filters():
+    st.session_state["search_name"] = ""
+    st.session_state["selected_cuisine"] = "All Cuisines"
+    st.session_state["selected_area"] = "All Areas"
+    st.session_state["selected_price"] = "All Prices"
+    st.session_state["min_rating"] = 0.0
+
+    for key in [
+        "s1_delivery", "s1_takeaway", "s1_outdoor", "s1_parking",
+        "s1_wifi", "s1_music", "s1_reservation", "s1_credit",
+        "s1_cash", "s1_wheelchair", "s1_pet", "s1_kids"
+    ]:
+        st.session_state[key] = False
+
 # LOAD DATA
 
-@st.cache_data
 @st.cache_data
 def load_data():
     # Always load master_restaurants.csv as primary data source
@@ -91,34 +104,33 @@ if selected_section == "Search & Filter":
     # Filters in sidebar
     st.sidebar.subheader("Filters")
     
-    # Text search
-    search_name = st.sidebar.text_input(" Search by Name:").strip().lower()
-    
+    # Text search - tied to session state via 'key'
+    search_name = st.sidebar.text_input("Search by Name:", key="search_name").strip().lower()
+
     # Cuisine filter
     cuisine_options = ["All Cuisines"] + sorted(df_restaurants['cuisine_primary'].dropna().astype(str).unique().tolist())
-    selected_cuisine = st.sidebar.selectbox(" Cuisine Type:", cuisine_options)
+    selected_cuisine = st.sidebar.selectbox("Cuisine Type:", cuisine_options, key="selected_cuisine")
     
     # Area filter
     area_options = ["All Areas"] + sorted(df_restaurants['area'].dropna().astype(str).unique().tolist())
-    selected_area = st.sidebar.selectbox(" Area:", area_options)
+    selected_area = st.sidebar.selectbox("Area:", area_options, key="selected_area")
     
     # Price filter
     price_options = ["All Prices", "Budget", "Mid-Range", "High-End"]
-    selected_price = st.sidebar.selectbox(" Price Category:", price_options)
+    selected_price = st.sidebar.selectbox("Price Category:", price_options, key="selected_price")
     
     # Rating filter
     min_rating = st.sidebar.slider(
-        " Minimum Rating:",
+        "Minimum Rating:",
         min_value=0.0,
         max_value=5.0,
         value=0.0,
-        step=0.5
+        step=0.5,
+        key="min_rating"
     )
     
     # Feature filters
     st.sidebar.subheader("Features")
-
-    # Organize in 2 columns for better layout
     col1, col2 = st.sidebar.columns(2)
 
     with col1:
@@ -136,6 +148,12 @@ if selected_section == "Search & Filter":
         filter_wheelchair = st.checkbox("Wheelchair", key="s1_wheelchair")
         filter_pet = st.checkbox("Pet Friendly", key="s1_pet")
         filter_kids = st.checkbox("Kids Friendly", key="s1_kids")
+
+    st.sidebar.markdown("---")
+    
+    res_col1, res_col2, res_col3 = st.sidebar.columns([1, 2, 1])
+    with res_col2:
+        st.button("Reset All Filters", on_click=reset_filters)
 
     # Apply filters
     filtered_df = df_display.copy()
