@@ -1,6 +1,7 @@
 id1,id2,name1,name2,similarity
 src1_001,src2_2175,Em Sherif,Em Sherif,1.0
 src1_001,src2_2177,Em Sherif,Em Sherif Café,0.891
+src1_010,src2_4428,Onno Bistro,Onno Bistro,1.0
 src1_013,src2_178,Jai asian Restaurant,Abou Hassan Restaurant,0.905
 src1_013,src2_309,Jai asian Restaurant,Al Ajami - Restaurant,0.859
 src1_013,src2_362,Jai asian Restaurant,Al Fayat restaurant,0.885
@@ -15,6 +16,7 @@ src1_013,src2_1435,Jai asian Restaurant,Cargo - Bar & Restaurant,0.85
 src1_013,src2_2677,Jai asian Restaurant,Gavi Restaurant,0.871
 src1_013,src2_3681,Jai asian Restaurant,Loris Restaurant,0.861
 src1_013,src2_4045,Jai asian Restaurant,Metis - Restaurant,0.861
+src1_013,src2_4198,Jai asian Restaurant,Mosaic Restaurant,0.851
 src1_016,src2_600,Cocteau Restaurant,Alsah restaurant,0.853
 src1_016,src2_642,Cocteau Restaurant,Amore - Restaurant,0.882
 src1_016,src2_700,Cocteau Restaurant,Arnabita Restaurant,0.851
@@ -34,6 +36,7 @@ src1_016,src2_3045,Cocteau Restaurant,Jabbour Restaurant,0.861
 src1_016,src2_3299,Cocteau Restaurant,Khatoun restaurant,0.861
 src1_016,src2_3681,Cocteau Restaurant,Loris Restaurant,0.853
 src1_016,src2_4045,Cocteau Restaurant,Metis - Restaurant,0.853
+src1_016,src2_4378,Cocteau Restaurant,O&C Restaurant,0.919
 src1_019,src2_355,Al Falamanki Sodeco,Al Falamanki Raouche,0.885
 src1_042,src2_090,Amelia,Amelia,1.0
 src1_042,src2_654,Amelia,Angelina,0.857
@@ -59,4 +62,9 @@ src1_050,src2_3633,ASH Beirut,Li Beirut,0.868
 src1_050,src2_3634,ASH Beirut,Lia beirut,0.9
 src1_050,src2_3729,ASH Beirut,Machrou3 Beirut,0.86
 src1_050,src2_3876,ASH Beirut,Margo Beirut,0.864
+src1_050,src2_4266,ASH Beirut,Nafass Beirut,0.891
+src1_050,src2_4292,ASH Beirut,Nasayem Beirut,0.875
+src1_050,src2_4300,ASH Beirut,Nayla Beirut,0.864
+src1_050,src2_4307,ASH Beirut,Neo beirut,0.85
+src1_050,src2_4351,ASH Beirut,Norai beirut,0.864
 src1_017,src3_042,Appetito Trattoria Gemmayzeh,Appetito Trattoria Gemmayzeh,1.0
