@@ -435,19 +435,21 @@ elif selected_section == "EDA":
 
         st.write("---")
 
-        # Review Count Distribution
-        st.subheader(" Review Count Distribution")
+        # 5️⃣ Review Count Distribution
+        st.subheader("5️⃣ Review Count Distribution")
         if len(df_eda):
             fig5 = px.histogram(df_eda, x="review_count_total", nbins=30,
                                 title="Distribution of Review Counts",
                                 labels={"review_count_total": "Number of Reviews"})
             fig5.update_layout(yaxis_title="Number of Restaurants")
-            st.plotly_chart(fig5, use_container_width=True)
 
-        st.write("---")
+            fig5.update_xaxes(
+                tickvals=[0, 1, 2, 3, 4],
+                ticktext=["1", "10", "100", "1k", "10k"]
+            )
 
-        # Top 10 Most Reviewed
-        st.subheader(" Top 10 Most Reviewed Restaurants")
+        # 6️⃣ Top 10 Most Reviewed
+        st.subheader("6️⃣ Top 10 Most Reviewed Restaurants")
         if len(df_eda):
             top_reviewed = df_eda.nlargest(10, "review_count_total")[
                 ["name", "review_count_total", "rating_overall", "area", "cuisine_primary", "price_category"]
