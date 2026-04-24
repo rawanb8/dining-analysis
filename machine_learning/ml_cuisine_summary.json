@@ -1,7 +1,7 @@
 {
-  "total_reviews_loaded": 55503,
+  "total_reviews_loaded": 55723,
   "known_cuisine_reviews": 25916,
-  "unknown_cuisine_reviews": 25596,
+  "unknown_cuisine_reviews": 25816,
   "phase1_models": {
     "Logistic Regression": {
       "accuracy": 0.6157,
@@ -76,11 +76,11 @@
   },
   "restaurant_level": {
     "n_restaurants_in_test": 255,
-    "n_restaurants_predicted": 2104,
+    "n_restaurants_predicted": 2135,
     "accuracy_restaurant_level": 0.6588,
     "f1_restaurant_level": 0.6386,
     "avg_confidence": 0.81,
-    "high_confidence_pct": 87.0,
+    "high_confidence_pct": 87.1,
     "per_class_f1": {
       "American": 0.531,
       "Dessert": 0.806,
@@ -124,8 +124,8 @@
       "rate": 0.267
     }
   ],
-  "predictions_made": 25596,
-  "low_confidence_count": 202,
+  "predictions_made": 25816,
+  "low_confidence_count": 197,
   "low_confidence_pct": 0.8,
   "low_confidence_threshold": 0.3,
   "avg_prediction_confidence": 0.81,
@@ -141,7 +141,7 @@
     "Pizza": 0.421,
     "Seafood": 0.667
   },
-  "enriched_reviews_total": 51512,
+  "enriched_reviews_total": 51732,
   "enriched_original_labels": 25916,
-  "enriched_predicted_labels": 25596
+  "enriched_predicted_labels": 25816
 }
