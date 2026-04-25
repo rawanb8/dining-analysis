@@ -3112,10 +3112,10 @@ src2_996,Unknown Restaurant,Unknown,Italian,Unknown,predicted,0.538,30,4.07
 src2_998,Beirut - Pastry,Beirut,Levantine,Mid-Range,predicted,0.994,16,3.56
 src2_999,Beirut Way,Beirut,Italian,Mid-Range,predicted,0.957,15,4.13
 src3_001,101 Gourmet,Spears Street facing the Lebanese Red Cross,Dessert,Unknown,predicted,0.979,5,4.6
-src3_002,1188 - Restaurant and Lounge Bar,Saint John Street Jbeil Old City,Italian,Unknown,predicted,0.781,5,4.8
+src3_002,1188 - Restaurant and Lounge Bar,Saint John Street Jbeil Old City,Italian,Unknown,predicted,0.672,10,4.8
 src3_003,19 Nineteen Restaurant,Route Khaldeh El Naameh,Levantine,Unknown,predicted,0.988,4,3.0
 src3_005,AL Faisal,Al Kalamoun,Levantine,Unknown,predicted,0.997,5,4.4
-src3_006,Aal Baher,Jbeil,Seafood,Unknown,predicted,0.998,4,3.0
+src3_006,Aal Baher,Jbeil,Seafood,Unknown,predicted,0.999,8,3.0
 src3_007,Abdel Wahab,Abdel Wahab El Inglizi Ashrafieh,Levantine,Unknown,predicted,0.999,5,5.0
 src3_008,Abdul Rahman Hallab & Sons 1881,Riad El Solh Str.,Dessert,Unknown,predicted,0.946,5,3.0
 src3_009,Abo Dany Restaurant,Port,Seafood,Unknown,predicted,0.964,5,5.0
@@ -3133,10 +3133,10 @@ src3_023,Al Dannoun,Al moutran street.,Levantine,Unknown,predicted,1.0,5,4.8
 src3_025,Al Fakhoury,Unknown,Seafood,Unknown,predicted,1.0,4,4.5
 src3_026,Al Farouk,Hamra,Levantine,Unknown,predicted,0.885,3,3.33
 src3_030,Al Mustafa Fish Restaurant,Jeme'ei Omar,Seafood,Unknown,predicted,0.93,3,4.67
-src3_031,Al Reef Al Lubnani,Mar Lichaa,Levantine,Unknown,predicted,0.993,5,4.2
+src3_031,Al Reef Al Lubnani,Mar Lichaa,Levantine,Unknown,predicted,0.996,10,4.2
 src3_032,Al Soha Snack & Grill,Syria Street Markazia Suites,Levantine,Unknown,predicted,0.997,1,3.0
-src3_035,Al Zaytouni Restaurant,Rue Martyr,Levantine,Unknown,predicted,0.994,5,4.8
-src3_036,Al-Arze Restaurant,Nabeh Mar Sarkis Road,Levantine,Unknown,predicted,0.936,3,4.33
+src3_035,Al Zaytouni Restaurant,Rue Martyr,Levantine,Unknown,predicted,0.997,10,4.8
+src3_036,Al-Arze Restaurant,Nabeh Mar Sarkis Road,Levantine,Unknown,predicted,0.922,6,4.33
 src3_037,Al-Fanar restaurant & Auberge,Salha House,Levantine,Unknown,predicted,0.874,5,2.6
 src3_038,Alien Burger - Mirdiff Way,6CPF+M6 Al Khawaneej St,Levantine,Unknown,predicted,0.951,1,5.0
 src3_041,Almayass Beirut,Wadih Naim,Levantine,Unknown,predicted,1.0,5,4.6
@@ -3152,316 +3152,318 @@ src3_052,Ashghalona,Fares Nemer St Al zareef,Levantine,Unknown,predicted,0.993,2
 src3_054,Athletes Kitchen,Warqa Mall,Levantine,Unknown,predicted,0.992,1,5.0
 src3_055,Aurelia,Port Entrance st. Qassam square,Levantine,Unknown,predicted,0.563,5,4.6
 src3_056,Avocado,Shura Street,Levantine,Unknown,predicted,0.765,4,4.0
-src3_057,Bab El-Mina,Old Harbor,Seafood,Unknown,predicted,0.881,4,4.5
-src3_058,Bachir,Main Street Cornish Al Mazraa,Dessert,Unknown,predicted,0.997,4,4.75
-src3_059,Backroom,Chehade Street Les Jardins de Tabaris,American,Unknown,predicted,0.948,3,4.0
-src3_060,Bahri Bay,Old Beirut Road Miramar Resort,Levantine,Unknown,predicted,0.962,4,4.75
-src3_064,Bamboo,Unknown,Italian,Unknown,predicted,0.601,2,4.5
-src3_065,Bamboo,Unknown,Levantine,Unknown,predicted,0.86,2,4.0
-src3_066,Bangalore Memories Restaurant,42a Street,Levantine,Unknown,predicted,0.841,2,3.0
-src3_067,Bar du Port,Charles Helou Avenue,Levantine,Unknown,predicted,0.292,5,3.6
-src3_068,Barakit Asmat Cafe Bistro,149 Street 12,Levantine,Unknown,predicted,0.903,5,4.8
-src3_069,Baroud Restaurant,Unknown,Levantine,Unknown,predicted,1.0,5,4.8
-src3_070,Barrio 67,Old Souks,Levantine,Unknown,predicted,0.932,2,5.0
-src3_073,Baskin-Robbins,2d Airport Rd,Dessert,Unknown,predicted,0.996,5,4.2
-src3_075,Batchig Zaitunay Bay,Zaitunay Bay,Levantine,Unknown,predicted,0.998,4,4.0
-src3_076,Batrouniyat,Ad Daoura Street,Levantine,Unknown,predicted,0.964,5,3.4
-src3_077,Baytna,32 Road,Levantine,Unknown,predicted,0.998,3,4.67
-src3_079,Bebabel,Minet El Hoson B11 center,Levantine,Unknown,predicted,0.963,4,4.25
-src3_082,Bedo's Bakery,Hardini Street,Levantine,Unknown,predicted,0.999,1,5.0
-src3_083,Beirut cellar,Chaccour Trad Street Tabaris,Levantine,Unknown,predicted,0.769,5,4.0
-src3_084,Beit Al Samak,New Corniche Road Next to Halabi Cafe,Levantine,Unknown,predicted,0.529,5,5.0
-src3_088,Better From Scratch,Amir Omar Street,Dessert,Unknown,predicted,1.0,5,4.8
-src3_090,Bharna Reasturant,Tripoli Street Near Grand Service Station,Seafood,Unknown,predicted,1.0,5,5.0
-src3_091,Big Mike's Burgers,1400 Street 11,Fast food,Unknown,predicted,0.898,5,4.2
-src3_092,BillyBoyz,Romain street Old souk,American,Unknown,predicted,0.54,1,5.0
-src3_093,Bint El Chalabiya,Mastita Seaside Road Bint El Chalabiya Building,Levantine,Unknown,predicted,0.828,1,3.0
-src3_094,Bistr'eau,Mina street,Seafood,Unknown,predicted,0.995,5,5.0
-src3_096,Black Barn,Mestita Highway,Levantine,Unknown,predicted,0.393,1,5.0
-src3_099,Blu Shisha Lounge & Grill,Corniche Street,Levantine,Unknown,predicted,0.702,2,4.5
-src3_101,Bombay Chowpatty,Al Mizhar 43c St Al Khawaneej Road,Levantine,Unknown,predicted,0.848,2,3.0
-src3_102,Bosporus Turkish Cuisine - Boulevard,Sheikh Mohammed bin Rashid Boulevard Level LG,American,Unknown,predicted,0.691,3,5.0
-src3_103,Bosporus Turkish Cuisine - City Centre Mirdif,Sheikh Mohammed Bin Zayed Rd City Centre Mirdif Mall,Levantine,Unknown,predicted,0.901,5,4.2
-src3_104,Botaniste,Boutros Dagher Street,Other,Unknown,predicted,0.75,4,5.0
-src3_106,Boulangerie Beurre,Mkhallissiye Saifi Village,Levantine,Unknown,predicted,0.53,3,4.67
-src3_109,Burger King,Al Mizhar 1 Khartoum St,Fast food,Unknown,predicted,0.57,4,4.5
-src3_110,Burger King,Uptown Mirdif Uptown Mirdif Mall Algeria St,Fast food,Unknown,predicted,0.827,6,3.33
-src3_112,Butlers Beach Club,Unknown,Levantine,Unknown,predicted,0.526,5,3.0
-src3_113,Cafe Des Cedres,Ariz Main Road Facing Cedars Forest,Levantine,Unknown,predicted,0.996,5,5.0
-src3_117,California Pizza Kitchen,Near Chili's Restaurant,American,Unknown,predicted,0.819,3,4.0
-src3_118,Capitale Cafe,Ahmad Shawki Street,Levantine,Unknown,predicted,0.525,5,5.0
-src3_119,Capitole,Asseily Building,Dessert,Unknown,predicted,0.479,5,3.4
-src3_120,Captain Seafood Restaurant,Sea Road El Rmaileh,Seafood,Unknown,predicted,0.999,5,4.6
-src3_121,Caribou Coffee,Uptown Mirdif Uptown Mirdif Mall Algeria St 47 Street,American,Unknown,predicted,0.79,5,3.6
-src3_123,Casa Di Lolita,Main Street,Italian,Unknown,predicted,0.883,4,4.5
-src3_124,Casa Lucia Byblos,37 Boulevard Raymond Edde Old Town Entrance,Levantine,Unknown,predicted,0.785,5,4.0
-src3_125,Casper and Gambini's,Unknown,Levantine,Unknown,predicted,0.962,5,2.6
-src3_126,Cat Cafe Vibrissae - Mirdif 35,35 60 C St - Mirdif,Dessert,Unknown,predicted,0.539,10,5.0
-src3_127,Cedars Heaven,Arez/Cedars Highway,Levantine,Unknown,predicted,0.967,5,4.6
-src3_128,Ceviche Restaurant Batroun,Main Street,Levantine,Unknown,predicted,0.891,5,3.4
-src3_129,Ceviche de la playa,Nabih berri street,Levantine,Unknown,predicted,0.998,5,4.2
-src3_131,Chalhoub Restaurant,Liban-Nord,Levantine,Unknown,predicted,0.996,5,2.8
-src3_133,Cherry on the Roof,,Levantine,Unknown,predicted,0.409,3,4.67
-src3_134,Chez Maguy,Makaad El Mir,Levantine,Unknown,predicted,0.986,4,1.0
-src3_137,Chicking Fried Chicken,Muhaisnah 1,Fast food,Unknown,predicted,0.745,3,2.67
-src3_138,Chili's,Sheikh Mohammed Bin Zayed Road Level 1,Italian,Unknown,predicted,0.426,5,3.0
-src3_139,Chin Chin,Next To Masjid Kabeer Street 58 C Behind Aswaaq Supermarket,Levantine,Unknown,predicted,0.648,4,3.5
-src3_140,Chin Chin Mirdif,Next To Masjid Kabeer,Levantine,Unknown,predicted,0.773,10,4.4
-src3_141,Chinese Palace Restaurant,Sheikh Mohammed Bin Zayed Road City Centre Mirdif,Levantine,Unknown,predicted,0.999,1,5.0
-src3_144,Churros Cafe,Algeria St Uptown Mirdif Shopping Center,Levantine,Unknown,predicted,0.997,2,5.0
-src3_145,Cinnabon - Mushriff Mall,Mushrif Mall,Levantine,Unknown,predicted,0.638,5,4.6
-src3_146,Circle Cafe,Gate 2,Levantine,Unknown,predicted,0.504,10,4.8
-src3_147,Clap,Annahar Building Floor 8th,Levantine,Unknown,predicted,0.384,4,3.75
-src3_148,Cloud 59,Public Beach,Seafood,Unknown,predicted,0.998,5,4.4
-src3_149,Cocktails Factory,Unknown,Dessert,Unknown,predicted,0.838,2,5.0
-src3_150,Cocteau,Palladium building,Levantine,Unknown,predicted,0.929,5,3.6
-src3_151,Colonel Beer,Bayadir Street,Levantine,Unknown,predicted,0.775,4,2.75
-src3_152,Costa Coffee,Mirdif City Centre,Levantine,Unknown,predicted,0.678,5,4.8
-src3_156,Dar Al Amar,Dam W Zarez,Levantine,Unknown,predicted,0.994,5,5.0
-src3_157,Dar Beirut,Gouraud Street Near Gemmayzeh Police Station,Levantine,Unknown,predicted,0.866,5,5.0
-src3_158,Deli.co,Patriach Howayek St,Levantine,Unknown,predicted,0.906,5,4.2
-src3_159,Delifrance,Uptown Mirdif Uptown Mirdif Mall Algeria St,French,Unknown,predicted,0.407,10,3.4
-src3_160,Deniz Bey Turkish Sweets,60C Street - 35 G,Dessert,Unknown,predicted,0.572,6,4.67
-src3_161,Des Choux Et Des Idees,Sodeco / Abdel Mawla Chaar Street Chaar Building Ground Floor,Dessert,Unknown,predicted,0.995,5,3.2
-src3_163,Doudelice,Main Street,Italian,Unknown,predicted,0.922,3,4.33
-src3_165,Dukkan Falafel,Al Warqa'a 4 Tripoli St,Jewish,Unknown,predicted,1.0,3,3.67
-src3_168,Dunkin' donuts,Damascus road,Fast food,Unknown,predicted,0.839,1,5.0
-src3_169,Dunya Beirut,Damascus,Levantine,Unknown,predicted,0.777,5,3.4
-src3_170,Duo,287 Maarad street,French,Unknown,predicted,0.893,5,3.6
-src3_171,Dxblends,60c Street Mirdif 35,Dessert,Unknown,predicted,0.796,2,5.0
-src3_172,EBS Fayhaa Hall,Beirut Hwy,Levantine,Unknown,predicted,0.965,4,5.0
-src3_173,Eagle,Alalesa Street,Dessert,Unknown,predicted,0.998,1,4.0
-src3_175,El Boutique Hotel,Old City,Levantine,Unknown,predicted,0.419,5,4.2
-src3_176,El Hajj Ali,Achir Daye Street,Levantine,Unknown,predicted,0.974,3,4.33
-src3_177,El Molino Mexican Restaurant,Old Port Houssami bldg,Levantine,Unknown,predicted,0.902,5,1.8
-src3_178,Elie's Yard,1106 Old Souk Road Old Souk,Levantine,Unknown,predicted,0.984,3,5.0
-src3_180,Em Sherif Cafe,Minet El Hosn,Levantine,Unknown,predicted,0.969,5,4.2
-src3_181,Em Sherif Restaurant,Rue Victor Hugo Ashrafieh,Levantine,Unknown,predicted,0.963,5,1.8
-src3_183,Eva Kana,2a 47 Street Mirdif,Levantine,Unknown,predicted,0.988,10,3.8
-src3_186,Faisal Restaurant,3a 20 street Al khabisy,Levantine,Unknown,predicted,1.0,2,3.0
-src3_188,Falafel Abou Rami,Saida,Jewish,Unknown,predicted,1.0,5,4.8
-src3_189,Famous Pastries,City complex street Next to orchid chocolate,Levantine,Unknown,predicted,0.998,1,5.0
-src3_190,Feniqia,Rue Pepe Abed,Levantine,Unknown,predicted,0.992,5,2.6
-src3_192,Fin Faim French Bistro,13 Voie,American,Unknown,predicted,0.79,5,4.6
-src3_193,Fluka Ghassan,Riad Solh Street,Seafood,Unknown,predicted,0.771,1,5.0
-src3_196,Forsan Dubai,23 24B St Mirdif,Levantine,Unknown,predicted,0.622,8,3.75
-src3_197,Francis Restaurant,Near Saint Antonios,Levantine,Unknown,predicted,0.739,2,5.0
-src3_199,Freez - The 77 Valley Branch,Hamdan Bin Zayed Khawaneej Wadi AlAmardi - Khawaneej,Levantine,Unknown,predicted,0.522,2,3.0
-src3_200,Furn Al Barake,Eddeh Road Opposite Petrol Station,Levantine,Unknown,predicted,0.432,1,5.0
-src3_202,Gazebo Restaurant,Ground Level,Levantine,Unknown,predicted,0.974,8,3.25
-src3_204,Georges Maalouf Seafood & Snack,118 Street,Seafood,Unknown,predicted,1.0,5,5.0
-src3_205,German Doner Kebab,38 62B St Mirdif,Levantine,Unknown,predicted,0.999,5,4.0
-src3_206,Gigi,Unknown,Pizza,Unknown,predicted,0.337,5,3.6
-src3_207,Gloria Jean's Coffees,8/2 Tripoli St,Levantine,Unknown,predicted,0.98,4,4.0
-src3_210,Greenhouse Cafeandbar,Eddeh Main Street,Levantine,Unknown,predicted,0.443,2,5.0
-src3_211,Grill house,Gemayzet Street,Levantine,Unknown,predicted,0.665,2,5.0
-src3_213,Grotesque,El Arz,Levantine,Unknown,predicted,0.985,1,5.0
-src3_215,HUSK Beirut,Al Arz Street,Fast food,Unknown,predicted,0.753,5,4.0
-src3_220,Hardee's,Mirdif Mirdif City Centre 1st Flr Emirates Road Mohamed Bin Zayed Road,Fast food,Unknown,predicted,0.728,5,3.0
-src3_221,Hartaaji,Nabih Berri Boulevard,Levantine,Unknown,predicted,0.999,1,5.0
-src3_222,Hatam Restaurant,Al Mizhar 43c St,Levantine,Unknown,predicted,0.999,8,2.75
-src3_223,Haven - The Cabin,Lebanese American University Road Top Hill,American,Unknown,predicted,0.323,5,4.6
-src3_226,Hilmi's House of Lemonade,902 Street Hilmi's building,Dessert,Unknown,predicted,0.999,3,2.33
-src3_227,Hitchki Mirdif,Unit no FD122A/FD122B City Centre Mirdif,American,Unknown,predicted,0.549,5,5.0
-src3_228,Hometown,Main Street Old Souk Street a1,Levantine,Unknown,predicted,0.776,5,5.0
-src3_229,Ichkhanian Bakery,Rue Hussein Beyhum Zoukak El-Blate,Levantine,Unknown,predicted,0.508,5,4.8
-src3_233,JackieO Beirut,Saifi,Levantine,Unknown,predicted,0.927,5,4.0
-src3_234,Jamaica Blue Arabian Center,Ground Floor,Levantine,Unknown,predicted,0.992,4,5.0
-src3_235,Jars & Co,Omar Amin Street,Levantine,Unknown,predicted,0.814,1,5.0
-src3_236,Jessy Juice,Main Street,Dessert,Unknown,predicted,0.999,3,5.0
-src3_237,Jimmy's Shack,Mirdif 37th street Next to Abaya Mall,Fast food,Unknown,predicted,0.972,10,3.6
-src3_238,Jnaynit Farid,Bechara El Khoury,Levantine,Unknown,predicted,0.978,1,3.0
-src3_241,Julia's,Abdel Wahab Inglizi Street,French,Unknown,predicted,0.691,5,4.4
-src3_246,Kabab Mirdef,Mirdif 17c St 62a Mirdif,Levantine,Unknown,predicted,1.0,1,5.0
-src3_248,Kabablaki Grill,Unknown,Levantine,Unknown,predicted,1.0,5,4.6
-src3_249,Kaddoum center,Main Street,Levantine,Unknown,predicted,0.974,5,3.8
-src3_250,Kahloon Restocafe,Jemeizat Street Sour,Levantine,Unknown,predicted,0.995,5,3.2
-src3_251,Kahwet Azmi,1144 Marfaa,Levantine,Unknown,predicted,0.996,4,5.0
-src3_252,Kalila Restaurant,Berytus Park Building,Levantine,Unknown,predicted,0.962,5,4.8
-src3_253,Kami - Japanese,Main road,Levantine,Unknown,predicted,0.929,4,5.0
-src3_254,Kampai,Minet el Hosn Paladium building,American,Unknown,predicted,0.496,5,3.6
-src3_255,Katrina Sweets & Confectionary,Street 47 Al Barajeel Complex,Other,Unknown,predicted,0.496,4,2.0
-src3_256,Katrina Sweets & Confectionery,Airport Road,Levantine,Unknown,predicted,0.863,3,4.0
-src3_258,Khan Jbeil,Unknown,Levantine,Unknown,predicted,0.962,1,4.0
-src3_259,Khan Jbeil,Jbeil,Levantine,Unknown,predicted,0.994,5,2.6
-src3_263,Ksaar,Jbeil - Aannaya Road,Italian,Unknown,predicted,0.999,3,4.33
-src3_264,Ksar Lebanese Diner,Crossroad 13th Avenue,Levantine,Unknown,predicted,0.998,5,3.6
-src3_265,L Bayt Baytak,Maroun Chalfeh St,Levantine,Unknown,predicted,0.999,2,5.0
-src3_266,L'avenue du parc,Sn Ahmad Chawki Street,Levantine,Unknown,predicted,0.97,5,4.8
-src3_267,L'os,Rue Principale,Levantine,Unknown,predicted,0.435,1,1.0
-src3_268,La Bodeguita del Medio,Rue de Damas,Levantine,Unknown,predicted,0.518,5,3.4
-src3_269,La Boussole,289 Rue Clemenceau ESA Business School,Levantine,Unknown,predicted,0.968,1,5.0
-src3_270,La Brioche,Bay Avenue Al Sa'ada St Executive Tower,Levantine,Unknown,predicted,0.861,5,3.6
-src3_271,La Burrateria,Gemmayze,Levantine,Unknown,predicted,1.0,1,5.0
-src3_272,La Casa Di Pasta,Nicolas Rebeiz Al Achkar Building,Italian,Unknown,predicted,0.999,4,5.0
-src3_273,La Marsa Garden restaurant,Rafic Hariri str Seaside road facing the castle,Italian,Unknown,predicted,0.97,5,5.0
-src3_274,La Mezcaleria,Avenue Charles Helou Saifi,Levantine,Unknown,predicted,0.378,5,1.4
-src3_275,La Pirogue,Port Street,Seafood,Unknown,predicted,0.997,3,5.0
-src3_277,La Plaka,Achir Daye Street,Levantine,Unknown,predicted,0.748,5,4.0
-src3_278,La Salle Resto,Alman Road,Levantine,Unknown,predicted,0.998,1,5.0
-src3_279,La Table Hafroun,Al Ramel Street Facing Edde Sands Hotel,Levantine,Unknown,predicted,0.997,5,3.8
-src3_281,La Tavola Beirut,Salim Salam,Italian,Unknown,predicted,0.941,5,3.8
-src3_282,La Verriere - Nicolas Audi,Avenue De l'Independance Achrafieh,Levantine,Unknown,predicted,0.73,1,5.0
-src3_284,Laduree,0 ABC Ashrafieh,Levantine,Unknown,predicted,1.0,1,5.0
-src3_285,Lakkis Farm Restaurant - Batroun,Sea Side Rd,Levantine,Unknown,predicted,0.888,5,2.0
-src3_288,Le Chatel,Cedars,Levantine,Unknown,predicted,0.999,3,3.67
-src3_289,Le Gastronome,Next To Lau,Levantine,Unknown,predicted,0.553,2,5.0
-src3_290,Le Grand Bleu Restaurant,Unknown,Levantine,Unknown,predicted,0.989,2,5.0
-src3_292,Le Marin,Bahsa Street,Levantine,Unknown,predicted,0.958,5,2.4
-src3_294,Le Phenicien,Port De Tyr,Seafood,Unknown,predicted,0.985,5,4.8
-src3_295,Le Professeur,Mar Elias Street,Levantine,Unknown,predicted,1.0,5,4.0
-src3_296,Le Relais de l'Entrecote,Abed Al Wahab Str Ashrafieh,French,Unknown,predicted,0.496,5,2.8
-src3_297,Le Sushi Bar,New Starco Building,Levantine,Unknown,predicted,0.679,5,3.2
-src3_298,Le Trottoir de Paloma,Pasteur Street,American,Unknown,predicted,0.554,5,3.4
-src3_299,Lea Cafe,Mizhar 1,Levantine,Unknown,predicted,0.894,2,5.0
-src3_300,Lemonade Chahine,Centre Saint Rock,Dessert,Unknown,predicted,0.935,3,4.0
-src3_301,Lemonade Chahine,Sea Side Rd,Dessert,Unknown,predicted,1.0,1,5.0
-src3_302,Leopold's of London Mirdif,38 26 B Street Mirdiff Park Center,Levantine,Unknown,predicted,0.628,5,4.2
-src3_303,Lime Thyme,47th St Mirdif Mall,Seafood,Unknown,predicted,0.987,1,1.0
-src3_304,Liza,Doumani street,Levantine,Unknown,predicted,0.864,3,5.0
-src3_306,Locanda - A la Granda,Old Souk,American,Unknown,predicted,0.949,5,2.6
-src3_307,Loris Restaurant,Pasteur Street,Levantine,Unknown,predicted,0.998,4,5.0
-src3_308,Love Mhshy,Algeria Street,Levantine,Unknown,predicted,0.991,2,5.0
-src3_309,Lulu Al Bastakyah Al Kabab Al Khas,Al Warqa 4 Near Grand Service Station,Levantine,Unknown,predicted,0.962,1,1.0
-src3_310,Luna's Kitchen,Tannoukhiyen St,Levantine,Unknown,predicted,0.989,2,4.0
-src3_311,MASA Restaurant,Arz Street Inside Samar Resort,Levantine,Unknown,predicted,0.582,5,4.0
-src3_312,MRKT Beirut Souks,WG23+5QC,Dessert,Unknown,predicted,0.942,1,3.0
-src3_313,Machos,Ashir el Dayeh Street,Levantine,Unknown,predicted,0.816,2,5.0
-src3_314,Maison M,Mar Mansour Street,Levantine,Unknown,predicted,0.828,5,3.0
-src3_316,Malibou,Saifi Village,Levantine,Unknown,predicted,0.995,1,4.0
-src3_319,Mawood Cafeteria,8 41B St Al Muraqqabat,Levantine,Unknown,predicted,0.969,2,4.0
-src3_320,McDonald's,2 Al Khawaneej Rd Arabian Center,Levantine,Unknown,predicted,0.965,1,3.0
-src3_321,McDonald's,Al Warqa'a 4 Tripoli St,American,Unknown,predicted,0.665,5,3.0
-src3_324,Menagerie,Mirdif 35 Mall,Levantine,Unknown,predicted,0.774,10,4.0
-src3_325,Merchak Cafe,Cheikh Mrah Street,Levantine,Unknown,predicted,0.943,5,3.2
-src3_326,Metro Saida,Saida Saida,Levantine,Unknown,predicted,0.986,1,5.0
-src3_327,Miami Sea View,Ouzai Main Road heading to khalde next to Gallery Diab,Dessert,Unknown,predicted,0.433,1,5.0
-src3_328,Min Tabkhetna,Unknown,Levantine,Unknown,predicted,0.996,5,4.8
-src3_329,Mini Guette,Salim Slam,Levantine,Unknown,predicted,0.994,4,4.0
-src3_330,Minos,Mina,Seafood,Unknown,predicted,0.947,5,4.8
-src3_331,Minour Kitchen,51 Beirut Saida Hwy,Levantine,Unknown,predicted,0.999,1,5.0
-src3_332,Mirdif Fish & Chips,Mirdif 26b St 39a Mirdif,Seafood,Unknown,predicted,0.618,10,2.8
-src3_333,Mon Maki A Moi,Main Street,Levantine,Unknown,predicted,0.685,5,2.8
-src3_335,Moodz,Gefinor Rotana,Other,Unknown,predicted,0.755,5,4.2
-src3_336,Moro Resto Cafe,Moro Center Bramiyeh,Levantine,Unknown,predicted,0.998,1,5.0
-src3_340,Mybc,Uptown Mirdiff,Levantine,Unknown,predicted,0.998,1,3.0
-src3_341,Nakhle Al Sayad,El Mina,Seafood,Unknown,predicted,1.0,4,4.75
-src3_343,Naranj Cafe,Roucheid El Dahdah,Levantine,Unknown,predicted,0.954,1,5.0
-src3_344,New Indo-Lanka Restaurant,C.I.T. Bldg.,Levantine,Unknown,predicted,0.967,5,4.0
-src3_345,New York City Pizzeria,Sea Side Road After Solemar Resort,Pizza,Unknown,predicted,0.463,3,4.0
-src3_346,NewYorker Cup,Jbeil,Levantine,Unknown,predicted,0.564,2,4.0
-src3_347,Newtown Coffee - Specialty Roasters,Riad El Solh St Facing Mina central and Max Department Store,Other,Unknown,predicted,0.871,3,3.67
-src3_348,Nyf,3 21 St Oud Metha,American,Unknown,predicted,0.515,10,5.0
-src3_349,O Glacee,Thoum Seaside Road,Seafood,Unknown,predicted,1.0,5,4.8
-src3_350,O Marin,Seaside Road Facing Casino du Liban,Levantine,Unknown,predicted,0.996,2,5.0
-src3_352,OSOM Organic shop & Cafe,Voie 13,Levantine,Unknown,predicted,0.912,3,5.0
-src3_354,Ocean,Costal Road,Levantine,Unknown,predicted,0.642,1,4.0
-src3_356,Ohannes,Unknown,Levantine,Unknown,predicted,1.0,5,3.4
-src3_360,Olive Garden Restaurant,Gefinor Rotana,Levantine,Unknown,predicted,0.598,5,4.6
-src3_362,Oregano Restaurant,Sports Society Mall,Italian,Unknown,predicted,0.664,10,5.0
-src3_364,Ouma Sushi Restaurant,47th St - Mirdif Al Barajeel Oasis Complex,Levantine,Unknown,predicted,0.941,3,5.0
-src3_366,Oyster's Seafood Bar,13 Mina Street,Levantine,Unknown,predicted,0.995,4,3.0
-src3_367,PZZA.CO,Patriach Howayek St,Italian,Unknown,predicted,1.0,5,4.8
-src3_368,Pablo Escobar,Sea Side Rd,Dessert,Unknown,predicted,0.49,1,4.0
-src3_370,Papa John's,Tripoli Street,Levantine,Unknown,predicted,0.487,1,4.0
-src3_372,Papa Murphy's,Tripoli Street Grant Service Station,Pizza,Unknown,predicted,0.962,5,3.6
-src3_373,Papaya,Achir El Daya Street Dam West Farez,Dessert,Unknown,predicted,1.0,5,4.2
-src3_374,Pasta di Casa,Jumblatt road off Clemenceau Street Hamra,Italian,Unknown,predicted,1.0,5,3.8
-src3_375,Patisserie Kanaan,Etoile Place Awaly Bridge,Dessert,Unknown,predicted,0.998,5,3.6
-src3_377,Patisserie RIM,Main Street,Dessert,Unknown,predicted,1.0,4,5.0
-src3_378,Patisserie Zeina,Rue Sanayeh R. Marry Edde,Dessert,Unknown,predicted,0.727,5,3.8
-src3_379,Pearl Island Restaurant,Unknown,Levantine,Unknown,predicted,0.533,5,2.6
-src3_383,Pre Beirut,Miele Building,Levantine,Unknown,predicted,0.957,5,1.6
-src3_384,Pronto,Tripoli Street,Levantine,Unknown,predicted,0.768,1,4.0
-src3_385,Provincia Ristorante Italiano,Unknown,Levantine,Unknown,predicted,0.939,2,4.0
-src3_386,Punto Alto,Ras Maska,Italian,Unknown,predicted,0.843,5,3.0
-src3_387,Puranmal,9 60A St Al Souq,Dessert,Unknown,predicted,0.846,10,3.6
-src3_389,Q Urban Grill,HaretHreik- Hadi Nasralla Road Al Qaem Street,American,Unknown,predicted,0.543,2,4.5
-src3_390,Rachad Patisserie Et Glaces 1929,Independence Street Malla,Dessert,Unknown,predicted,1.0,2,4.0
-src3_391,Rafaat Hallab 1881,Tall Street,Dessert,Unknown,predicted,0.972,4,2.75
-src3_393,Ramen-Ya,Gemayze Gouraud Street,Levantine,Unknown,predicted,0.928,5,4.6
-src3_394,Rassif Cafe,Main Street Dam W Farz,Levantine,Unknown,predicted,0.834,3,3.33
-src3_395,Rawand  Cuisine,Achier El Daya,Levantine,Unknown,predicted,0.97,5,4.0
-src3_397,Red Buffalo Steakhouse,Hazmieh Main road,American,Unknown,predicted,0.237,5,2.8
-src3_398,Redwood,Port Entrance,Dessert,Unknown,predicted,0.893,1,5.0
-src3_399,Reflect Pub,Main Old Souk road Old Souk,Other,Unknown,predicted,0.342,1,5.0
-src3_401,River Rock Restaurant,Al-Dawalib Main Street,Levantine,Unknown,predicted,0.997,4,5.0
-src3_402,Roadster Diner,Sea Side Road,American,Unknown,predicted,0.43,4,3.0
-src3_403,Roadster diner,Charles Malek Avenue,Levantine,Unknown,predicted,0.982,5,1.8
-src3_404,"Romeo Lane, Dubai",Pullman Hotel Dubai - Floor 2 Drive Marasi Dr - Business Bay - Dubai - United Arab Emirates,American,Unknown,predicted,0.539,10,5.0
-src3_405,Root 829,Hasroun,Levantine,Unknown,predicted,1.0,1,5.0
-src3_408,Rue 30,Unknown,Other,Unknown,predicted,0.852,4,4.5
-src3_409,Sa7sa7,Unknown,Levantine,Unknown,predicted,0.851,1,3.0
-src3_410,Saida Rest House,Old Saidon Souk Next To The Sea Castle,Levantine,Unknown,predicted,0.916,5,3.6
-src3_412,Salinas,Corniche,Seafood,Unknown,predicted,0.785,5,3.2
-src3_413,Salud,El Sultan Ibrahim Street Jal El Dib,Levantine,Unknown,predicted,0.878,5,4.2
-src3_414,Samket AmcHit,Seaside Road Jbeil District,Seafood,Unknown,predicted,0.999,4,4.0
-src3_416,Sanawbara,Haret Hraik,Levantine,Unknown,predicted,0.947,1,5.0
-src3_417,Sandwich Karki,Rue Daaboul,Levantine,Unknown,predicted,0.993,3,3.67
-src3_418,Sapori E Vini,Mraba'a Street,Italian,Unknown,predicted,0.929,5,5.0
-src3_419,Sett Alsham,Awqaf Building,Levantine,Unknown,predicted,0.99,2,4.0
-src3_421,Shater Hassan Palace,Unknown,Levantine,Unknown,predicted,0.998,1,5.0
-src3_422,Shawarma w Saj,Iliya Saida,American,Unknown,predicted,0.537,5,4.6
-src3_424,Shiraz Kabab Khas,47 Street,Levantine,Unknown,predicted,0.999,3,4.0
-src3_425,Sicilia,Rue Nabih Berri,Italian,Unknown,predicted,0.864,5,3.4
-src3_426,Silver Shore,Al-Mina,Seafood,Unknown,predicted,1.0,5,4.2
-src3_427,Simit SarayI,Unknown,Levantine,Unknown,predicted,0.652,5,4.0
-src3_429,Skirt,Assurex Bldg,Dessert,Unknown,predicted,0.448,4,4.5
-src3_430,Smat,47th St Al Barajeel Complex,American,Unknown,predicted,0.906,5,4.4
-src3_432,Society,Saifi Suites Hotel,American,Unknown,predicted,0.435,4,2.5
-src3_434,Soho Premium Street Food,Al Manar Tripol,Levantine,Unknown,predicted,0.645,1,5.0
-src3_435,Somar,Main Street Mar Elias,Levantine,Unknown,predicted,1.0,2,2.5
-src3_436,Spice Hut,39 26B St Mirdif,Levantine,Unknown,predicted,0.902,5,4.0
-src3_437,Spicy No7,Pasteur St,Levantine,Unknown,predicted,0.822,5,4.8
-src3_438,Square cafe,Beshara El Khoury,Levantine,Unknown,predicted,0.967,5,4.4
-src3_439,Starbucks,City Centre Mirdif,Dessert,Unknown,predicted,0.95,5,3.0
-src3_441,Starbucks,Arabian Centre Plot 262-3104,Levantine,Unknown,predicted,0.963,2,5.0
-src3_444,Starbucks,Mastita - Drive Thru,Dessert,Unknown,predicted,0.386,1,5.0
-src3_445,Starbucks,Unknown,Dessert,Unknown,predicted,0.533,5,2.2
-src3_448,Starbucks,San Stefano Resort,Levantine,Unknown,predicted,0.896,1,5.0
-src3_451,Status Kitchen,31 24 B St,American,Unknown,predicted,0.492,4,5.0
-src3_452,Stem,38 Rue Monot,Levantine,Unknown,predicted,0.605,5,4.0
-src3_453,Stephanie Cafe,Unknown,Italian,Unknown,predicted,0.453,5,5.0
-src3_454,Stephanie Cafe,Anthonio_s center .. Next to Vee Coffee Shop Resto Cafe,American,Unknown,predicted,0.479,5,5.0
-src3_457,Sultan Al Mina,Unknown,Seafood,Unknown,predicted,0.956,5,1.6
-src3_459,Surge Coffee Roasters,26B Street,Levantine,Unknown,predicted,0.614,5,4.4
-src3_460,Sushi Bento,Saida,Levantine,Unknown,predicted,0.782,5,5.0
-src3_461,Sushi Nations Mirdif,Algeria - 47th Street,Levantine,Unknown,predicted,0.574,8,3.0
-src3_462,Swiss Butter,Gemmayzeh Gouraud,American,Unknown,predicted,0.76,5,3.2
-src3_463,Swiss Butter,Bahsa,Levantine,Unknown,predicted,0.721,5,4.0
-src3_464,Taiga Cafe,Unknown,Levantine,Unknown,predicted,0.845,5,4.2
-src3_465,Tappo,Gemayze Rue Pasteur,Italian,Unknown,predicted,0.281,5,5.0
-src3_466,Tartufo- passion kitchen,Shehadeh Street,Italian,Unknown,predicted,0.994,1,4.0
-src3_467,Tavolino Pub,Al Fanar Street,Italian,Unknown,predicted,0.287,5,4.4
-src3_468,Tawlet Saida,Saida Seaside Road,Levantine,Unknown,predicted,0.91,5,4.4
-src3_469,Terghale,Abdel Aziz Street,Levantine,Unknown,predicted,0.972,5,5.0
-src3_470,Teta's Mezza House,Unknown,Levantine,Unknown,predicted,0.993,1,5.0
-src3_472,Texas Fire Grill,Arabian Center 383 Al Khawaneej St - Al Mizhar,Levantine,Unknown,predicted,0.735,4,4.5
-src3_473,The Backburner,Ariss & Kanafani Street Saifi Village,Levantine,Unknown,predicted,0.998,5,3.4
-src3_474,The Broad,LAU road - Top Hill,Fast food,Unknown,predicted,0.475,3,4.0
-src3_476,The Glow Paradise,Gouraud St The Glow Paradise,Other,Unknown,predicted,0.898,5,5.0
-src3_478,The Lebanese Bakery,Salim Bustros Street Tabaris,Levantine,Unknown,predicted,0.717,5,3.6
-src3_481,The Sailor Woman,Yaacoub Labban Street Facing Jesuit's School,Levantine,Unknown,predicted,0.778,1,5.0
-src3_483,Tony's,Old Town Steps Accessible From The Marina Road. Blue Windows,Seafood,Unknown,predicted,0.525,5,4.0
-src3_484,Tortilla - The 77 Valley,The 77 Valley,Levantine,Unknown,predicted,0.993,1,5.0
-src3_486,Totori,513 Clemenceau,Levantine,Unknown,predicted,0.967,5,5.0
-src3_489,Tsunami,Abou Rizk Building,Levantine,Unknown,predicted,0.827,5,3.0
-src3_492,Tyros Resort,Sour Main Road,Levantine,Unknown,predicted,0.766,4,4.75
-src3_493,Ummi,Unknown,Levantine,Unknown,predicted,1.0,5,4.0
-src3_494,Un Petit Gato,37 Rue Vieux Port,Dessert,Unknown,predicted,0.977,2,5.0
-src3_495,Una Pizza,32nd Street,Pizza,Unknown,predicted,0.455,5,4.4
-src3_496,Uptown Mirdif Pizza,Mirdif,Pizza,Unknown,predicted,0.429,10,4.4
-src3_500,YAM Seafood Resto,Nabih Berri Street below Shawatina Restaurant,Seafood,Unknown,predicted,0.991,5,4.0
-src3_502,YAZZ Lounge & Garden,Unknown,Other,Unknown,predicted,0.304,1,5.0
-src3_504,Yamanote Atelier Mirdif Hills,47/78 Street Mirdif Hills,Levantine,Unknown,predicted,0.955,1,5.0
-src3_505,Yasamin By The Mediterranean,Street 14 Old Souks,Levantine,Unknown,predicted,0.372,3,4.0
-src3_507,Yoko,Rafic Salloum street,Levantine,Unknown,predicted,0.998,1,5.0
-src3_508,Zaatar W Zeit,Zaitunay Bay,Levantine,Unknown,predicted,0.906,1,5.0
-src3_512,Zawat Restaurant,Castle of Saida,Levantine,Unknown,predicted,0.995,4,1.5
-src3_513,Zaytouna Garden,Seaside Road,Levantine,Unknown,predicted,0.959,2,5.0
-src3_514,Zeeri Beach House,Unknown,Other,Unknown,predicted,0.792,1,5.0
-src3_516,Zinc Coffee Lounge,Sport Society Mall Mirdif,American,Unknown,predicted,0.576,1,5.0
-src3_517,awtar,Unknown,Levantine,Unknown,predicted,0.901,5,3.6
-src3_518,balthus,Ghandour Building,French,Unknown,predicted,0.513,5,4.2
-src3_519,eCafe,Edde Yard Old Souk,Levantine,Unknown,predicted,0.68,5,3.6
-src3_520,souksixteen,Old Souk,Levantine,Unknown,predicted,0.964,2,5.0
+src3_057,Ayloul,Saint-Martin-Saint-Charbel Road,Levantine,Unknown,predicted,0.982,1,1.0
+src3_058,Bab El-Mina,Old Harbor,Seafood,Unknown,predicted,0.755,8,4.5
+src3_059,Bachir,Main Street Cornish Al Mazraa,Dessert,Unknown,predicted,0.997,4,4.75
+src3_060,Backroom,Chehade Street Les Jardins de Tabaris,American,Unknown,predicted,0.948,3,4.0
+src3_061,Bahri Bay,Old Beirut Road Miramar Resort,Levantine,Unknown,predicted,0.962,4,4.75
+src3_065,Bamboo,Unknown,Italian,Unknown,predicted,0.601,2,4.5
+src3_066,Bamboo,Unknown,Levantine,Unknown,predicted,0.86,2,4.0
+src3_067,Bangalore Memories Restaurant,42a Street,Levantine,Unknown,predicted,0.841,2,3.0
+src3_068,Bar du Port,Charles Helou Avenue,Levantine,Unknown,predicted,0.292,5,3.6
+src3_069,Barakit Asmat Cafe Bistro,149 Street 12,Levantine,Unknown,predicted,0.903,5,4.8
+src3_070,Baroud Restaurant,Unknown,Levantine,Unknown,predicted,1.0,5,4.8
+src3_071,Barrio 67,Old Souks,Levantine,Unknown,predicted,0.932,2,5.0
+src3_074,Baskin-Robbins,2d Airport Rd,Dessert,Unknown,predicted,0.996,5,4.2
+src3_076,Batchig Zaitunay Bay,Zaitunay Bay,Levantine,Unknown,predicted,0.998,4,4.0
+src3_077,Batrouniyat,Ad Daoura Street,Levantine,Unknown,predicted,0.964,5,3.4
+src3_078,Baytna,32 Road,Levantine,Unknown,predicted,0.998,3,4.67
+src3_080,Bebabel,Minet El Hoson B11 center,Levantine,Unknown,predicted,0.963,4,4.25
+src3_083,Bedo's Bakery,Hardini Street,Levantine,Unknown,predicted,0.999,1,5.0
+src3_084,Beirut cellar,Chaccour Trad Street Tabaris,Levantine,Unknown,predicted,0.769,5,4.0
+src3_085,Beit Al Samak,New Corniche Road Next to Halabi Cafe,Levantine,Unknown,predicted,0.529,5,5.0
+src3_089,Better From Scratch,Amir Omar Street,Dessert,Unknown,predicted,1.0,5,4.8
+src3_091,Bharna Reasturant,Tripoli Street Near Grand Service Station,Seafood,Unknown,predicted,1.0,5,5.0
+src3_092,Big Mike's Burgers,1400 Street 11,Fast food,Unknown,predicted,0.898,5,4.2
+src3_093,BillyBoyz,Romain street Old souk,American,Unknown,predicted,0.504,2,5.0
+src3_094,Bint El Chalabiya,Mastita Seaside Road Bint El Chalabiya Building,Levantine,Unknown,predicted,0.895,2,3.0
+src3_095,Bistr'eau,Mina street,Seafood,Unknown,predicted,0.995,5,5.0
+src3_097,Black Barn,Mestita Highway,American,Unknown,predicted,0.348,2,5.0
+src3_100,Blu Shisha Lounge & Grill,Corniche Street,Levantine,Unknown,predicted,0.702,2,4.5
+src3_102,Bombay Chowpatty,Al Mizhar 43c St Al Khawaneej Road,Levantine,Unknown,predicted,0.848,2,3.0
+src3_103,Bosporus Turkish Cuisine - Boulevard,Sheikh Mohammed bin Rashid Boulevard Level LG,American,Unknown,predicted,0.691,3,5.0
+src3_104,Bosporus Turkish Cuisine - City Centre Mirdif,Sheikh Mohammed Bin Zayed Rd City Centre Mirdif Mall,Levantine,Unknown,predicted,0.901,5,4.2
+src3_106,Botaniste,Boutros Dagher Street,Other,Unknown,predicted,0.75,4,5.0
+src3_107,Boulangerie Beurre,Mkhallissiye Saifi Village,Levantine,Unknown,predicted,0.53,3,4.67
+src3_110,Burger King,Al Mizhar 1 Khartoum St,Fast food,Unknown,predicted,0.57,4,4.5
+src3_111,Burger King,Uptown Mirdif Uptown Mirdif Mall Algeria St,Fast food,Unknown,predicted,0.827,6,3.33
+src3_113,Butlers Beach Club,Unknown,Levantine,Unknown,predicted,0.526,5,3.0
+src3_114,Cafe Des Cedres,Ariz Main Road Facing Cedars Forest,Levantine,Unknown,predicted,0.998,10,5.0
+src3_118,California Pizza Kitchen,Near Chili's Restaurant,American,Unknown,predicted,0.819,3,4.0
+src3_119,Capitale Cafe,Ahmad Shawki Street,Levantine,Unknown,predicted,0.525,5,5.0
+src3_120,Capitole,Asseily Building,Dessert,Unknown,predicted,0.479,5,3.4
+src3_121,Captain Seafood Restaurant,Sea Road El Rmaileh,Seafood,Unknown,predicted,0.999,5,4.6
+src3_122,Caribou Coffee,Uptown Mirdif Uptown Mirdif Mall Algeria St 47 Street,American,Unknown,predicted,0.79,5,3.6
+src3_124,Casa Di Lolita,Main Street,Italian,Unknown,predicted,0.941,8,4.5
+src3_125,Casa Lucia Byblos,37 Boulevard Raymond Edde Old Town Entrance,Levantine,Unknown,predicted,0.959,10,4.0
+src3_126,Casper and Gambini's,Unknown,Levantine,Unknown,predicted,0.962,5,2.6
+src3_127,Cat Cafe Vibrissae - Mirdif 35,35 60 C St - Mirdif,Dessert,Unknown,predicted,0.539,10,5.0
+src3_128,Cedars Heaven,Arez/Cedars Highway,Levantine,Unknown,predicted,0.989,10,4.6
+src3_129,Ceviche Restaurant Batroun,Main Street,Levantine,Unknown,predicted,0.891,5,3.4
+src3_130,Ceviche de la playa,Nabih berri street,Levantine,Unknown,predicted,0.998,5,4.2
+src3_132,Chalhoub Restaurant,Liban-Nord,Levantine,Unknown,predicted,0.996,5,2.8
+src3_134,Cherry on the Roof,,Levantine,Unknown,predicted,0.409,3,4.67
+src3_135,Chez Maguy,Makaad El Mir,Levantine,Unknown,predicted,0.986,4,1.0
+src3_138,Chicking Fried Chicken,Muhaisnah 1,Fast food,Unknown,predicted,0.745,3,2.67
+src3_139,Chili's,Sheikh Mohammed Bin Zayed Road Level 1,Italian,Unknown,predicted,0.426,5,3.0
+src3_140,Chin Chin,Next To Masjid Kabeer Street 58 C Behind Aswaaq Supermarket,Levantine,Unknown,predicted,0.648,4,3.5
+src3_141,Chin Chin Mirdif,Next To Masjid Kabeer,Levantine,Unknown,predicted,0.773,10,4.4
+src3_142,Chinese Palace Restaurant,Sheikh Mohammed Bin Zayed Road City Centre Mirdif,Levantine,Unknown,predicted,0.999,1,5.0
+src3_145,Churros Cafe,Algeria St Uptown Mirdif Shopping Center,Levantine,Unknown,predicted,0.997,2,5.0
+src3_146,Cinnabon - Mushriff Mall,Mushrif Mall,Levantine,Unknown,predicted,0.638,5,4.6
+src3_147,Circle Cafe,Gate 2,Levantine,Unknown,predicted,0.504,10,4.8
+src3_148,Clap,Annahar Building Floor 8th,Levantine,Unknown,predicted,0.384,4,3.75
+src3_149,Cloud 59,Public Beach,Seafood,Unknown,predicted,0.998,5,4.4
+src3_150,Cocktails Factory,Unknown,Dessert,Unknown,predicted,0.924,4,5.0
+src3_151,Cocteau,Palladium building,Levantine,Unknown,predicted,0.929,5,3.6
+src3_152,Colonel Beer,Bayadir Street,Levantine,Unknown,predicted,0.775,4,2.75
+src3_153,Costa Coffee,Mirdif City Centre,Levantine,Unknown,predicted,0.678,5,4.8
+src3_157,Dar Al Amar,Dam W Zarez,Levantine,Unknown,predicted,0.994,5,5.0
+src3_158,Dar Beirut,Gouraud Street Near Gemmayzeh Police Station,Levantine,Unknown,predicted,0.866,5,5.0
+src3_159,Deli.co,Patriach Howayek St,Levantine,Unknown,predicted,0.906,5,4.2
+src3_160,Delifrance,Uptown Mirdif Uptown Mirdif Mall Algeria St,French,Unknown,predicted,0.407,10,3.4
+src3_161,Deniz Bey Turkish Sweets,60C Street - 35 G,Dessert,Unknown,predicted,0.572,6,4.67
+src3_162,Des Choux Et Des Idees,Sodeco / Abdel Mawla Chaar Street Chaar Building Ground Floor,Dessert,Unknown,predicted,0.995,5,3.2
+src3_164,Doudelice,Main Street,Italian,Unknown,predicted,0.915,6,4.33
+src3_166,Dukkan Falafel,Al Warqa'a 4 Tripoli St,Jewish,Unknown,predicted,1.0,3,3.67
+src3_169,Dunkin' donuts,Damascus road,Fast food,Unknown,predicted,0.839,1,5.0
+src3_170,Dunya Beirut,Damascus,Levantine,Unknown,predicted,0.777,5,3.4
+src3_171,Duo,287 Maarad street,French,Unknown,predicted,0.893,5,3.6
+src3_172,Dxblends,60c Street Mirdif 35,Dessert,Unknown,predicted,0.796,2,5.0
+src3_173,EBS Fayhaa Hall,Beirut Hwy,Levantine,Unknown,predicted,0.965,4,5.0
+src3_174,Eagle,Alalesa Street,Dessert,Unknown,predicted,0.998,1,4.0
+src3_176,El Boutique Hotel,Old City,Levantine,Unknown,predicted,0.419,5,4.2
+src3_177,El Hajj Ali,Achir Daye Street,Levantine,Unknown,predicted,0.974,3,4.33
+src3_178,El Molino Mexican Restaurant,Old Port Houssami bldg,Levantine,Unknown,predicted,0.897,10,1.8
+src3_179,Elie's Yard,1106 Old Souk Road Old Souk,Levantine,Unknown,predicted,0.984,3,5.0
+src3_181,Em Sherif Cafe,Minet El Hosn,Levantine,Unknown,predicted,0.969,5,4.2
+src3_182,Em Sherif Restaurant,Rue Victor Hugo Ashrafieh,Levantine,Unknown,predicted,0.963,5,1.8
+src3_184,Eva Kana,2a 47 Street Mirdif,Levantine,Unknown,predicted,0.988,10,3.8
+src3_187,Faisal Restaurant,3a 20 street Al khabisy,Levantine,Unknown,predicted,1.0,2,3.0
+src3_189,Falafel Abou Rami,Saida,Jewish,Unknown,predicted,1.0,5,4.8
+src3_190,Famous Pastries,City complex street Next to orchid chocolate,Levantine,Unknown,predicted,0.998,1,5.0
+src3_191,Feniqia,Rue Pepe Abed,Levantine,Unknown,predicted,0.997,10,2.6
+src3_193,Fin Faim French Bistro,13 Voie,French,Unknown,predicted,0.715,10,4.6
+src3_194,Fluka Ghassan,Riad Solh Street,Seafood,Unknown,predicted,0.771,1,5.0
+src3_197,Forsan Dubai,23 24B St Mirdif,Levantine,Unknown,predicted,0.622,8,3.75
+src3_199,Francis Restaurant,Near Saint Antonios,Levantine,Unknown,predicted,0.494,4,5.0
+src3_200,Freez - The 77 Valley Branch,Hamdan Bin Zayed Khawaneej Wadi AlAmardi - Khawaneej,Levantine,Unknown,predicted,0.522,2,3.0
+src3_201,Furn Al Barake,Eddeh Road Opposite Petrol Station,Levantine,Unknown,predicted,0.432,1,5.0
+src3_203,Gazebo Restaurant,Ground Level,Levantine,Unknown,predicted,0.974,8,3.25
+src3_205,Georges Maalouf Seafood & Snack,118 Street,Seafood,Unknown,predicted,1.0,5,5.0
+src3_206,German Doner Kebab,38 62B St Mirdif,Levantine,Unknown,predicted,0.999,5,4.0
+src3_207,Gigi,Unknown,Pizza,Unknown,predicted,0.337,5,3.6
+src3_208,Gloria Jean's Coffees,8/2 Tripoli St,Levantine,Unknown,predicted,0.98,4,4.0
+src3_211,Greenhouse Cafeandbar,Eddeh Main Street,Levantine,Unknown,predicted,0.443,2,5.0
+src3_212,Grill house,Gemayzet Street,Levantine,Unknown,predicted,0.665,2,5.0
+src3_214,Grotesque,El Arz,Levantine,Unknown,predicted,0.985,1,5.0
+src3_216,HUSK Beirut,Al Arz Street,Fast food,Unknown,predicted,0.753,5,4.0
+src3_221,Hardee's,Mirdif Mirdif City Centre 1st Flr Emirates Road Mohamed Bin Zayed Road,Fast food,Unknown,predicted,0.728,5,3.0
+src3_222,Hartaaji,Nabih Berri Boulevard,Levantine,Unknown,predicted,0.999,1,5.0
+src3_223,Hatam Restaurant,Al Mizhar 43c St,Levantine,Unknown,predicted,0.999,8,2.75
+src3_224,Haven - The Cabin,Lebanese American University Road Top Hill,Other,Unknown,predicted,0.304,10,4.6
+src3_227,Hilmi's House of Lemonade,902 Street Hilmi's building,Dessert,Unknown,predicted,0.999,3,2.33
+src3_228,Hitchki Mirdif,Unit no FD122A/FD122B City Centre Mirdif,American,Unknown,predicted,0.549,5,5.0
+src3_229,Hometown,Main Street Old Souk Street a1,Levantine,Unknown,predicted,0.776,5,5.0
+src3_230,Ichkhanian Bakery,Rue Hussein Beyhum Zoukak El-Blate,Levantine,Unknown,predicted,0.508,5,4.8
+src3_234,JackieO Beirut,Saifi,Levantine,Unknown,predicted,0.927,5,4.0
+src3_235,Jamaica Blue Arabian Center,Ground Floor,Levantine,Unknown,predicted,0.992,4,5.0
+src3_236,Jammal Restaurant,Old Sea Side Road,Seafood,Unknown,predicted,0.979,5,2.4
+src3_237,Jars & Co,Omar Amin Street,Levantine,Unknown,predicted,0.814,1,5.0
+src3_238,Jessy Juice,Main Street,Dessert,Unknown,predicted,0.999,3,5.0
+src3_239,Jimmy's Shack,Mirdif 37th street Next to Abaya Mall,Fast food,Unknown,predicted,0.972,10,3.6
+src3_240,Jnaynit Farid,Bechara El Khoury,Levantine,Unknown,predicted,0.978,1,3.0
+src3_243,Julia's,Abdel Wahab Inglizi Street,French,Unknown,predicted,0.691,5,4.4
+src3_248,Kabab Mirdef,Mirdif 17c St 62a Mirdif,Levantine,Unknown,predicted,1.0,1,5.0
+src3_250,Kabablaki Grill,Unknown,Levantine,Unknown,predicted,1.0,10,4.6
+src3_251,Kaddoum center,Main Street,Levantine,Unknown,predicted,0.955,10,3.8
+src3_252,Kahloon Restocafe,Jemeizat Street Sour,Levantine,Unknown,predicted,0.995,5,3.2
+src3_253,Kahwet Azmi,1144 Marfaa,Levantine,Unknown,predicted,0.996,4,5.0
+src3_254,Kalila Restaurant,Berytus Park Building,Levantine,Unknown,predicted,0.962,5,4.8
+src3_255,Kami - Japanese,Main road,Levantine,Unknown,predicted,0.571,9,5.0
+src3_256,Kampai,Minet el Hosn Paladium building,American,Unknown,predicted,0.496,5,3.6
+src3_257,Katrina Sweets & Confectionary,Street 47 Al Barajeel Complex,Other,Unknown,predicted,0.496,4,2.0
+src3_258,Katrina Sweets & Confectionery,Airport Road,Levantine,Unknown,predicted,0.863,3,4.0
+src3_260,Khan Jbeil,Jbeil,Levantine,Unknown,predicted,0.996,10,2.6
+src3_261,Khan Jbeil,Unknown,Levantine,Unknown,predicted,0.944,2,4.0
+src3_265,Ksaar,Jbeil - Aannaya Road,Italian,Unknown,predicted,0.998,6,4.33
+src3_266,Ksar Lebanese Diner,Crossroad 13th Avenue,Levantine,Unknown,predicted,0.996,10,3.6
+src3_267,L Bayt Baytak,Maroun Chalfeh St,Levantine,Unknown,predicted,0.999,4,5.0
+src3_268,L'avenue du parc,Sn Ahmad Chawki Street,Levantine,Unknown,predicted,0.97,5,4.8
+src3_269,L'os,Rue Principale,Levantine,Unknown,predicted,0.435,1,1.0
+src3_270,La Bodeguita del Medio,Rue de Damas,Levantine,Unknown,predicted,0.518,5,3.4
+src3_271,La Boussole,289 Rue Clemenceau ESA Business School,Levantine,Unknown,predicted,0.968,1,5.0
+src3_272,La Brioche,Bay Avenue Al Sa'ada St Executive Tower,Levantine,Unknown,predicted,0.861,5,3.6
+src3_273,La Burrateria,Gemmayze,Levantine,Unknown,predicted,1.0,1,5.0
+src3_274,La Casa Di Pasta,Nicolas Rebeiz Al Achkar Building,Italian,Unknown,predicted,0.999,4,5.0
+src3_275,La Marsa Garden restaurant,Rafic Hariri str Seaside road facing the castle,Italian,Unknown,predicted,0.97,5,5.0
+src3_276,La Mezcaleria,Avenue Charles Helou Saifi,Levantine,Unknown,predicted,0.378,5,1.4
+src3_277,La Pirogue,Port Street,Seafood,Unknown,predicted,0.996,6,5.0
+src3_279,La Plaka,Achir Daye Street,Levantine,Unknown,predicted,0.748,5,4.0
+src3_280,La Salle Resto,Alman Road,Levantine,Unknown,predicted,0.998,1,5.0
+src3_281,La Table Hafroun,Al Ramel Street Facing Edde Sands Hotel,Levantine,Unknown,predicted,0.998,10,3.8
+src3_283,La Tavola Beirut,Salim Salam,Italian,Unknown,predicted,0.941,5,3.8
+src3_284,La Verriere - Nicolas Audi,Avenue De l'Independance Achrafieh,Levantine,Unknown,predicted,0.73,1,5.0
+src3_286,Laduree,0 ABC Ashrafieh,Levantine,Unknown,predicted,1.0,1,5.0
+src3_287,Lakkis Farm Restaurant - Batroun,Sea Side Rd,Levantine,Unknown,predicted,0.888,5,2.0
+src3_290,Le Chatel,Cedars,Levantine,Unknown,predicted,0.998,6,3.67
+src3_291,Le Gastronome,Next To Lau,Italian,Unknown,predicted,0.501,4,5.0
+src3_292,Le Grand Bleu Restaurant,Unknown,Levantine,Unknown,predicted,0.984,4,5.0
+src3_294,Le Marin,Bahsa Street,Levantine,Unknown,predicted,0.958,5,2.4
+src3_296,Le Phenicien,Port De Tyr,Seafood,Unknown,predicted,0.985,5,4.8
+src3_297,Le Professeur,Mar Elias Street,Levantine,Unknown,predicted,1.0,5,4.0
+src3_298,Le Relais de l'Entrecote,Abed Al Wahab Str Ashrafieh,French,Unknown,predicted,0.496,5,2.8
+src3_299,Le Sushi Bar,New Starco Building,Levantine,Unknown,predicted,0.679,5,3.2
+src3_300,Le Trottoir de Paloma,Pasteur Street,American,Unknown,predicted,0.554,5,3.4
+src3_301,Lea Cafe,Mizhar 1,Levantine,Unknown,predicted,0.894,2,5.0
+src3_302,Lemonade Chahine,Centre Saint Rock,Dessert,Unknown,predicted,0.935,3,4.0
+src3_303,Lemonade Chahine,Sea Side Rd,Dessert,Unknown,predicted,1.0,2,5.0
+src3_304,Leopold's of London Mirdif,38 26 B Street Mirdiff Park Center,Levantine,Unknown,predicted,0.628,5,4.2
+src3_305,Lime Thyme,47th St Mirdif Mall,Seafood,Unknown,predicted,0.987,1,1.0
+src3_307,Liza,Doumani street,Levantine,Unknown,predicted,0.864,3,5.0
+src3_308,Locanda - A la Granda,Old Souk,American,Unknown,predicted,0.953,10,2.6
+src3_309,Loris Restaurant,Pasteur Street,Levantine,Unknown,predicted,0.998,4,5.0
+src3_310,Love Mhshy,Algeria Street,Levantine,Unknown,predicted,0.991,2,5.0
+src3_311,Lulu Al Bastakyah Al Kabab Al Khas,Al Warqa 4 Near Grand Service Station,Levantine,Unknown,predicted,0.962,1,1.0
+src3_312,Luna's Kitchen,Tannoukhiyen St,Levantine,Unknown,predicted,0.989,2,4.0
+src3_313,MASA Restaurant,Arz Street Inside Samar Resort,Levantine,Unknown,predicted,0.78,10,4.0
+src3_314,MRKT Beirut Souks,WG23+5QC,Dessert,Unknown,predicted,0.942,1,3.0
+src3_315,Machos,Ashir el Dayeh Street,Levantine,Unknown,predicted,0.816,2,5.0
+src3_316,Maison M,Mar Mansour Street,Levantine,Unknown,predicted,0.828,5,3.0
+src3_318,Malibou,Saifi Village,Levantine,Unknown,predicted,0.995,1,4.0
+src3_321,Mawood Cafeteria,8 41B St Al Muraqqabat,Levantine,Unknown,predicted,0.969,2,4.0
+src3_322,McDonald's,Al Warqa'a 4 Tripoli St,American,Unknown,predicted,0.665,5,3.0
+src3_323,McDonald's,2 Al Khawaneej Rd Arabian Center,Levantine,Unknown,predicted,0.965,1,3.0
+src3_326,Menagerie,Mirdif 35 Mall,Levantine,Unknown,predicted,0.774,10,4.0
+src3_327,Merchak Cafe,Cheikh Mrah Street,Levantine,Unknown,predicted,0.943,5,3.2
+src3_328,Metro Saida,Saida Saida,Levantine,Unknown,predicted,0.986,1,5.0
+src3_329,Miami Sea View,Ouzai Main Road heading to khalde next to Gallery Diab,Dessert,Unknown,predicted,0.433,1,5.0
+src3_330,Min Tabkhetna,Unknown,Levantine,Unknown,predicted,0.996,5,4.8
+src3_331,Mini Guette,Salim Slam,Levantine,Unknown,predicted,0.994,4,4.0
+src3_332,Minos,Mina,Seafood,Unknown,predicted,0.947,5,4.8
+src3_333,Minour Kitchen,51 Beirut Saida Hwy,Levantine,Unknown,predicted,0.999,1,5.0
+src3_334,Mirdif Fish & Chips,Mirdif 26b St 39a Mirdif,Seafood,Unknown,predicted,0.618,10,2.8
+src3_335,Mon Maki A Moi,Main Street,Levantine,Unknown,predicted,0.607,10,2.8
+src3_337,Moodz,Gefinor Rotana,Other,Unknown,predicted,0.755,5,4.2
+src3_338,Moro Resto Cafe,Moro Center Bramiyeh,Levantine,Unknown,predicted,0.998,1,5.0
+src3_342,Mybc,Uptown Mirdiff,Levantine,Unknown,predicted,0.998,1,3.0
+src3_343,Nakhle Al Sayad,El Mina,Seafood,Unknown,predicted,1.0,4,4.75
+src3_345,Naranj Cafe,Roucheid El Dahdah,Levantine,Unknown,predicted,0.954,1,5.0
+src3_346,New Indo-Lanka Restaurant,C.I.T. Bldg.,Levantine,Unknown,predicted,0.967,5,4.0
+src3_347,New York City Pizzeria,Sea Side Road After Solemar Resort,Pizza,Unknown,predicted,0.463,3,4.0
+src3_348,NewYorker Cup,Jbeil,American,Unknown,predicted,0.41,4,4.0
+src3_349,Newtown Coffee - Specialty Roasters,Riad El Solh St Facing Mina central and Max Department Store,Other,Unknown,predicted,0.871,3,3.67
+src3_350,Nyf,3 21 St Oud Metha,American,Unknown,predicted,0.515,10,5.0
+src3_351,O Glacee,Thoum Seaside Road,Seafood,Unknown,predicted,1.0,5,4.8
+src3_352,O Marin,Seaside Road Facing Casino du Liban,Levantine,Unknown,predicted,0.999,4,5.0
+src3_354,OSOM Organic shop & Cafe,Voie 13,Levantine,Unknown,predicted,0.895,6,5.0
+src3_356,Ocean,Costal Road,Levantine,Unknown,predicted,0.642,1,4.0
+src3_358,Ohannes,Unknown,Levantine,Unknown,predicted,1.0,5,3.4
+src3_362,Olive Garden Restaurant,Gefinor Rotana,Levantine,Unknown,predicted,0.598,5,4.6
+src3_364,Oregano Restaurant,Sports Society Mall,Italian,Unknown,predicted,0.664,10,5.0
+src3_366,Ouma Sushi Restaurant,47th St - Mirdif Al Barajeel Oasis Complex,Levantine,Unknown,predicted,0.941,3,5.0
+src3_368,Oyster's Seafood Bar,13 Mina Street,Levantine,Unknown,predicted,0.995,4,3.0
+src3_369,PZZA.CO,Patriach Howayek St,Italian,Unknown,predicted,1.0,5,4.8
+src3_370,Pablo Escobar,Sea Side Rd,Levantine,Unknown,predicted,0.496,2,4.0
+src3_372,Papa John's,Tripoli Street,Levantine,Unknown,predicted,0.487,1,4.0
+src3_374,Papa Murphy's,Tripoli Street Grant Service Station,Pizza,Unknown,predicted,0.962,5,3.6
+src3_375,Papaya,Achir El Daya Street Dam West Farez,Dessert,Unknown,predicted,1.0,5,4.2
+src3_376,Pasta di Casa,Jumblatt road off Clemenceau Street Hamra,Italian,Unknown,predicted,1.0,5,3.8
+src3_377,Patisserie Kanaan,Etoile Place Awaly Bridge,Dessert,Unknown,predicted,0.998,5,3.6
+src3_379,Patisserie RIM,Main Street,Dessert,Unknown,predicted,1.0,4,5.0
+src3_380,Patisserie Zeina,Rue Sanayeh R. Marry Edde,Dessert,Unknown,predicted,0.727,5,3.8
+src3_381,Pearl Island Restaurant,Unknown,Levantine,Unknown,predicted,0.902,10,2.6
+src3_385,Pre Beirut,Miele Building,Levantine,Unknown,predicted,0.957,5,1.6
+src3_386,Pronto,Tripoli Street,Levantine,Unknown,predicted,0.768,1,4.0
+src3_387,Provincia Ristorante Italiano,Unknown,Levantine,Unknown,predicted,0.762,4,4.0
+src3_388,Punto Alto,Ras Maska,Italian,Unknown,predicted,0.843,5,3.0
+src3_389,Puranmal,9 60A St Al Souq,Dessert,Unknown,predicted,0.846,10,3.6
+src3_391,Q Urban Grill,HaretHreik- Hadi Nasralla Road Al Qaem Street,American,Unknown,predicted,0.543,2,4.5
+src3_392,Rachad Patisserie Et Glaces 1929,Independence Street Malla,Dessert,Unknown,predicted,1.0,2,4.0
+src3_393,Rafaat Hallab 1881,Tall Street,Dessert,Unknown,predicted,0.972,4,2.75
+src3_395,Ramen-Ya,Gemayze Gouraud Street,Levantine,Unknown,predicted,0.928,5,4.6
+src3_396,Rassif Cafe,Main Street Dam W Farz,Levantine,Unknown,predicted,0.834,3,3.33
+src3_397,Rawand  Cuisine,Achier El Daya,Levantine,Unknown,predicted,0.97,5,4.0
+src3_399,Red Buffalo Steakhouse,Hazmieh Main road,American,Unknown,predicted,0.237,5,2.8
+src3_400,Redwood,Port Entrance,Dessert,Unknown,predicted,0.893,1,5.0
+src3_401,Reflect Pub,Main Old Souk road Old Souk,Other,Unknown,predicted,0.318,2,5.0
+src3_403,River Rock Restaurant,Al-Dawalib Main Street,Levantine,Unknown,predicted,0.999,8,5.0
+src3_404,Roadster Diner,Sea Side Road,American,Unknown,predicted,0.43,4,3.0
+src3_405,Roadster diner,Charles Malek Avenue,Levantine,Unknown,predicted,0.982,5,1.8
+src3_406,"Romeo Lane, Dubai",Pullman Hotel Dubai - Floor 2 Drive Marasi Dr - Business Bay - Dubai - United Arab Emirates,American,Unknown,predicted,0.539,10,5.0
+src3_407,Root 829,Hasroun,Levantine,Unknown,predicted,1.0,2,5.0
+src3_410,Rue 30,Unknown,Other,Unknown,predicted,0.817,8,4.5
+src3_411,Sa7sa7,Unknown,Levantine,Unknown,predicted,0.851,1,3.0
+src3_412,Saida Rest House,Old Saidon Souk Next To The Sea Castle,Levantine,Unknown,predicted,0.916,5,3.6
+src3_414,Salinas,Corniche,Seafood,Unknown,predicted,0.785,5,3.2
+src3_415,Salud,El Sultan Ibrahim Street Jal El Dib,Levantine,Unknown,predicted,0.878,5,4.2
+src3_416,Samket AmcHit,Seaside Road Jbeil District,Seafood,Unknown,predicted,0.999,8,4.0
+src3_418,Sanawbara,Haret Hraik,Levantine,Unknown,predicted,0.947,1,5.0
+src3_419,Sandwich Karki,Rue Daaboul,Levantine,Unknown,predicted,0.993,3,3.67
+src3_420,Sapori E Vini,Mraba'a Street,Italian,Unknown,predicted,0.935,10,5.0
+src3_421,Sett Alsham,Awqaf Building,Levantine,Unknown,predicted,0.99,2,4.0
+src3_423,Shater Hassan Palace,Unknown,Levantine,Unknown,predicted,0.998,1,5.0
+src3_424,Shawarma w Saj,Iliya Saida,American,Unknown,predicted,0.537,5,4.6
+src3_426,Shiraz Kabab Khas,47 Street,Levantine,Unknown,predicted,0.999,3,4.0
+src3_427,Sicilia,Rue Nabih Berri,Italian,Unknown,predicted,0.864,5,3.4
+src3_428,Silver Shore,Al-Mina,Seafood,Unknown,predicted,1.0,5,4.2
+src3_429,Simit SarayI,Unknown,Levantine,Unknown,predicted,0.652,5,4.0
+src3_431,Skirt,Assurex Bldg,Dessert,Unknown,predicted,0.448,4,4.5
+src3_432,Smat,47th St Al Barajeel Complex,American,Unknown,predicted,0.906,5,4.4
+src3_434,Society,Saifi Suites Hotel,American,Unknown,predicted,0.435,4,2.5
+src3_436,Soho Premium Street Food,Al Manar Tripol,Levantine,Unknown,predicted,0.645,1,5.0
+src3_437,Somar,Main Street Mar Elias,Levantine,Unknown,predicted,1.0,2,2.5
+src3_438,Spice Hut,39 26B St Mirdif,Levantine,Unknown,predicted,0.902,5,4.0
+src3_439,Spicy No7,Pasteur St,Levantine,Unknown,predicted,0.822,5,4.8
+src3_440,Square cafe,Beshara El Khoury,Levantine,Unknown,predicted,0.967,5,4.4
+src3_441,Starbucks,San Stefano Resort,Levantine,Unknown,predicted,0.896,1,5.0
+src3_443,Starbucks,City Centre Mirdif,Dessert,Unknown,predicted,0.95,5,3.0
+src3_446,Starbucks,Unknown,Dessert,Unknown,predicted,0.533,5,2.2
+src3_447,Starbucks,Mastita - Drive Thru,Dessert,Unknown,predicted,0.362,2,5.0
+src3_448,Starbucks,Arabian Centre Plot 262-3104,Levantine,Unknown,predicted,0.963,2,5.0
+src3_453,Status Kitchen,31 24 B St,American,Unknown,predicted,0.492,4,5.0
+src3_454,Stem,38 Rue Monot,Levantine,Unknown,predicted,0.605,5,4.0
+src3_455,Stephanie Cafe,Anthonio_s center .. Next to Vee Coffee Shop Resto Cafe,Italian,Unknown,predicted,0.454,10,5.0
+src3_456,Stephanie Cafe,Unknown,Italian,Unknown,predicted,0.518,10,5.0
+src3_459,Sultan Al Mina,Unknown,Seafood,Unknown,predicted,0.92,10,1.6
+src3_461,Surge Coffee Roasters,26B Street,Levantine,Unknown,predicted,0.614,5,4.4
+src3_462,Sushi Bento,Saida,Levantine,Unknown,predicted,0.782,5,5.0
+src3_463,Sushi Nations Mirdif,Algeria - 47th Street,Levantine,Unknown,predicted,0.574,8,3.0
+src3_464,Swiss Butter,Gemmayzeh Gouraud,American,Unknown,predicted,0.76,5,3.2
+src3_465,Swiss Butter,Bahsa,Levantine,Unknown,predicted,0.721,5,4.0
+src3_466,Taiga Cafe,Unknown,Levantine,Unknown,predicted,0.845,5,4.2
+src3_467,Tappo,Gemayze Rue Pasteur,Italian,Unknown,predicted,0.281,5,5.0
+src3_468,Tartufo- passion kitchen,Shehadeh Street,Italian,Unknown,predicted,0.994,1,4.0
+src3_469,Tavolino Pub,Al Fanar Street,Italian,Unknown,predicted,0.287,5,4.4
+src3_470,Tawlet Saida,Saida Seaside Road,Levantine,Unknown,predicted,0.91,5,4.4
+src3_471,Terghale,Abdel Aziz Street,Levantine,Unknown,predicted,0.972,5,5.0
+src3_472,Teta's Mezza House,Unknown,Levantine,Unknown,predicted,0.993,1,5.0
+src3_474,Texas Fire Grill,Arabian Center 383 Al Khawaneej St - Al Mizhar,Levantine,Unknown,predicted,0.735,4,4.5
+src3_475,The Backburner,Ariss & Kanafani Street Saifi Village,Levantine,Unknown,predicted,0.998,5,3.4
+src3_476,The Broad,LAU road - Top Hill,Fast food,Unknown,predicted,0.416,6,4.0
+src3_478,The Glow Paradise,Gouraud St The Glow Paradise,Other,Unknown,predicted,0.898,5,5.0
+src3_480,The Lebanese Bakery,Salim Bustros Street Tabaris,Levantine,Unknown,predicted,0.717,5,3.6
+src3_483,The Sailor Woman,Yaacoub Labban Street Facing Jesuit's School,Levantine,Unknown,predicted,0.778,1,5.0
+src3_485,Tony's,Old Town Steps Accessible From The Marina Road. Blue Windows,Seafood,Unknown,predicted,0.525,5,4.0
+src3_486,Tortilla - The 77 Valley,The 77 Valley,Levantine,Unknown,predicted,0.993,1,5.0
+src3_488,Totori,513 Clemenceau,Levantine,Unknown,predicted,0.967,5,5.0
+src3_491,Tsunami,Abou Rizk Building,Levantine,Unknown,predicted,0.827,5,3.0
+src3_494,Tyros Resort,Sour Main Road,Levantine,Unknown,predicted,0.766,4,4.75
+src3_495,Ummi,Unknown,Levantine,Unknown,predicted,1.0,5,4.0
+src3_496,Un Petit Gato,37 Rue Vieux Port,Dessert,Unknown,predicted,0.995,4,5.0
+src3_497,Una Pizza,32nd Street,Pizza,Unknown,predicted,0.455,5,4.4
+src3_498,Uptown Mirdif Pizza,Mirdif,Pizza,Unknown,predicted,0.429,10,4.4
+src3_502,YAM Seafood Resto,Nabih Berri Street below Shawatina Restaurant,Seafood,Unknown,predicted,0.991,5,4.0
+src3_504,YAZZ Lounge & Garden,Unknown,Other,Unknown,predicted,0.304,1,5.0
+src3_506,Yamanote Atelier Mirdif Hills,47/78 Street Mirdif Hills,Levantine,Unknown,predicted,0.955,1,5.0
+src3_507,Yasamin By The Mediterranean,Street 14 Old Souks,Levantine,Unknown,predicted,0.372,3,4.0
+src3_509,Yoko,Rafic Salloum street,Levantine,Unknown,predicted,0.998,1,5.0
+src3_510,Zaatar W Zeit,Zaitunay Bay,Levantine,Unknown,predicted,0.906,1,5.0
+src3_514,Zawat Restaurant,Castle of Saida,Levantine,Unknown,predicted,0.995,4,1.5
+src3_515,Zaytouna Garden,Seaside Road,Levantine,Unknown,predicted,0.959,2,5.0
+src3_516,Zeeri Beach House,Unknown,Other,Unknown,predicted,0.756,2,5.0
+src3_518,Zinc Coffee Lounge,Sport Society Mall Mirdif,American,Unknown,predicted,0.576,1,5.0
+src3_519,awtar,Unknown,Levantine,Unknown,predicted,0.901,5,3.6
+src3_520,balthus,Ghandour Building,French,Unknown,predicted,0.513,5,4.2
+src3_521,eCafe,Edde Yard Old Souk,Levantine,Unknown,predicted,0.538,10,3.6
+src3_522,souksixteen,Old Souk,Levantine,Unknown,predicted,0.976,4,5.0
