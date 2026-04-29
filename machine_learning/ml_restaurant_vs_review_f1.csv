@@ -1,11 +1,11 @@
 cuisine,f1_review_level,f1_restaurant_level
-American,0.531,0.531
-Dessert,0.812,0.812
-Fast food,0.286,0.286
-French,0.455,0.455
-Italian,0.462,0.462
-Jewish,0.769,0.769
-Levantine,0.76,0.76
-Other,0.5,0.5
-Pizza,0.444,0.444
-Seafood,0.526,0.526
+American,0.394,0.394
+Dessert,0.742,0.742
+Fast food,0.345,0.345
+French,0.25,0.25
+Italian,0.581,0.581
+Jewish,0.933,0.933
+Levantine,0.741,0.741
+Other,0.353,0.353
+Pizza,0.552,0.552
+Seafood,0.696,0.696

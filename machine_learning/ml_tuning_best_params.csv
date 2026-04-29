@@ -1,5 +1,4 @@
 param,best_value
-clf__learning_rate,0.1
-clf__n_estimators,400.0
-clf__num_leaves,63.0
-tfidf__word__max_features,15000.0
+clf__C,3.0
+tfidf__word__max_features,8000.0
+tfidf__word__min_df,4.0
