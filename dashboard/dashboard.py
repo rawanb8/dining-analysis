@@ -333,10 +333,7 @@ elif selected_section == "EDA":
         "Avg Rating",
         f"{avg_rating:.2f}" if pd.notna(avg_rating) else "—"
     )
-    # Count reviews from filtered restaurants
-    filtered_restaurant_ids = df_eda['restaurant_id'].unique()
-    review_count = len(df_reviews[df_reviews['restaurant_id'].isin(filtered_restaurant_ids)])
-    col3.metric("Total Reviews", f"{review_count:,}" if len(df_eda) else "—")
+    col3.metric("Total Reviews", f"{int(df_eda['review_count_total'].sum()):,}" if len(df_eda) else "—")
     col4.metric("Areas", df_eda[df_eda['area'] != 'Unknown']['area'].nunique())
     col5.metric("Cuisine Types", df_eda[df_eda['cuisine_primary'] != 'Unknown']['cuisine_primary'].nunique())
 
@@ -345,8 +342,8 @@ elif selected_section == "EDA":
     if df_eda.empty:
         st.warning("No restaurants match the selected filters.")
     else:
-        #  Cuisine Distribution
-        st.subheader(" Cuisine Distribution (Top 10 — Excluding Unknown)")
+        # 1️⃣ Cuisine Distribution
+        st.subheader("1️⃣ Cuisine Distribution (Top 10 — Excluding Unknown)")
 
         if eda_cuisine != "All Cuisines":
             st.info(f"Showing only **{eda_cuisine}** restaurants — cuisine distribution not applicable.")
@@ -374,8 +371,8 @@ elif selected_section == "EDA":
                 fig1.update_layout(xaxis_tickangle=-45)
                 st.plotly_chart(fig1, use_container_width=True)
 
-        # Rating Distribution
-        st.subheader(" Rating Distribution")
+        # 2️⃣ Rating Distribution
+        st.subheader("2️⃣ Rating Distribution")
         rating_series = pd.to_numeric(df_eda["rating_overall"], errors="coerce").dropna()
 
         if rating_series.empty:
@@ -391,8 +388,8 @@ elif selected_section == "EDA":
             )
             st.plotly_chart(fig2, use_container_width=True)
 
-        # Price Category
-        st.subheader(" Price Category Breakdown (Excluding Unknown)")
+        # 3️⃣ Price Category
+        st.subheader("3️⃣ Price Category Breakdown (Excluding Unknown)")
         price_counts = df_eda[df_eda["price_category"] != "Unknown"]["price_category"].value_counts()
         unknown_price_count = (df_eda["price_category"] == "Unknown").sum()
 
@@ -408,7 +405,7 @@ elif selected_section == "EDA":
 
         st.write("---")
 
-        st.subheader(" Price vs Rating")
+        st.subheader("💰 Price vs Rating")
 
         price_rating_df = df_eda.copy()
         price_rating_df["rating_overall"] = pd.to_numeric(price_rating_df["rating_overall"], errors="coerce")
@@ -433,7 +430,7 @@ elif selected_section == "EDA":
             st.plotly_chart(fig, use_container_width=True)
 
         st.write("---")
-        st.subheader(" Top Rated Restaurants")
+        st.subheader("🏆 Top Rated Restaurants")
 
         top_rated_clean = df_eda.copy()
         top_rated_clean["rating_overall"] = pd.to_numeric(top_rated_clean["rating_overall"], errors="coerce")
@@ -450,7 +447,7 @@ elif selected_section == "EDA":
 
         st.write("---")
 
-        st.subheader(" Lowest Rated Restaurants")
+        st.subheader("⚠️ Lowest Rated Restaurants")
 
         worst_rated_clean = df_eda.copy()
         worst_rated_clean["rating_overall"] = pd.to_numeric(worst_rated_clean["rating_overall"], errors="coerce")
@@ -466,8 +463,8 @@ elif selected_section == "EDA":
             st.dataframe(worst_rated, use_container_width=True)
 
         st.write("---")
-        #  Restaurants by Area
-        st.subheader(" Restaurants by Area (Top 10 — Excluding Unknown)")
+        # 4️⃣ Restaurants by Area
+        st.subheader("4️⃣ Restaurants by Area (Top 10 — Excluding Unknown)")
         area_counts = df_eda[df_eda["area"] != "Unknown"]["area"].value_counts().head(10)
         unknown_area_count = (df_eda["area"] == "Unknown").sum()
 
@@ -486,10 +483,27 @@ elif selected_section == "EDA":
 
         # 5️⃣ Review Count Distribution
         st.subheader("5️⃣ Review Count Distribution")
-        if len(df_eda):
-            fig5 = px.histogram(df_eda, x="review_count_total", nbins=30,
-                                title="Distribution of Review Counts",
-                                labels={"review_count_total": "Number of Reviews"})
+
+        review_hist_df = df_eda.copy()
+        review_hist_df["review_count_total"] = pd.to_numeric(
+            review_hist_df["review_count_total"], errors="coerce"
+        )
+        review_hist_df = review_hist_df.dropna(subset=["review_count_total"])
+        #review_hist_df = review_hist_df[review_hist_df["review_count_total"] > 0]
+
+        if review_hist_df.empty:
+            st.info("No valid review count data to display for the selected filters.")
+        else:
+            review_hist_df["log_review_count"] = np.log10(review_hist_df["review_count_total"])
+
+            fig5 = px.histogram(
+                review_hist_df,
+                x="log_review_count",
+                nbins=30,
+                title="Distribution of Review Counts (Log Scale)",
+                labels={"log_review_count": "log10(Number of Reviews)"}
+            )
+
             fig5.update_layout(yaxis_title="Number of Restaurants")
 
             fig5.update_xaxes(
@@ -497,6 +511,7 @@ elif selected_section == "EDA":
                 ticktext=["1", "10", "100", "1k", "10k"]
             )
 
+            st.plotly_chart(fig5, use_container_width=True)
         # 6️⃣ Top 10 Most Reviewed
         st.subheader("6️⃣ Top 10 Most Reviewed Restaurants")
         if len(df_eda):
@@ -508,8 +523,8 @@ elif selected_section == "EDA":
 
         st.write("---")
 
-        # Rating vs Review Count
-        st.subheader(" Rating vs Review Count")
+        # 7️⃣ Rating vs Review Count
+        st.subheader("📈 Rating vs Review Count")
 
         # Clean data
         scatter_df = df_eda.copy()
@@ -539,7 +554,7 @@ elif selected_section == "EDA":
             fig.update_xaxes(type="log")  # optional but nice
             st.plotly_chart(fig, use_container_width=True)
 
-        #  Hidden Gems
+        # 8️⃣ Hidden Gems
         st.subheader(":material/diamond: Hidden Gems (Rating ≥ 4.5, Reviews < 50)")
         hidden = df_eda[
             (df_eda["rating_overall"] >= 4.5) & (df_eda["review_count_total"] < 50)
@@ -551,7 +566,7 @@ elif selected_section == "EDA":
 
         st.write("---")
 
-        # Density vs Quality by Area
+        # 9️⃣ Density vs Quality by Area
         st.subheader(":material/bubble_chart: Density vs Quality by Area")
 
         df_geo_eda = df_eda[df_eda["area"] != "Unknown"].copy()
@@ -591,7 +606,7 @@ elif selected_section == "EDA":
                 fig_bubble.update_traces(textposition="top center")
                 st.plotly_chart(fig_bubble, use_container_width=True)
 
-        # Best Areas Combined Score
+        # 🏆 Best Areas Combined Score
         st.subheader(":material/emoji_events: Best Areas Overall (Combined Score)")
         if area_stats.empty:
             st.info("No area data available for the selected filters.")
