@@ -42,8 +42,8 @@
       "weighted_f1": 0.5422
     },
     "Random Forest": {
-      "accuracy": 0.5714,
-      "weighted_f1": 0.5208
+      "accuracy": 0.5893,
+      "weighted_f1": 0.5836
     },
     "LightGBM": {
       "accuracy": 0.6,
