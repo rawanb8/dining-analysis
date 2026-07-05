@@ -1,11 +1,11 @@
 strategy,fold,f1_score
-Baseline (No Balancing),1,0.5525
+Baseline (No Balancing),1,0.5461
 Baseline (No Balancing),2,0.5757
-Baseline (No Balancing),3,0.5532
+Baseline (No Balancing),3,0.553
 Baseline (No Balancing),4,0.5453
 Baseline (No Balancing),5,0.5554
-Class Weights,1,0.6629
+Class Weights,1,0.6639
 Class Weights,2,0.6928
-Class Weights,3,0.6275
+Class Weights,3,0.6225
 Class Weights,4,0.6537
 Class Weights,5,0.6052
